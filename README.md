@@ -9,6 +9,15 @@
 [![PkgEval](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/P/PhyloTraits.svg)](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/P/PhyloTraits.html)
 [![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
+[Julia](http://julialang.org/) package for the analysis of trait evolution along
+a phylogeny, including phylogenetic networks. It depends on utilities from
+[PhyloNetworks](https://github.com/JuliaPhylo/PhyloNetworks.jl).
+
+
+> [!NOTE]
+> Much of this package was formerly part of PhyloNetworks v0.16.4 (and prior).
+> PhyloNetworks v0.17 will be stripped of functions for trait evolution.
+
 ## Citing
 
 See [`CITATION.bib`](CITATION.bib) for the relevant reference(s).
