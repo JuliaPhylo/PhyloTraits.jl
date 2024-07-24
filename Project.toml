@@ -1,0 +1,7 @@
+name = "PhyloTraits"
+uuid = "bce24f4f-6725-4ba4-a77f-2b043c8e33c5"
+authors = ["Cecile Ane <cecileane@users.noreply.github.com>", "Paul Bastide <pbastide@users.noreply.github.com>", "and contributors"]
+version = "0.1.0-DEV"
+
+[compat]
+julia = "1.2"
