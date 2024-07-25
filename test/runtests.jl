@@ -14,7 +14,6 @@ end
     include("test_lm.jl")
     include("test_lm_tree.jl")
     include("test_lm_withinspecies.jl")
-    include("test_vcv_descendence.jl")
     include("test_traits_discrete.jl")
     include("test_simulate.jl")
     include("test_simulate_mbd.jl")

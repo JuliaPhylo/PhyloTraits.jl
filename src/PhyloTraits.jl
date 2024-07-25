@@ -41,8 +41,6 @@ export phylolm, PhyloNetworkLinearModel
 export simulate, TraitSimulation
 export ParamsBM, ParamsMultiBM
 export ShiftNet, shiftHybrid, getShiftEdgeNumber, getShiftValue
-export sharedPathMatrix
-export descendenceMatrix
 export regressorShift, regressorHybrid
 export ancestralStateReconstruction, ReconstructedStates
 export sigma2_phylo, sigma2_within
@@ -50,7 +48,6 @@ export mu_phylo
 export lambda_estim
 export expectations, expectationsPlot
 export predint, predintPlot
-export vcv
 # discrete traits
 export parsimonySoftwired
 export parsimonyGF

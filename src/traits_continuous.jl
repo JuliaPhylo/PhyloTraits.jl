@@ -8,365 +8,6 @@ const xAbsTr = 1e-10
 const xRelTr = 1e-10
 
 """
-    MatrixTopologicalOrder
-
-Matrix associated to an [`HybridNetwork`](@ref) in which rows/columns
-correspond to nodes in the network, sorted in topological order.
-
-The following functions and extractors can be applied to it: [`tipLabels`](@ref), `obj[:Tips]`, `obj[:InternalNodes]`, `obj[:TipsNodes]` (see documentation for function [`getindex(::MatrixTopologicalOrder, ::Symbol)`](@ref)).
-
-Functions [`sharedPathMatrix`](@ref) and [`simulate`](@ref) return objects of this type.
-
-The `MatrixTopologicalOrder` object has fields: `V`, `nodeNumbersTopOrder`, `internalNodeNumbers`, `tipNumbers`, `tipNames`, `indexation`.
-Type in "?MatrixTopologicalOrder.field" to get documentation on a specific field.
-"""
-struct MatrixTopologicalOrder
-    "V: the matrix per se"
-    V::Matrix # Matrix in itself
-    "nodeNumbersTopOrder: vector of nodes numbers in the topological order, used for the matrix"
-    nodeNumbersTopOrder::Vector{Int} # Vector of nodes numbers for ordering of the matrix
-    "internalNodeNumbers: vector of internal nodes number, in the original net order"
-    internalNodeNumbers::Vector{Int} # Internal nodes numbers (original net order)
-    "tipNumbers: vector of tips numbers, in the origial net order"
-    tipNumbers::Vector{Int} # Tips numbers (original net order)
-    "tipNames: vector of tips names, in the original net order"
-    tipNames::Vector # Tips Names (original net order)
-    """
-    indexation: a string giving the type of matrix `V`:
-    - `:r`: rows only are indexed by the nodes of the network
-    - `:c`: columns only are indexed by the nodes of the network
-    - `:b`: both rows and columns are indexed by the nodes of the network
-    """
-    indexation::Symbol # Are rows (:r), columns (:c) or both (:b) indexed by nodes numbers in the matrix ?
-end
-
-function Base.show(io::IO, obj::MatrixTopologicalOrder)
-    println(io, "$(typeof(obj)):\n$(obj.V)")
-end
-
-# docstring already in descriptive.jl
-function tipLabels(obj::MatrixTopologicalOrder)
-    return obj.tipNames
-end
-
-"""
-    recursionPreOrder(
-        network::HybridNetwork,
-        checkpreorder::Bool,
-        init::Function,
-        root::Function,
-        tree_node::Function,
-        hybrid_node::Function,
-        indexation::Symbol,
-        parameters...)
-
-Traverse the nodes in `net` in topological order: `net.nodes_changed`
-(after constructing this vector if `checkpreorder` is true), then
-return a `MatrixTopologicalOrder` object whose field `.M` contains the
-matrix built from the recursion.
-"""
-function PhyloNetworks.recursionPreOrder(
-    net::HybridNetwork,
-    checkpreorder::Bool,
-    init::Function,
-    updateRoot::Function,
-    updateTree::Function,
-    updateHybrid::Function,
-    indexation::Symbol,
-    params...
-)
-    net.isRooted || error("net needs to be rooted for a pre-oreder recursion")
-    checkpreorder && preorder!(net)
-    M = recursionPreOrder(net.nodes_changed, init, updateRoot, updateTree, updateHybrid, params)
-    # Find numbers of internal nodes
-    nNodes = [n.number for n in net.node]
-    nleaf = [n.number for n in net.leaf]
-    deleteat!(nNodes, indexin(nleaf, nNodes))
-    MatrixTopologicalOrder(M, [n.number for n in net.nodes_changed], nNodes, nleaf, [n.name for n in net.leaf], indexation)
-end
-
-## Same, but in post order (tips to root). see docstring below
-"""
-    recursionPostOrder(
-        net::HybridNetwork,
-        checkpreorder::Bool,
-        init::Function,
-        tip::Function,
-        node::Function,
-        indexation::Symbol,
-        parameters...)
-
-Same as [`PhyloTraits.recursionPreOrder`](@ref) but traversing the network in
-post-order (from the tips to the root),
-using a function at the tips instead of the root.
-"""
-function PhyloNetworks.recursionPostOrder(
-    net::HybridNetwork,
-    checkpreorder::Bool,
-    init::Function,
-    updateTip::Function,
-    updateNode::Function,
-    indexation::Symbol,
-    params...
-)
-    net.isRooted || error("net needs to be rooted for a post-order recursion")
-    checkpreorder && preorder!(net)
-    M = recursionPostOrder(net.nodes_changed, init, updateTip, updateNode, params)
-    nNodes = [n.number for n in net.node]
-    nleaf = [n.number for n in net.leaf]
-    deleteat!(nNodes, indexin(nleaf, nNodes)) # retain internal nodes only
-    MatrixTopologicalOrder(M, [n.number for n in net.nodes_changed], nNodes, nleaf, [n.name for n in net.leaf], indexation)
-end
-
-# Extract the right part of a matrix in topological order
-# !! Extract sub-matrices in the original net nodes numbers !!
-"""
-    getindex(obj, d,[ indTips, nonmissing])
-
-Getting submatrices of an object of type [`MatrixTopologicalOrder`](@ref).
-
-# Arguments
-* `obj::MatrixTopologicalOrder`: the matrix from which to extract.
-* `d::Symbol`: a symbol precising which sub-matrix to extract. Can be:
-  * `:Tips` columns and/or rows corresponding to the tips
-  * `:InternalNodes` columns and/or rows corresponding to the internal nodes
-    Includes tips not listed in `indTips` or missing data according to `nonmissing`.
-  * `:TipsNodes` columns corresponding to internal nodes, and row to tips (works only is indexation="b")
-* `indTips::Vector{Int}`: optional argument precising a specific order for the tips (internal use).
-* `nonmissing::BitArray{1}`: optional argument saying which tips have data (internal use).
-   Tips with missing data are treated as internal nodes.
-"""
-function Base.getindex(obj::MatrixTopologicalOrder,
-                       d::Symbol,
-                       indTips=collect(1:length(obj.tipNumbers))::Vector{Int},
-                       nonmissing=trues(length(obj.tipNumbers))::BitArray{1})
-    tipnums = obj.tipNumbers[indTips][nonmissing]
-    maskTips = indexin(tipnums, obj.nodeNumbersTopOrder)
-    if d == :Tips # Extract rows and/or columns corresponding to the tips with data
-        obj.indexation == :b && return obj.V[maskTips, maskTips] # both columns and rows are indexed by nodes
-        obj.indexation == :c && return obj.V[:, maskTips] # Only the columns
-        obj.indexation == :r && return obj.V[maskTips, :] # Only the rows
-    end
-    intnodenums = [obj.internalNodeNumbers ; setdiff(obj.tipNumbers, tipnums)]
-    maskNodes = indexin(intnodenums, obj.nodeNumbersTopOrder)
-    #= indices in obj.nodeNumbersTopOrder, in this order:
-    1. internal nodes, in the same order as in obj.internalNodeNumbers,
-       that is, same order as in net.node (excluding leaves)
-    2. tips absent from indTips or missing data according to nonmissing,
-       in the same order as in obj.tipNumbers.
-    =#
-    if d == :InternalNodes # Idem, for internal nodes
-        obj.indexation == :b && return obj.V[maskNodes, maskNodes]
-        obj.indexation == :c && return obj.V[:, maskNodes]
-        obj.indexation == :r && return obj.V[maskNodes, :]
-    end
-    if d == :TipsNodes
-        obj.indexation == :b && return obj.V[maskTips, maskNodes]
-        obj.indexation == :c && error("""Both rows and columns must be net
-                                       ordered to take the submatrix tips vs internal nodes.""")
-        obj.indexation == :r && error("""Both rows and columns must be net
-                                       ordered to take the submatrix tips vs internal nodes.""")
-    end
-    d == :All && return obj.V
-end
-
-###############################################################################
-## phylogenetic variance-covariance between tips
-###############################################################################
-"""
-    vcv(net::HybridNetwork; model="BM"::AbstractString,
-                            corr=false::Bool,
-                            checkpreorder=true::Bool)
-
-This function computes the variance covariance matrix between the tips of the
-network, assuming a Brownian model of trait evolution (with unit variance).
-If optional argument `corr` is set to `true`, then the correlation matrix is returned instead.
-
-The function returns a `DataFrame` object, with columns named by the tips of the network.
-
-The calculation of the covariance matrix requires a pre-ordering of nodes to be fast.
-If `checkpreorder` is true (default), then [`preorder!`](@ref) is run on the network beforehand.
-Otherwise, the network is assumed to be already in pre-order.
-
-This function internally calls [`sharedPathMatrix`](@ref), which computes the variance
-matrix between all the nodes of the network.
-
-# Examples
-```jldoctest
-julia> tree_str = "(((t2:0.14,t4:0.33):0.59,t3:0.96):0.14,(t5:0.70,t1:0.18):0.90);";
-
-julia> tree = readTopology(tree_str);
-
-julia> C = vcv(tree)
-5×5 DataFrame
- Row │ t2       t4       t3       t5       t1      
-     │ Float64  Float64  Float64  Float64  Float64 
-─────┼─────────────────────────────────────────────
-   1 │    0.87     0.73     0.14      0.0     0.0
-   2 │    0.73     1.06     0.14      0.0     0.0
-   3 │    0.14     0.14     1.1       0.0     0.0
-   4 │    0.0      0.0      0.0       1.6     0.9
-   5 │    0.0      0.0      0.0       0.9     1.08
-
-```
-The following block needs `ape` to be installed (not run):
-```julia
-julia> using RCall # Comparison with ape vcv function
-
-julia> R"ape::vcv(ape::read.tree(text = \$tree_str))"
-RCall.RObject{RCall.RealSxp}
-     t2   t4   t3  t5   t1
-t2 0.87 0.73 0.14 0.0 0.00
-t4 0.73 1.06 0.14 0.0 0.00
-t3 0.14 0.14 1.10 0.0 0.00
-t5 0.00 0.00 0.00 1.6 0.90
-t1 0.00 0.00 0.00 0.9 1.08
-
-```
-
-The covariance can also be calculated on a network
-(for the model, see Bastide et al. 2018)
-```jldoctest
-julia> net = readTopology("((t1:1.0,#H1:0.1::0.30):0.5,((t2:0.9)#H1:0.2::0.70,t3:1.1):0.4);");
-
-julia> C = vcv(net)
-3×3 DataFrame
- Row │ t1       t2       t3      
-     │ Float64  Float64  Float64 
-─────┼───────────────────────────
-   1 │    1.5     0.15      0.0
-   2 │    0.15    1.248     0.28
-   3 │    0.0     0.28      1.5
-```
-"""
-function vcv(net::HybridNetwork;
-             model="BM"::AbstractString,
-             corr=false::Bool,
-             checkpreorder=true::Bool)
-    @assert (model == "BM") "The 'vcv' function only works for a BM process (for now)."
-    V = sharedPathMatrix(net; checkpreorder=checkpreorder)
-    C = V[:Tips]
-    corr && StatsBase.cov2cor!(C, sqrt.(diag(C)))
-    Cd = DataFrame(C, map(Symbol, V.tipNames))
-    return(Cd)
-end
-
-
-"""
-    sharedPathMatrix(net::HybridNetwork; checkpreorder=true::Bool)
-
-This function computes the shared path matrix between all the nodes of a
-network. It assumes that the network is in the pre-order. If checkpreorder is
-true (default), then it runs function `preorder!` on the network beforehand.
-
-Returns an object of type [`MatrixTopologicalOrder`](@ref).
-
-"""
-function sharedPathMatrix(net::HybridNetwork;
-                          checkpreorder=true::Bool)
-    check_nonmissing_nonnegative_edgelengths(net,
-        """The variance-covariance matrix of the network is not defined.
-           A phylogenetic regression cannot be done.""")
-    return recursionPreOrder(
-        net,
-        checkpreorder,
-        initsharedPathMatrix,
-        PN.updateRecursion_default!,
-        updateTreeSharedPathMatrix!,
-        updateHybridSharedPathMatrix!,
-        :b)
-end
-
-
-function updateTreeSharedPathMatrix!(V::Matrix,
-                                     i::Int,
-                                     parentIndex::Int,
-                                     edge::Edge,
-                                     params)
-    for j in 1:(i-1)
-        V[i,j] = V[j,parentIndex]
-        V[j,i] = V[j,parentIndex]
-    end
-    V[i,i] = V[parentIndex,parentIndex] + edge.length
-end
-
-function updateHybridSharedPathMatrix!(V::Matrix,
-                                       i::Int,
-                                       parentIndex1::Int,
-                                       parentIndex2::Int,
-                                       edge1::Edge,
-                                       edge2::Edge,
-                                       params)
-    for j in 1:(i-1)
-        V[i,j] = V[j,parentIndex1]*edge1.gamma + V[j,parentIndex2]*edge2.gamma
-        V[j,i] = V[i,j]
-    end
-    V[i,i] = edge1.gamma*edge1.gamma*(V[parentIndex1,parentIndex1] + edge1.length) + edge2.gamma*edge2.gamma*(V[parentIndex2,parentIndex2] + edge2.length) + 2*edge1.gamma*edge2.gamma*V[parentIndex1,parentIndex2]
-end
-
-function initsharedPathMatrix(nodes::Vector{Node}, params)
-    n = length(nodes)
-    return(zeros(Float64,n,n))
-end
-
-"""
-    check_nonmissing_nonnegative_edgelengths(net, str="")
-
-Throw an Exception if `net` has undefined edge lengths (coded as -1.0) or
-negative edge lengths. The error message indicates the number of the offending
-edge(s), followed by `str`.
-"""
-function check_nonmissing_nonnegative_edgelengths(net::HybridNetwork, str="")
-    if any(e.length == -1.0 for e in net.edge)
-        undefined = [e.number for e in net.edge if e.length == -1.0]
-        error(string("Branch(es) number ", join(undefined,","), " have no length.\n", str))
-    end
-    if any(e.length < 0 for e in net.edge)
-        negatives = [e.number for e in net.edge if e.length < 0.0]
-        error(string("Branch(es) number ", join(negatives,","), " have negative length.\n", str))
-    end
-end
-
-###############################################################################
-"""
-    descendenceMatrix(net::HybridNetwork; checkpreorder=true::Bool)
-
-Descendence matrix between all the nodes of a network:
-object `D` of type [`MatrixTopologicalOrder`](@ref) in which
-`D[i,j]` is the proportion of genetic material in node `i` that can be traced
-back to node `j`. If `D[i,j]>0` then `j` is a descendent of `i` (and `j` is
-an ancestor of `i`).
-The network is assumed to be pre-ordered if `checkpreorder` is false.
-If `checkpreorder` is true (default), `preorder!` is run on the network beforehand.
-"""
-function descendenceMatrix(net::HybridNetwork;
-                         checkpreorder=true::Bool)
-    return recursionPostOrder(
-        net,
-        checkpreorder,
-        initDescendenceMatrix,
-        PN.updateRecursion_default!, # does nothing
-        updateNodeDescendenceMatrix!,
-        :r)
-end
-
-function updateNodeDescendenceMatrix!(V::Matrix,
-                                    i::Int,
-                                    childrenIndex::Vector{Int},
-                                    edges::Vector{Edge},
-                                    params)
-    for j in 1:length(edges)
-        V[:,i] .+= edges[j].gamma .* V[:,childrenIndex[j]]
-    end
-end
-
-function initDescendenceMatrix(nodes::Vector{Node}, params)
-    n = length(nodes)
-    return(Matrix{Float64}(I, n, n)) # identity matrix
-end
-
-###############################################################################
-"""
     regressorShift(node::Vector{Node}, net::HybridNetwork; checkpreorder=true)
     regressorShift(edge::Vector{Edge}, net::HybridNetwork; checkpreorder=true)
 
@@ -1011,11 +652,7 @@ function Base.show(io::IO, obj::TraitSimulation)
     println(io, disp)
 end
 
-# docstring already in descriptive.jl
-function tipLabels(obj::TraitSimulation)
-    return tipLabels(obj.M)
-end
-
+tipLabels(obj::TraitSimulation) = tipLabels(obj.M)
 
 """
     simulate(net::HybridNetwork, params::ParamsProcess, checkpreorder=true::Bool)
@@ -1036,7 +673,9 @@ all the nodes.
 See examples below for accessing expectations and simulated trait values.
 
 # Examples
+
 ## Univariate
+
 ```jldoctest
 julia> phy = readTopology("(A:2.5,((U:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
 
@@ -1099,6 +738,7 @@ julia> traits = sim[:Tips, :Exp] # Extract expected values at the tips (also wor
 ```
 
 ## Multivariate
+
 ```jldoctest
 julia> phy = readTopology("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(V:0.5)#H1:0.5::0.6):1):0.5);");
 
@@ -1150,15 +790,11 @@ function simulate(net::HybridNetwork,
     net.isRooted || error("The net needs to be rooted for trait simulation.")
     !anyShiftOnRootEdge(params.shift) || error("Shifts are not allowed above the root node. Please put all root specifications in the process parameter.")
 
-    funcs = preorderFunctions(params)
-    M = recursionPreOrder(net,
-                          checkpreorder,
-                          funcs["init"],
-                          funcs["root"],
-                          funcs["tree"],
-                          funcs["hybrid"],
-                          :c,
-                          params)
+    checkpreorder && preorder!(net)
+    f = preorderFunctions(params)
+    V = recursionPreOrder(net.nodes_changed,
+            f["init"], f["root"], f["tree"], f["hybrid"], params)
+    M = MatrixTopologicalOrder(V, net, :c) # nodes in columns of V
     TraitSimulation(M, params, model)
 end
 
@@ -1313,7 +949,6 @@ function updateHybridSimulateMBD!(M::Matrix{Float64},
     BLAS.axpby!(edge2.gamma, buffer, edge1.gamma, val) # random value
 end
 
-# Extract the vector of simulated values at the tips
 """
     getindex(obj, d)
 
