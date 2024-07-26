@@ -128,8 +128,8 @@ fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalingHybrid", fixedValue
 @test modelmatrix(fitlam) == reshape(ones(4), (4,1))
 s = IOBuffer(); show(s, formula(fitlam))
 @test String(take!(s)) == "trait ~ 1"
-PhyloNetworks.lambda!(fitlam, 0.5)
-@test PhyloNetworks.lambda(fitlam) == 0.5
+PhyloTraits.lambda!(fitlam, 0.5)
+@test PhyloTraits.lambda(fitlam) == 0.5
 
 ## Pagel's Lambda
 fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(@formula(trait ~ 1), dfr, net, model="lambda", reml=false))
@@ -217,7 +217,7 @@ modhet = phylolm(@formula(trait ~ sum + shift_8), dfr, net)
 table1 = redirect_stdio(stderr=devnull) do # to avoid seeing the warnings
     ftest(modhet, modhom, modnull)
 end
-table2 = PhyloNetworks.anova(modnull, modhom, modhet)
+table2 = PhyloTraits.anova(modnull, modhom, modhet)
 
 @test table1.fstat[2] ≈ table2[2,:F]
 @test table1.fstat[3] ≈ table2[1,:F]
@@ -228,7 +228,7 @@ table2 = PhyloNetworks.anova(modnull, modhom, modhet)
 
 # Check that it is the same as doing shift_8 + shift_17
 modhetbis = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net)
-table2bis = PhyloNetworks.anova(modnull, modhom, modhetbis)
+table2bis = PhyloTraits.anova(modnull, modhom, modhetbis)
 @test table2[!,:F] ≈ table2bis[!,:F]
 @test table2[!,Symbol("Pr(>F)")] ≈ table2bis[!,Symbol("Pr(>F)")]
 @test table2[!,:dof_res] ≈ table2bis[!,:dof_res]

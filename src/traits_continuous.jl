@@ -1,5 +1,3 @@
-# Continuous trait evolution on network
-
 # default tolerances to optimize parameters in continuous trait evolution models
 # like lambda, sigma2_withinspecies / sigma2_BM, etc.
 const fAbsTr = 1e-10
@@ -108,7 +106,7 @@ AIC: 4.2125395947
 """
 function regressorShift(node::Vector{Node},
                         net::HybridNetwork; checkpreorder=true::Bool)
-    T = descendenceMatrix(net; checkpreorder=checkpreorder)
+    T = PN.descendenceMatrix(net; checkpreorder=checkpreorder)
     regressorShift(node, net, T)
 end
 
@@ -119,9 +117,11 @@ function regressorShift(node::Vector{Node},
     T_t = T[:Tips]
     ## Get the indices of the columns to keep
     ind = zeros(Int, length(node))
-    for i in 1:length(node)
-        !node[i].hybrid || error("Shifts on hybrid edges are not allowed")
-        ind[i] = getIndex(node[i], net.nodes_changed)
+    for (i,nod) in enumerate(node)
+        !nod.hybrid || error("Shifts on hybrid edges are not allowed")
+        ii = findfirst(n -> n===nod, net.nodes_changed)
+        isnothing(ii) && error("node number $(nod.number) (i=$i) not in preorder list")
+        ind[i] = ii
     end
     ## get column names
     eNum = [getMajorParentEdgeNumber(n) for n in net.nodes_changed[ind]]
@@ -146,7 +146,7 @@ regressorShift(node::Node, net::HybridNetwork; checkpreorder=true::Bool) = regre
     regressorHybrid(net::HybridNetwork; checkpreorder=true::Bool)
 
 Compute the regressor vectors associated with shifts on edges that imediatly below
-all hybrid nodes of `net`. It uses function [`descendenceMatrix`](@ref) through
+all hybrid nodes of `net`. It uses function [`PhyloNetworks.descendenceMatrix`](@ref) through
 a call to [`regressorShift`](@ref), so `net` might be modified to sort it in a pre-order.
 Return a `DataFrame` with as many rows as there are tips in net, and a column for
 each hybrid, each labelled according to the pattern shift_{number_of_edge}. It has
@@ -238,7 +238,7 @@ AIC: 7.4012043891
 ```
 
 # See also
-[`phylolm`](@ref), [`descendenceMatrix`](@ref), [`regressorShift`](@ref).
+[`phylolm`](@ref), [`PhyloNetworks.descendenceMatrix`](@ref), [`regressorShift`](@ref).
 """
 function regressorHybrid(net::HybridNetwork; checkpreorder=true::Bool)
     childs = [getchild(nn) for nn in net.hybrid] # checks that each hybrid node has a single child
@@ -247,7 +247,7 @@ function regressorHybrid(net::HybridNetwork; checkpreorder=true::Bool)
     return(dfr)
 end
 
-# Type for shifts
+
 """
     ShiftNet
 
@@ -478,9 +478,7 @@ function anyShift(params::ParamsProcess)
     return(false)
 end
 
-function process_dim(::ParamsBM)
-    return 1
-end
+process_dim(::ParamsBM) = 1
 
 function Base.show(io::IO, obj::ParamsBM)
     disp =  "$(typeof(obj)):\n"
@@ -588,11 +586,7 @@ function ParamsMultiBM(mu::AbstractArray{Float64, 1},
     ParamsMultiBM(mu, sigma, ShiftNet(net, length(mu)))
 end
 
-
-function process_dim(params::ParamsMultiBM)
-    return length(params.mu)
-end
-
+process_dim(params::ParamsMultiBM) = length(params.mu)
 
 function Base.show(io::IO, obj::ParamsMultiBM)
     disp =  "$(typeof(obj)):\n"
@@ -619,376 +613,13 @@ end
 
 
 function partitionMBDMatrix(M::Matrix{Float64}, dim::Int)
-
     means = @view M[1:dim, :]
     vals = @view M[(dim + 1):(2 * dim), :]
     return means, vals
 end
 
-
-###############################################################################
-## Simulation of continuous traits
-###############################################################################
-
-"""
-    TraitSimulation
-
-Result of a trait simulation on an [`HybridNetwork`](@ref) with function [`simulate`](@ref).
-
-The following functions and extractors can be applied to it: [`tipLabels`](@ref), `obj[:Tips]`, `obj[:InternalNodes]` (see documentation for function [`getindex(::TraitSimulation, ::Symbol)`](@ref)).
-
-The `TraitSimulation` object has fields: `M`, `params`, `model`.
-"""
-struct TraitSimulation
-    M::MatrixTopologicalOrder
-    params::ParamsProcess
-    evomodel::AbstractString
-end
-
-function Base.show(io::IO, obj::TraitSimulation)
-    disp = "$(typeof(obj)):\n"
-    disp = disp * "Trait simulation results on a network with $(length(obj.M.tipNames)) tips, using a $(obj.evomodel) model, with parameters:\n"
-    disp = disp * paramstable(obj.params)
-    println(io, disp)
-end
-
-tipLabels(obj::TraitSimulation) = tipLabels(obj.M)
-
-"""
-    simulate(net::HybridNetwork, params::ParamsProcess, checkpreorder=true::Bool)
-
-Simulate traits on `net` using the parameters `params`. For now, only
-parameters of type [`ParamsBM`](@ref) (univariate Brownian Motion) and
-[`ParamsMultiBM`](@ref) (multivariate Brownian motion) are accepted.
-
-The simulation using a recursion from the root to the tips of the network,
-therefore, a pre-ordering of nodes is needed. If `checkpreorder=true` (default),
-[`preorder!`](@ref) is called on the network beforehand. Otherwise, it is assumed
-that the preordering has already been calculated.
-
-Returns an object of type [`TraitSimulation`](@ref),
-which has a matrix with the trait expecations and simulated trait values at
-all the nodes.
-
-See examples below for accessing expectations and simulated trait values.
-
-# Examples
-
-## Univariate
-
-```jldoctest
-julia> phy = readTopology("(A:2.5,((U:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
-
-julia> par = ParamsBM(1, 0.1) # BM with expectation 1 and variance 0.1.
-ParamsBM:
-Parameters of a BM with fixed root:
-mu: 1
-Sigma2: 0.1
-
-
-julia> using Random; Random.seed!(17920921); # for reproducibility
-
-julia> sim = simulate(phy, par) # Simulate on the tree.
-TraitSimulation:
-Trait simulation results on a network with 4 tips, using a BM model, with parameters:
-mu: 1
-Sigma2: 0.1
-
-
-julia> traits = sim[:Tips] # Extract simulated values at the tips.
-4-element Vector{Float64}:
- 0.9664650558470932
- 0.4104321932336118
- 0.2796524923704289
- 0.7306692819731366
-
-julia> sim.M.tipNames # name of tips, in the same order as values above
-4-element Vector{String}:
- "A"
- "U"
- "C"
- "D"
-
-julia> traits = sim[:InternalNodes] # Extract simulated values at internal nodes. Order: as in sim.M.internalNodeNumbers
-5-element Vector{Float64}:
- 0.5200361297500204
- 0.8088890626285765
- 0.9187604100796469
- 0.711921371091375
- 1.0
-
-julia> traits = sim[:All] # simulated values at all nodes, ordered as in sim.M.nodeNumbersTopOrder
-9-element Vector{Float64}:
- 1.0
- 0.711921371091375
- 0.9187604100796469
- 0.2796524923704289
- 0.5200361297500204
- 0.8088890626285765
- 0.7306692819731366
- 0.4104321932336118
- 0.9664650558470932
-
-julia> traits = sim[:Tips, :Exp] # Extract expected values at the tips (also works for sim[:All, :Exp] and sim[:InternalNodes, :Exp]).
-4-element Vector{Float64}:
- 1.0
- 1.0
- 1.0
- 1.0
-```
-
-## Multivariate
-
-```jldoctest
-julia> phy = readTopology("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(V:0.5)#H1:0.5::0.6):1):0.5);");
-
-julia> par = ParamsMultiBM([1.0, 2.0], [1.0 0.5; 0.5 1.0]) # BM with expectation [1.0, 2.0] and variance [1.0 0.5; 0.5 1.0].
-ParamsMultiBM:
-Parameters of a MBD with fixed root:
-mu: [1.0, 2.0]
-Sigma: [1.0 0.5; 0.5 1.0]
-
-julia> using Random; Random.seed!(17920921); # for reproducibility
-
-julia> sim = simulate(phy, par) # simulate on the phylogeny
-TraitSimulation:
-Trait simulation results on a network with 4 tips, using a MBD model, with parameters:
-mu: [1.0, 2.0]
-Sigma: [1.0 0.5; 0.5 1.0]
-
-
-julia> traits = sim[:Tips] # Extract simulated values at the tips (each column contains the simulated traits for one node).
-2×4 Matrix{Float64}:
- 2.99232  -0.548734  -1.79191  -0.773613
- 4.09575   0.712958   0.71848   2.00343
-
-julia> traits = sim[:InternalNodes] # simulated values at internal nodes. order: same as in sim.M.internalNodeNumbers
-2×5 Matrix{Float64}:
- -0.260794  -1.61135  -1.93202   0.0890154  1.0
-  1.46998    1.28614   0.409032  1.94505    2.0
-
-julia> traits = sim[:All]; # 2×9 Matrix: values at all nodes, ordered as in sim.M.nodeNumbersTopOrder
-
-julia> sim[:Tips, :Exp] # Extract expected values (also works for sim[:All, :Exp] and sim[:InternalNodes, :Exp])
-2×4 Matrix{Float64}:
- 1.0  1.0  1.0  1.0
- 2.0  2.0  2.0  2.0
-```
-"""
-function simulate(net::HybridNetwork,
-                  params::ParamsProcess,
-                  checkpreorder=true::Bool)
-    if isa(params, ParamsBM)
-        model = "BM"
-    elseif isa(params, ParamsMultiBM)
-        model = "MBD"
-    else
-        error("The 'simulate' function only works for a BM process (for now).")
-    end
-    !ismissing(params.shift) || (params.shift = ShiftNet(net, process_dim(params)))
-
-    net.isRooted || error("The net needs to be rooted for trait simulation.")
-    !anyShiftOnRootEdge(params.shift) || error("Shifts are not allowed above the root node. Please put all root specifications in the process parameter.")
-
-    checkpreorder && preorder!(net)
-    f = preorderFunctions(params)
-    V = recursionPreOrder(net.nodes_changed,
-            f["init"], f["root"], f["tree"], f["hybrid"], params)
-    M = MatrixTopologicalOrder(V, net, :c) # nodes in columns of V
-    TraitSimulation(M, params, model)
-end
-
-
-function preorderFunctions(::ParamsBM)
-    return Dict("init" => initSimulateBM,
-                "root" => updateRootSimulateBM!,
-                "tree" => updateTreeSimulateBM!,
-                "hybrid" => updateHybridSimulateBM!)
-end
-
-function preorderFunctions(::ParamsMultiBM)
-    return Dict("init" => initSimulateMBD,
-                "root" => updateRootSimulateMBD!,
-                "tree" => updateTreeSimulateMBD!,
-                "hybrid" => updateHybridSimulateMBD!)
-end
-
-
-function anyShiftOnRootEdge(shift::ShiftNet)
-    nodInd = getShiftRowInds(shift)
-    for n in shift.net.nodes_changed[nodInd]
-        !(getMajorParentEdgeNumber(n) == -1) || return(true)
-    end
-    return(false)
-end
-
-# Initialization of the structure
-function initSimulateBM(nodes::Vector{Node}, ::Tuple{ParamsBM})
-    return(zeros(2, length(nodes)))
-end
-
-function initSimulateMBD(nodes::Vector{Node}, params::Tuple{ParamsMultiBM})
-    n = length(nodes)
-    p = process_dim(params[1])
-    return zeros(2 * p, n) # [means vals]
-end
-
-
-# Initialization of the root
-function updateRootSimulateBM!(M::Matrix, i::Int, params::Tuple{ParamsBM})
-    params = params[1]
-    if (params.randomRoot)
-        M[1, i] = params.mu # expectation
-        M[2, i] = params.mu + sqrt(params.varRoot) * randn() # random value
-    else
-        M[1, i] = params.mu # expectation
-        M[2, i] = params.mu # random value (root fixed)
-    end
-end
-
-function updateRootSimulateMBD!(M::Matrix{Float64},
-                                i::Int,
-                                params::Tuple{ParamsMultiBM})
-    params = params[1]
-    p = process_dim(params)
-
-    means, vals = partitionMBDMatrix(M, p)
-
-    if (params.randomRoot)
-        means[:, i] .= params.mu # expectation
-        vals[:, i] .= params.mu + cholesky(params.varRoot).L * randn(p) # random value
-    else
-        means[:, i] .= params.mu # expectation
-        vals[:, i] .= params.mu # random value
-    end
-end
-
-# Going down to a tree node
-function updateTreeSimulateBM!(M::Matrix,
-                               i::Int,
-                               parentIndex::Int,
-                               edge::Edge,
-                               params::Tuple{ParamsBM})
-    params = params[1]
-    M[1, i] = M[1, parentIndex] + params.shift.shift[i] # expectation
-    M[2, i] = M[2, parentIndex] + params.shift.shift[i] + sqrt(params.sigma2 * edge.length) * randn() # random value
-end
-
-function updateTreeSimulateMBD!(M::Matrix{Float64},
-                               i::Int,
-                               parentIndex::Int,
-                               edge::Edge,
-                               params::Tuple{ParamsMultiBM})
-    params = params[1]
-    p = process_dim(params)
-
-    means, vals = partitionMBDMatrix(M, p)
-
-    μ = @view means[:, i]
-    val = @view vals[:, i]
-
-    # μ .= means[:, parentIndex] + params.shift.shift[i, :]
-    μ .= @view means[:, parentIndex]
-    μ .+= @view params.shift.shift[i, :]
-
-    # val .= sqrt(edge.length) * params.L * randn(p) + vals[:, parentIndex] + params.shift.shift[i, :]
-    mul!(val, params.L, randn(p))
-    val .*= sqrt(edge.length)
-    val .+= @view vals[:, parentIndex]
-    val .+= params.shift.shift[i, :]
-end
-
-# Going down to an hybrid node
-function updateHybridSimulateBM!(M::Matrix,
-                                 i::Int,
-                                 parentIndex1::Int,
-                                 parentIndex2::Int,
-                                 edge1::Edge,
-                                 edge2::Edge,
-                                 params::Tuple{ParamsBM})
-    params = params[1]
-    M[1, i] =  edge1.gamma * M[1, parentIndex1] + edge2.gamma * M[1, parentIndex2] # expectation
-    M[2, i] =  edge1.gamma * (M[2, parentIndex1] + sqrt(params.sigma2 * edge1.length) * randn()) + edge2.gamma * (M[2, parentIndex2] + sqrt(params.sigma2 * edge2.length) * randn()) # random value
-end
-
-function updateHybridSimulateMBD!(M::Matrix{Float64},
-                                 i::Int,
-                                 parentIndex1::Int,
-                                 parentIndex2::Int,
-                                 edge1::Edge,
-                                 edge2::Edge,
-                                 params::Tuple{ParamsMultiBM})
-
-    params = params[1]
-    p = process_dim(params)
-
-    means, vals = partitionMBDMatrix(M, p)
-
-    μ = @view means[:, i]
-    val = @view vals[:, i]
-
-    μ1 = @view means[:, parentIndex1]
-    μ2 = @view means[:, parentIndex2]
-
-    v1 = @view vals[:, parentIndex1]
-    v2 = @view vals[:, parentIndex2]
-
-    # means[:, i] .= edge1.gamma * μ1 + edge2.gamma * μ2
-    mul!(μ, μ1, edge1.gamma)
-    BLAS.axpy!(edge2.gamma, μ2, μ)  # expectation
-
-    # val .=  edge1.gamma * (v1 + sqrt(edge1.length) * params.L * r1) +
-    #                 edge2.gamma * (v2 + sqrt(edge2.length) * params.L * r2) # random value
-    mul!(val, params.L, randn(p))
-    val .*= sqrt(edge1.length)
-    val .+= v1
-
-    buffer = params.L * randn(p)
-    buffer .*= sqrt(edge2.length)
-    buffer .+= v2
-    BLAS.axpby!(edge2.gamma, buffer, edge1.gamma, val) # random value
-end
-
-"""
-    getindex(obj, d)
-
-Getting submatrices of an object of type [`TraitSimulation`](@ref).
-
-# Arguments
-* `obj::TraitSimulation`: the matrix from which to extract.
-* `d::Symbol`: a symbol precising which sub-matrix to extract. Can be:
-  * `:Tips` columns and/or rows corresponding to the tips
-  * `:InternalNodes` columns and/or rows corresponding to the internal nodes
-"""
-function Base.getindex(obj::TraitSimulation, d::Symbol, w=:Sim::Symbol)
-    inds = siminds(obj.params, w)
-    return getindex(obj.M, d)[inds, :]
-end
-
-function siminds(::ParamsBM, w::Symbol)
-    if w == :Sim
-        return 2
-    elseif w == :Exp
-        return 1
-    else
-        error("The argument 'w' must be ':Sim' or ':Exp'. (':$w' was supplied)")
-    end
-end
-
-function siminds(params::ParamsMultiBM, w::Symbol)
-    p = process_dim(params)
-    if w == :Sim
-        return (p + 1):(2 * p)
-    elseif w == :Exp
-        return 1:p
-    else
-        error("The argument 'w' must be ':Sim' or ':Exp'. (':$w' was supplied)")
-    end
-end
-
 ###############################################################################
 ## Type for models with within-species variation (including measurement error)
-###############################################################################
 
 """
     WithinSpeciesCTM
@@ -1248,6 +879,10 @@ function phylolm(X::Matrix, Y::Vector, net::HybridNetwork,
                 reml::Bool=true,
                 nonmissing=trues(length(Y))::BitArray{1},
                 ind=[0]::Vector{Int},
+                ftolRel=fRelTr::AbstractFloat,
+                xtolRel=xRelTr::AbstractFloat,
+                ftolAbs=fAbsTr::AbstractFloat,
+                xtolAbs=xAbsTr::AbstractFloat,
                 startingValue=0.5::Real,
                 fixedValue=missing::Union{Real,Missing},
                 withinspecies_var::Bool=false,
@@ -1255,14 +890,16 @@ function phylolm(X::Matrix, Y::Vector, net::HybridNetwork,
                 ySD::Union{Nothing, Vector}=nothing)
     if withinspecies_var
         phylolm_wsp(model, X,Y,net, reml; nonmissing=nonmissing, ind=ind,
-                    counts=counts, ySD=ySD)
+            ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
+            counts=counts, ySD=ySD)
     else
         phylolm(model, X,Y,net, reml; nonmissing=nonmissing, ind=ind,
-                startingValue=startingValue, fixedValue=fixedValue)
+            ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
+            startingValue=startingValue, fixedValue=fixedValue)
     end
 end
 
-function phylolm(::BM, X::Matrix, Y::Vector, net::HybridNetwork,reml::Bool;
+function phylolm(::BM, X::Matrix, Y::Vector, net::HybridNetwork, reml::Bool;
                 nonmissing=trues(length(Y))::BitArray{1},
                 ind=[0]::Vector{Int},
                 kwargs...)
@@ -1278,6 +915,10 @@ function phylolm(::PagelLambda, X::Matrix, Y::Vector, net::HybridNetwork,
                 reml::Bool;
                 nonmissing=trues(length(Y))::BitArray{1},
                 ind=[0]::Vector{Int},
+                ftolRel=fRelTr::AbstractFloat,
+                xtolRel=xRelTr::AbstractFloat,
+                ftolAbs=fAbsTr::AbstractFloat,
+                xtolAbs=xAbsTr::AbstractFloat,
                 startingValue=0.5::Real,
                 fixedValue=missing::Union{Real,Missing})
     # BM variance covariance
@@ -1286,6 +927,7 @@ function phylolm(::PagelLambda, X::Matrix, Y::Vector, net::HybridNetwork,
     times = getHeights(net, false) # false: no need to preorder again
     phylolm_lambda(X,Y,V,reml, gammas, times;
             nonmissing=nonmissing, ind=ind,
+            ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
             startingValue=startingValue, fixedValue=fixedValue)
 end
 
@@ -1298,12 +940,17 @@ function phylolm(::ScalingHybrid, X::Matrix, Y::Vector, net::HybridNetwork,
                 reml::Bool;
                 nonmissing=trues(length(Y))::BitArray{1},
                 ind=[0]::Vector{Int},
+                ftolRel=fRelTr::AbstractFloat,
+                xtolRel=xRelTr::AbstractFloat,
+                ftolAbs=fAbsTr::AbstractFloat,
+                xtolAbs=xAbsTr::AbstractFloat,
                 startingValue=0.5::Real,
                 fixedValue=missing::Union{Real,Missing})
     preorder!(net)
     gammas = getGammas(net)
     phylolm_scalingHybrid(X, Y, net, reml, gammas;
             nonmissing=nonmissing, ind=ind,
+            ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
             startingValue=startingValue, fixedValue=fixedValue)
 end
 
@@ -1395,7 +1042,7 @@ julia> net = readTopology("(((C:1,(A:1)#H1:1.5::0.7):1,(#H1:0.3::0.3,E:2.0):2.2)
 
 julia> # using PhyloPlots; plot(net, useedgelength=true, showedgelength=true, shownodenumber=true); # to see
 
-julia> nodeheight = PhyloNetworks.getHeights(net)
+julia> nodeheight = PhyloTraits.getHeights(net)
 9-element Vector{Float64}:
  0.0
  5.2
@@ -1703,7 +1350,7 @@ julia> phy = readTopology(joinpath(dirname(pathof(PhyloNetworks)), "..", "exampl
 
 julia> using DataFrames, CSV # to read data file, next
 
-julia> dat = CSV.File(joinpath(dirname(pathof(PhyloNetworks)), "..", "examples", "caudata_trait.txt")) |> DataFrame;
+julia> dat = CSV.read(joinpath(dirname(pathof(PhyloNetworks)), "..", "examples", "caudata_trait.txt"), DataFrame);
 
 julia> using StatsModels # for stat model formulas
 
@@ -1997,8 +1644,8 @@ function phylolm(f::StatsModels.FormulaTerm,
     haskey(modeldic, model) || error("phylolm is not defined for model $model.")
     modelobj = modeldic[model]
 
-    
     res = phylolm(mm.m, Y, net, modelobj; reml=reml, nonmissing=nonmissing, ind=ind,
+                  ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
                   startingValue=startingValue, fixedValue=fixedValue,
                   withinspecies_var=withinspecies_var, counts=counts, ySD=ySD)
     res.formula = f
@@ -2371,10 +2018,16 @@ end
 function phylolm_wsp(::BM, X::Matrix, Y::Vector, net::HybridNetwork, reml::Bool;
         nonmissing=trues(length(Y))::BitArray{1}, # which individuals have non-missing data?
         ind=[0]::Vector{Int},
+        ftolRel=fRelTr::AbstractFloat,
+        xtolRel=xRelTr::AbstractFloat,
+        ftolAbs=fAbsTr::AbstractFloat,
+        xtolAbs=xAbsTr::AbstractFloat,
         counts::Union{Nothing, Vector}=nothing,
         ySD::Union{Nothing, Vector}=nothing)
     V = sharedPathMatrix(net)
-    phylolm_wsp(X,Y,V, reml, nonmissing,ind, counts,ySD)
+    phylolm_wsp(X,Y,V, reml, nonmissing,ind,
+        ftolRel, xtolRel, ftolAbs, xtolAbs,
+        counts,ySD)
 end
 
 #= notes about missing data: after X and Y produced by stat formula:
@@ -2393,6 +2046,10 @@ extra problems:
 =#
 function phylolm_wsp(X::Matrix, Y::Vector, V::MatrixTopologicalOrder,
         reml::Bool, nonmissing::BitArray{1}, ind::Vector{Int},
+        ftolRel::AbstractFloat,
+        xtolRel::AbstractFloat,
+        ftolAbs::AbstractFloat,
+        xtolAbs::AbstractFloat,
         counts::Union{Nothing, Vector},
         ySD::Union{Nothing, Vector})
     n_coef = size(X, 2) # no. of predictors
@@ -2435,8 +2092,9 @@ function phylolm_wsp(X::Matrix, Y::Vector, V::MatrixTopologicalOrder,
         Vsp = V[:Tips][ind_nm,ind_nm]
     end
 
-    model_within, RL = withinsp_varianceratio(Xsp,Ysp,Vsp, reml, d_inv,RSS,
-        n_tot,n_coef,n_sp)
+    model_within, RL = withinsp_varianceratio(Xsp,Ysp,Vsp, reml,
+        ftolRel, xtolRel, ftolAbs, xtolAbs,
+        d_inv, RSS, n_tot, n_coef, n_sp)
     η = model_within.optsum.final[1]
     Vm = Vsp + η * Diagonal(d_inv)
     m = PhyloNetworkLinearModel(lm(RL\Xsp, RL\Ysp), V, Vm, RL, Ysp, Xsp,
@@ -2449,6 +2107,8 @@ end
 # given V & η: analytical formula for σ² estimate
 # numerical optimization of η = σ²within / σ²
 function withinsp_varianceratio(X::Matrix, Y::Vector, V::Matrix, reml::Bool,
+        ftolRel::AbstractFloat, xtolRel::AbstractFloat,
+        ftolAbs::AbstractFloat, xtolAbs::AbstractFloat,
         d_inv::Vector, RSS::Float64, ntot::Real, ncoef::Int64, nsp::Int64,
         model_within::Union{Nothing, WithinSpeciesCTM}=nothing)
 
@@ -2461,7 +2121,7 @@ function withinsp_varianceratio(X::Matrix, Y::Vector, V::Matrix, reml::Bool,
         s2withinstart = RSS/(ntot-nsp)
         ηstart = s2withinstart / s2start
         optsum = OptSummary([ηstart], [1e-100], :LN_BOBYQA; initial_step=[0.01],
-            ftol_rel=fRelTr, ftol_abs=fAbsTr, xtol_rel=xRelTr, xtol_abs=[xAbsTr])
+            ftol_rel=ftolRel, ftol_abs=ftolAbs, xtol_rel=xtolRel, xtol_abs=[xtolAbs])
         optsum.maxfeval = 1000
         model_within = WithinSpeciesCTM([s2withinstart], [s2start], d_inv, RSS, optsum)
     else
@@ -2946,7 +2606,7 @@ julia> using DataFrames, CSV # to read data file
 
 julia> phy = readTopology(joinpath(dirname(pathof(PhyloNetworks)), "..", "examples", "carnivores_tree.txt"));
 
-julia> dat = CSV.File(joinpath(dirname(pathof(PhyloNetworks)), "..", "examples", "carnivores_trait.txt")) |> DataFrame;
+julia> dat = CSV.read(joinpath(dirname(pathof(PhyloNetworks)), "..", "examples", "carnivores_trait.txt"), DataFrame);
 
 julia> using StatsModels # for statistical model formulas
 
@@ -2957,7 +2617,7 @@ julia> ancStates = ancestralStateReconstruction(fitBM) # Should produce a warnin
 │ assuming that the estimated variance rate of evolution is correct.
 │ Additional uncertainty in the estimation of this variance rate is
 │ ignored, so prediction intervals should be larger.
-└ @ PhyloNetworks ~/build/juliaphylo/PhyloNetworks.jl/src/traits.jl:3359
+└ @ PhyloNetworks ~/build/juliaphylo/PhyloTraits.jl/src/traits.jl:3359
 ReconstructedStates:
 ───────────────────────────────────────────────
   Node index      Pred.        Min.  Max. (95%)
@@ -3104,7 +2764,7 @@ julia> ancStates = ancestralStateReconstruction(fitBM);
 │ assuming that the estimated variance rate of evolution is correct.
 │ Additional uncertainty in the estimation of this variance rate is
 │ ignored, so prediction intervals should be larger.
-└ @ PhyloNetworks ~/build/juliaphylo/PhyloNetworks.jl/src/traits.jl:3166
+└ @ PhyloNetworks ~/build/juliaphylo/PhyloTraits.jl/src/traits.jl:3166
 
 julia> first(expectations(ancStates), 3) # looking at first 3 nodes only
 3×2 DataFrame

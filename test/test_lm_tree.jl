@@ -8,7 +8,7 @@
 phy = readTopology(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
 
 V = sharedPathMatrix(phy);
-VR = DataFrame(CSV.File(joinpath(@__DIR__,"..","examples","caudata_shared_paths.txt")); copycols=false)
+VR = CSV.read(joinpath(@__DIR__,"..","examples","caudata_shared_paths.txt"), DataFrame)
 VR = Matrix(VR);
 
 # Tips
@@ -35,7 +35,7 @@ write.table(V, file="caudata_shared_paths.txt", sep = ",", row.names=F, col.name
 
 ## Export "caudata" dataset (from geiger)
 phy = readTopology(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
-dat = DataFrame(CSV.File(joinpath(@__DIR__,"..","examples","caudata_trait.txt")); copycols=false);
+dat = CSV.read(joinpath(@__DIR__,"..","examples","caudata_trait.txt"), DataFrame);
 
 ## Fit a BM
 fitBM = phylolm(@formula(trait ~ 1), dat, phy; reml=false)
@@ -58,7 +58,7 @@ fitBM = phylolm(@formula(trait ~ 1), dat, phy; reml=false)
 
 ### Ancestral state reconstruction (with Rphylopars)
 anc = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralStateReconstruction(fitBM));
-ancR = DataFrame(CSV.File(joinpath(@__DIR__,"..","examples","caudata_Rphylopars.txt")); copycols=false)
+ancR = CSV.read(joinpath(@__DIR__,"..","examples","caudata_Rphylopars.txt"), DataFrame)
 
 ## Expectations
 expe = expectations(anc)
@@ -84,7 +84,7 @@ nodesR = varsR[-expe[1:196, :nodeNumber] .+ 196]
 @test nodesR ≈ vars atol=1e-3 ## RK: Small tol !!
 
 ### Ancestral state reconstruction (with Phytools)
-ancRt = DataFrame(CSV.File(joinpath(@__DIR__,"..","examples","caudata_Phytools.txt")); copycols=false);
+ancRt = CSV.read(joinpath(@__DIR__,"..","examples","caudata_Phytools.txt"), DataFrame)
 
 ## Expectations
 expe = expectations(anc)
@@ -247,7 +247,7 @@ sprintf("%.10f", predict(fitphylolm)) # df
 
 ## Export "caudata" dataset (from geiger)
 phy = readTopology(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
-dat = DataFrame(CSV.File(joinpath(@__DIR__,"..","examples","caudata_trait.txt")); copycols=false);
+dat = CSV.read(joinpath(@__DIR__,"..","examples","caudata_trait.txt"), DataFrame)
 
 ## Add some shifts in the model
 df_shift = regressorShift(phy.edge[[98, 326, 287]], phy)
@@ -317,7 +317,7 @@ end
 
 ## Export "lizard" dataset (Mahler et al 2013)
 phy = readTopology(joinpath(@__DIR__, "..", "examples", "lizard_tree.txt"));
-dat = DataFrame(CSV.File(joinpath(@__DIR__,"..","examples","lizard_trait.txt")); copycols=false);
+dat = CSV.read(joinpath(@__DIR__,"..","examples","lizard_trait.txt"), DataFrame)
 dat[!,:region] = string.(dat[:,:region]) # avoid CategoricalArrays.categorical dependency
 
 ## Fit a BM

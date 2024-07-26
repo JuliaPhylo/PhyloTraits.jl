@@ -199,7 +199,7 @@ rate matrix Q:
        G  0.1613  0.4839       *  0.3226
        T  0.3226  0.2419  0.4839       *
 
-julia> PhyloNetworks.P(m1, 0.2)
+julia> PhyloTraits.P(m1, 0.2)
 4×4 StaticArraysCore.MMatrix{4, 4, Float64, 16} with indices SOneTo(4)×SOneTo(4):
  0.81592    0.0827167  0.0462192  0.0551445
  0.0551445  0.831326   0.0827167  0.0308128
@@ -211,7 +211,7 @@ Juke-Cantor example:
 ```jldoctest
 julia> m1 = JC69([1.]);
 
-julia> PhyloNetworks.P(m1, 0.2)
+julia> PhyloTraits.P(m1, 0.2)
 4×4 StaticArraysCore.MMatrix{4, 4, Float64, 16} with indices SOneTo(4)×SOneTo(4):
  0.824446   0.0585179  0.0585179  0.0585179
  0.0585179  0.824446   0.0585179  0.0585179
@@ -239,14 +239,14 @@ Binary Trait Substitution Model:
 rate low→high α=1.0
 rate high→low β=2.0
 
-julia> PhyloNetworks.P!(Matrix{Float64}(undef,2,2), m1, 0.3) # fills an uninitialized 2x2 matrix of floats
+julia> PhyloTraits.P!(Matrix{Float64}(undef,2,2), m1, 0.3) # fills an uninitialized 2x2 matrix of floats
 2×2 Matrix{Float64}:
  0.80219  0.19781
  0.39562  0.60438
 
 julia> m2 = JC69([1.]);
 
-julia> PhyloNetworks.P!(Matrix{Float64}(undef,4,4), m2, 0.2)
+julia> PhyloTraits.P!(Matrix{Float64}(undef,4,4), m2, 0.2)
 4×4 Matrix{Float64}:
  0.824446   0.0585179  0.0585179  0.0585179
  0.0585179  0.824446   0.0585179  0.0585179
@@ -595,7 +595,7 @@ function randomTrait(obj::TSM, net::HybridNetwork;
 end
 
 function randomTrait!(M::Matrix, obj::TSM, net::HybridNetwork)
-    return recursionPreOrder!(
+    return PN.recursion_preorder!(
         net.nodes_changed,
         M, # updates M in place
         updateRootRandomTrait!,
@@ -1000,7 +1000,7 @@ julia> nparams(rv)
 0
 
 julia> typeof(rv)
-PhyloNetworks.RVASGamma{1}
+PhyloTraits.RVASGamma{1}
 
 julia> rv = RateVariationAcrossSites(alpha=1.0, ncat=4)
 Rate variation across sites: discretized Gamma
@@ -1009,9 +1009,9 @@ categories for Gamma discretization: 4
 rates: [0.146, 0.513, 1.071, 2.27]
 
 julia> typeof(rv)
-PhyloNetworks.RVASGamma{4}
+PhyloTraits.RVASGamma{4}
 
-julia> PhyloNetworks.setalpha!(rv, 2.0)
+julia> PhyloTraits.setalpha!(rv, 2.0)
 Rate variation across sites: discretized Gamma
 alpha: 2.0
 categories for Gamma discretization: 4
@@ -1029,9 +1029,9 @@ julia> nparams(rv)
 1
 
 julia> typeof(rv)
-PhyloNetworks.RVASInv
+PhyloTraits.RVASInv
 
-julia> PhyloNetworks.setpinv!(rv, 0.05)
+julia> PhyloTraits.setpinv!(rv, 0.05)
 Rate variation across sites: +I (invariable sites)
 pinv: 0.05
 rates: [0.0, 1.053]
@@ -1048,9 +1048,9 @@ julia> nparams(rv)
 2
 
 julia> typeof(rv)
-PhyloNetworks.RVASGammaInv{5}
+PhyloTraits.RVASGammaInv{5}
 
-julia> PhyloNetworks.setalpha!(rv, 3.0)
+julia> PhyloTraits.setalpha!(rv, 3.0)
 Rate variation across sites: discretized Gamma+I
 pinv: 0.3
 alpha: 3.0
@@ -1058,7 +1058,7 @@ categories for Gamma discretization: 4
 rates: [0.0, 0.6, 1.077, 1.584, 2.454]
 probabilities: [0.3, 0.175, 0.175, 0.175, 0.175]
 
-julia> PhyloNetworks.setpinv!(rv, 0.05)
+julia> PhyloTraits.setpinv!(rv, 0.05)
 Rate variation across sites: discretized Gamma+I
 pinv: 0.05
 alpha: 3.0
@@ -1066,7 +1066,7 @@ categories for Gamma discretization: 4
 rates: [0.0, 0.442, 0.793, 1.167, 1.808]
 probabilities: [0.05, 0.238, 0.238, 0.238, 0.238]
 
-julia> PhyloNetworks.setpinvalpha!(rv, 0.1, 5.0)
+julia> PhyloTraits.setpinvalpha!(rv, 0.1, 5.0)
 Rate variation across sites: discretized Gamma+I
 pinv: 0.1
 alpha: 5.0

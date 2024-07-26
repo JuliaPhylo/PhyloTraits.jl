@@ -2,6 +2,18 @@ using PhyloTraits
 using Test
 using Aqua
 
+using BioSymbols
+using CSV
+using DataFrames
+using GLM # for coef, nobs, residuals etc.
+using LinearAlgebra: norm, diag, logdet, PosDefException # LinearAlgebra.rotate! not brought into scope
+using PhyloNetworks
+using Random
+using StableRNGs
+using StaticArrays # for rate substitution matrices
+using Statistics
+using StatsBase # for aic etc., stderr
+
 @testset "PhyloTraits Code quality (Aqua.jl)" begin
     Test.detect_ambiguities(PhyloTraits)
     Aqua.test_all(

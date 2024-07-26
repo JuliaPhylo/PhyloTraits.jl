@@ -520,9 +520,9 @@ m5w = phylolm(@formula(trait3 ~ trait1), df[[1,2,4,7,13,18],:], net; tipnames=:s
 m6w = (@test_logs (:info,r"^Maximum lambda") phylolm(@formula(trait3 ~ trait1), df_r, net; tipnames=:species, model="lambda"))
 tab = lrtest(m2w, m6w) # both REML, but same predictors
 @test tab.pval[2] ≈ 0.03928341265297505 atol=1e-6
-@test !PhyloNetworks.isnested(PhyloNetworks.PagelLambda(0.1),PhyloNetworks.BM())
-@test !PhyloNetworks.isnested(PhyloNetworks.PagelLambda(),PhyloNetworks.ScalingHybrid())
-@test !PhyloNetworks.isnested(PhyloNetworks.ScalingHybrid(2.0),PhyloNetworks.PagelLambda())
+@test !PhyloTraits.isnested(PhyloTraits.PagelLambda(0.1),PhyloTraits.BM())
+@test !PhyloTraits.isnested(PhyloTraits.PagelLambda(),PhyloTraits.ScalingHybrid())
+@test !PhyloTraits.isnested(PhyloTraits.ScalingHybrid(2.0),PhyloTraits.PagelLambda())
 @test_throws ArgumentError ftest(m3null, m3, m3full) # not the same Y after transformation
 end # lrt test subset
 
@@ -547,7 +547,7 @@ end
 # fit lambda on bigger network
 m1big = (@test_logs (:info, r"^M") phylolm(@formula(trait3 ~ trait1), dfbig, netbig, model="lambda"; tipnames=:speciesIds))
 # equivalent phylo and within variances
-net_height = maximum(PhyloNetworks.getHeights(net));
+net_height = maximum(PhyloTraits.getHeights(net));
 sig_phy_2 = sigma2_phylo(m1big) * lambda_estim(m1big);
 sig_err_2 = sigma2_phylo(m1big) * (1 - lambda_estim(m1big)) * net_height;
 @test sigma2_phylo(m1) ≈ sig_phy_2 atol=1e-7

@@ -15,9 +15,10 @@ using LinearAlgebra: diag, I, logdet, norm, LowerTriangular, mul!, lmul!, rmul!,
 # import LinearAlgebra.rotate! # allow re-definition of rotate!
 using NLopt
 using PhyloNetworks
-using PhyloNetworks: Edge, Node
+using PhyloNetworks: Edge, Node, MatrixTopologicalOrder
 using Printf: @printf, @sprintf
 using Random
+using Random: AbstractRNG, default_rng
 using StaticArrays
 using Statistics: mean, quantile, median
 using StatsAPI: StatsAPI, coef, coefnames, coeftable, confint, deviance
@@ -32,7 +33,7 @@ const PN = PhyloNetworks
 
 import Base: show
 import GLM: ftest, fit!
-import PhyloNetworks: recursionPreOrder
+import PhyloNetworks: tipLabels
 import StatsModels: coefnames
 
 export ftest # from GLM
@@ -69,6 +70,7 @@ export empiricalDNAfrequencies
 
 include("nloptsummary.jl")
 include("traits_continuous.jl")
+include("simulate_continuous.jl")
 include("substitutionmodels.jl")
 include("traits_discrete.jl")
 

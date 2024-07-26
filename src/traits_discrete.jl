@@ -315,7 +315,7 @@ julia> using DataFrames
 julia> dat = DataFrame(species=["C","A","B","D"], trait=["hi","lo","lo","hi"]);
 
 julia> fit1 = fitdiscrete(net, m1, dat)
-PhyloNetworks.StatisticalSubstitutionModel:
+PhyloTraits.StatisticalSubstitutionModel:
 Binary Trait Substitution Model:
   rate lo→hi α=0.27222
   rate hi→lo β=0.34981
@@ -328,7 +328,7 @@ log-likelihood: -2.7277
 julia> tips = Dict("A" => "lo", "B" => "lo", "C" => "hi", "D" => "hi");
 
 julia> fit2 = fitdiscrete(net, m1, tips; xtolRel=1e-16, xtolAbs=1e-16, ftolRel=1e-16)
-PhyloNetworks.StatisticalSubstitutionModel:
+PhyloTraits.StatisticalSubstitutionModel:
 Binary Trait Substitution Model:
   rate lo→hi α=0.27222
   rate hi→lo β=0.34981
@@ -353,7 +353,7 @@ julia> tips = Dict("sp1" => BioSymbols.DNA_A, "sp2" => BioSymbols.DNA_A, "sp3" =
 julia> mJC69 = JC69([0.25], false);
 
 julia> fitJC69 = fitdiscrete(net, mJC69, tips)
-PhyloNetworks.StatisticalSubstitutionModel:
+PhyloTraits.StatisticalSubstitutionModel:
 Jukes and Cantor 69 Substitution Model,
   absolute rate version
   off-diagonal rates equal to 0.29233/3.
@@ -376,7 +376,7 @@ categories for Gamma discretization: 4
 rates: [0.146, 0.513, 1.071, 2.27]
 
 julia> fitdiscrete(net, mJC69, rv, tips; optimizeQ=false, optimizeRVAS=false)
-PhyloNetworks.StatisticalSubstitutionModel:
+PhyloTraits.StatisticalSubstitutionModel:
 Jukes and Cantor 69 Substitution Model,
   absolute rate version
   off-diagonal rates equal to 0.25/3.
@@ -815,7 +815,7 @@ julia> dat = DataFrame(species=["C","A","B","D"], trait=["hi","lo","lo","hi"]);
 
 julia> fit = fitdiscrete(net, m1, dat); # optimized rates: α=0.27 and β=0.35
 
-julia> pltw = PhyloNetworks.posterior_logtreeweight(fit);
+julia> pltw = PhyloTraits.posterior_logtreeweight(fit);
 
 julia> round.(exp.(pltw), digits=5) # posterior trees probabilities (sum up to 1)
 2-element Vector{Float64}:
@@ -865,7 +865,7 @@ julia> dat = DataFrame(species=["C","A","B","D"], trait=["hi","lo","lo","hi"]);
 
 julia> fit = fitdiscrete(net, m1, dat); # optimized rates: α=0.27 and β=0.35
 
-julia> plhw = PhyloNetworks.posterior_loghybridweight(fit, "H1");
+julia> plhw = PhyloTraits.posterior_loghybridweight(fit, "H1");
 
 julia> round(exp(plhw), digits=5) # posterior probability of going through minor hybrid edge
 0.08017
@@ -1168,12 +1168,12 @@ julia> using DataFrames
 
 julia> dat = DataFrame(trait1 = ["A", "C", "A", missing]); # 4×1 DataFrame
 
-julia> PhyloNetworks.learnlabels(:BTSM, dat)
+julia> PhyloTraits.learnlabels(:BTSM, dat)
 2-element Vector{String}:
  "A"
  "C"
 
-julia> PhyloNetworks.learnlabels(:JC69, dat)
+julia> PhyloTraits.learnlabels(:JC69, dat)
 2-element Vector{String}:
  "A"
  "C"
