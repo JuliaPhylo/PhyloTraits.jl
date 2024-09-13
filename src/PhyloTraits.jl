@@ -1,5 +1,16 @@
 module PhyloTraits
 
+# default tolerances to optimize parameters in continuous trait evolution models
+# like lambda, sigma2_withinspecies / sigma2_BM, etc.
+const fAbsTr = 1e-10
+const fRelTr = 1e-10
+const xAbsTr = 1e-10
+const xRelTr = 1e-10
+const alphaRASmin = 0.02
+const alphaRASmax = 50.0
+const pinvRASmin = 1e-8
+const pinvRASmax = 0.99
+
 using BioSequences
 using BioSymbols
 using CSV
@@ -31,9 +42,13 @@ using StatsModels # re-exported by GLM. for ModelFrame ModelMatrix Formula etc
 
 const PN = PhyloNetworks
 
+
+
 import Base: show
 import GLM: ftest, fit!
-import PhyloNetworks: tipLabels
+import PhyloNetworks: tipLabels,getTipSubmatrix,
+resetNodeNumbers!,resetEdgeNumbers!,
+inheritanceWeight, isEqual
 import StatsModels: coefnames
 
 export ftest # from GLM
