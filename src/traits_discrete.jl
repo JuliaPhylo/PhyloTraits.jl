@@ -559,7 +559,7 @@ end
 
 function fit!(obj::SSM; optimizeQ=true::Bool, optimizeRVAS=true::Bool,
     closeoptim=false::Bool, verbose=false::Bool, maxeval=1000::Int,
-    ftolRel=fRelTR::Float64, ftolAbs=fAbsTR::Float64,
+    ftolRel=fRelTr::Float64, ftolAbs=fAbsTr::Float64,
     xtolRel=xRelTr::Float64, xtolAbs=xAbsTr::Float64,
     alphamin=alphaRASmin, alphamax=alphaRASmax,
     pinvmin=pinvRASmin, pinvmax=pinvRASmax)

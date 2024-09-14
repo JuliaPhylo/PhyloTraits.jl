@@ -3,13 +3,14 @@ module PhyloTraits
 # default tolerances to optimize parameters in continuous trait evolution models
 # like lambda, sigma2_withinspecies / sigma2_BM, etc.
 const fAbsTr = 1e-10
-const fRelTr = 1e-10
+const fRelTr = 1e-12
 const xAbsTr = 1e-10
 const xRelTr = 1e-10
 const alphaRASmin = 0.02
 const alphaRASmax = 50.0
 const pinvRASmin = 1e-8
 const pinvRASmax = 0.99
+const kappamax = 20.0
 
 using BioSequences
 using BioSymbols
