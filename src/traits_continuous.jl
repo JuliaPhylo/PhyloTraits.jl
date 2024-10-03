@@ -918,7 +918,7 @@ function phylolm(::PagelLambda, X::Matrix, Y::Vector, net::HybridNetwork,
     # BM variance covariance
     V = sharedPathMatrix(net)
     gammas = getGammas(net)
-    times = getHeights(net, false) # false: no need to preorder again
+    times = getnodeheights(net, false) # false: no need to preorder again
     phylolm_lambda(X,Y,V,reml, gammas, times;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,

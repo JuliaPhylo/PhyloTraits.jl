@@ -167,7 +167,7 @@ function simulate(rng::AbstractRNG,
 
     checkpreorder && preorder!(net)
     f = preorderFunctions(params, rng)
-    V = PN.recursion_preorder(net.nodes_changed,
+    V = PN.traversal_preorder(net.nodes_changed,
             f[:init], f[:root], f[:tree], f[:hybrid], params)
     M = MatrixTopologicalOrder(V, net, :c) # nodes in columns of V
     TraitSimulation(M, params, model)
@@ -214,6 +214,7 @@ function updateRootSimulateBM!(rng::AbstractRNG)
         if params.randomRoot
             M[2, i] += sqrt(params.varRoot) * randn(rng) # random value
         end
+        return true
     end
     return f
 end
@@ -226,6 +227,7 @@ function updateRootSimulateMBD!(rng::AbstractRNG)
         if params.randomRoot
             vals[:, i] += cholesky(params.varRoot).L * randn(rng, p) # random value
         end
+        return true
     end
     return f
 end
@@ -240,6 +242,7 @@ function updateTreeSimulateBM!(rng::AbstractRNG)
         M[1, i] = M[1, parentIndex] + params.shift.shift[i] # expectation
         M[2, i] = M[2, parentIndex] + params.shift.shift[i] +
             sqrt(params.sigma2 * edge.length) * randn(rng) # random value
+        return true
     end
     return f
 end
@@ -261,6 +264,7 @@ function updateTreeSimulateMBD!(rng::AbstractRNG)
         val .*= sqrt(edge.length)
         val .+= @view vals[:, parentIndex]
         val .+= params.shift.shift[i, :]
+        return true
     end
     return f
 end
@@ -275,6 +279,7 @@ function updateHybridSimulateBM!(rng::AbstractRNG)
         M[1, i] =  edge1.gamma * M[1, parentIndex1] + edge2.gamma * M[1, parentIndex2] # expectation
         M[2, i] =  edge1.gamma * (M[2, parentIndex1] + sqrt(params.sigma2 * edge1.length) * randn(rng)) +
                    edge2.gamma * (M[2, parentIndex2] + sqrt(params.sigma2 * edge2.length) * randn(rng))
+        return true
     end
     return f
 end
@@ -305,6 +310,7 @@ function updateHybridSimulateMBD!(rng::AbstractRNG)
         buffer .*= sqrt(edge2.length)
         buffer .+= v2
         BLAS.axpby!(edge2.gamma, buffer, edge1.gamma, val) # random value
+        return true
     end
     return f
 end

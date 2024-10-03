@@ -595,7 +595,7 @@ function randomTrait(obj::TSM, net::HybridNetwork;
 end
 
 function randomTrait!(M::Matrix, obj::TSM, net::HybridNetwork)
-    return PN.recursion_preorder!(
+    return PN.traversal_preorder!(
         net.nodes_changed,
         M, # updates M in place
         updateRootRandomTrait!,
@@ -606,32 +606,32 @@ end
 
 function updateRootRandomTrait!(V::AbstractArray, i::Int, obj)
     sample!(1:nstates(obj), view(V, :, i)) # uniform at the root
-    return nothing
+    return true
 end
 
 function updateTreeRandomTrait!(V::Matrix,
     i::Int,parentIndex::Int,edge::Edge,
     obj)
     randomTrait!(view(V, :, i), obj, edge.length, view(V, :, parentIndex))
+    return true
 end
 
 function updateHybridRandomTrait!(
     V::Matrix,
     i::Int,
-    parentIndex1::Int,
-    parentIndex2::Int,
-    edge1::Edge,
-    edge2::Edge,
-    obj
+    parindx::AbstractVector{Int},
+    paredge::AbstractVector{Edge},
+    obj,
 )
-    randomTrait!(view(V, :, i), obj, edge1.length, view(V, :, parentIndex1))
-    tmp = randomTrait(obj, edge2.length, view(V, :, parentIndex2))
+    nump = length(parindx) # 2 parents if bicombining
+    randomTrait!(view(V, :, i), obj, paredge[1].length, view(V, :, parindx[1]))
+    tmp = [randomTrait(obj, paredge[p].length, view(V, :, parindx[p])) for p in 2:nump]
+    cs = cumsum(e.gamma for e in paredge) # last value should be 1 = sum of γs
     for j in 1:size(V,1) # loop over traits
-        if V[j,i] == tmp[j] # both parents of the hybrid node have the same trait
-            continue # skip the rest: go to next trait
-        end
-        if rand() > edge1.gamma
-            V[j,i] = tmp[j] # switch to inherit trait of parent 2
+        u = rand() # next: find index p such that cs[p-1] < u < cs[p]
+        p = findfirst(s -> u < s for s in cs) # inherit from parent p
+        if p > 1 # parent 1 was stored in V already: nothing to do if p=1
+            V[j,i] = tmp[p-1][j] # switch to inherit trait of parent p
         end
     end
     return nothing
