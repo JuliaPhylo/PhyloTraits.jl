@@ -273,43 +273,43 @@ end
 function updateHybridSimulateBM!(rng::AbstractRNG)
     f = function(M::Matrix,
                  i::Int,
-                 parentIndex1::Int, parentIndex2::Int,
-                 edge1::Edge, edge2::Edge,
+                 parindx::AbstractVector{Int},
+                 paredge::AbstractVector{Edge},
                  params::ParamsBM)
-        M[1, i] =  edge1.gamma * M[1, parentIndex1] + edge2.gamma * M[1, parentIndex2] # expectation
-        M[2, i] =  edge1.gamma * (M[2, parentIndex1] + sqrt(params.sigma2 * edge1.length) * randn(rng)) +
-                   edge2.gamma * (M[2, parentIndex2] + sqrt(params.sigma2 * edge2.length) * randn(rng))
+        iter = zip(parindx, paredge)
+        M[1, i] = sum(e.gamma *  M[1,j] for (j,e) in iter) # expectation
+        M[2, i] = sum(e.gamma * (M[2,j] + sqrt(params.sigma2 * e.length) * randn(rng)) for (j,e) in iter)
         return true
     end
     return f
 end
-
+# assumes a bicombining network for multivariate
 function updateHybridSimulateMBD!(rng::AbstractRNG)
     f = function(M::Matrix{Float64},
                  i::Int,
-                 parentIndex1::Int, parentIndex2::Int,
-                 edge1::Edge, edge2::Edge,
+                 parindx::AbstractVector{Int},
+                 paredge::AbstractVector{Edge},
                  params::ParamsMultiBM)
         p = process_dim(params)
         means, vals = partitionMBDMatrix(M, p)
         μ = @view means[:, i]
         val = @view vals[:, i]
-        μ1 = @view means[:, parentIndex1]
-        μ2 = @view means[:, parentIndex2]
-        v1 = @view vals[:, parentIndex1]
-        v2 = @view vals[:, parentIndex2]
+        μ1 = @view means[:, parindx[1]]
+        μ2 = @view means[:, parindx[2]]
+        v1 = @view vals[:, parindx[1]]
+        v2 = @view vals[:, parindx[2]]
         # means[:, i] .= edge1.gamma * μ1 + edge2.gamma * μ2
-        mul!(μ, μ1, edge1.gamma)
-        BLAS.axpy!(edge2.gamma, μ2, μ)  # expectation
+        mul!(μ, μ1, paredge[1].gamma)
+        BLAS.axpy!(paredge[2].gamma, μ2, μ)  # expectation
         # val .=  edge1.gamma * (v1 + sqrt(edge1.length) * params.L * r1) +
         #         edge2.gamma * (v2 + sqrt(edge2.length) * params.L * r2) # random value
         mul!(val, params.L, randn(rng, p))
-        val .*= sqrt(edge1.length)
+        val .*= sqrt(paredge[1].length)
         val .+= v1
         buffer = params.L * randn(rng, p)
-        buffer .*= sqrt(edge2.length)
+        buffer .*= sqrt(paredge[2].length)
         buffer .+= v2
-        BLAS.axpby!(edge2.gamma, buffer, edge1.gamma, val) # random value
+        BLAS.axpby!(paredge[2].gamma, buffer, paredge[1].gamma, val) # random value
         return true
     end
     return f

@@ -175,6 +175,9 @@ fitShift = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net; reml=false)
 @test_logs show(devnull, fitShift)
 
 ## Test against fixed values lambda models
+# problem: the lamgda-model assumes a time-consistent network, but here `net` is
+# not time-consistent and the old function didn't check. The new function
+# `getnodeheights` (used by phylolm internally) now does check, and throws an error
 fitlam = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net, model="lambda", fixedValue=1.0,  reml=false)
 
 @test lambda_estim(fitlam) ≈ 1.0
