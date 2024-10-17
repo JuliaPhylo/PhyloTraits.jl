@@ -634,7 +634,7 @@ function updateHybridRandomTrait!(
             V[j,i] = tmp[p-1][j] # switch to inherit trait of parent p
         end
     end
-    return nothing
+    return true
 end
 
 """
