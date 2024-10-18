@@ -13,6 +13,7 @@ using StableRNGs
 using StaticArrays # for rate substitution matrices
 using Statistics
 using StatsBase # for aic etc., stderr
+using StatsAPI
 
 @testset "PhyloTraits Code quality (Aqua.jl)" begin
     Test.detect_ambiguities(PhyloTraits)
