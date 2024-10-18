@@ -629,7 +629,7 @@ function updateHybridRandomTrait!(
     cs = cumsum(e.gamma for e in paredge) # last value should be 1 = sum of γs
     for j in 1:size(V,1) # loop over traits
         u = rand() # next: find index p such that cs[p-1] < u < cs[p]
-        p = findfirst(s -> u < s for s in cs) # inherit from parent p
+        p = findfirst(s -> u < s, cs) # inherit from parent p
         if p > 1 # parent 1 was stored in V already: nothing to do if p=1
             V[j,i] = tmp[p-1][j] # switch to inherit trait of parent p
         end

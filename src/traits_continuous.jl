@@ -925,6 +925,54 @@ function phylolm(::PagelLambda, X::Matrix, Y::Vector, net::HybridNetwork,
             startingValue=startingValue, fixedValue=fixedValue)
 end
 
+
+"""
+    setGammas!(net, γ vector)
+
+Set inheritance γ's of hybrid edges, using input vector for *major* edges.
+Assume pre-order calculated already, with up-to-date field `nodes_changed`.
+See [`getGammas`](@ref).
+
+**Warning**: very different from [`setGamma!`](@ref), which focuses on a
+single hybrid event,
+updates the field `isMajor` according to the new γ, and is not used here.
+
+**Assumption**: each hybrid node has only 2 parents, a major and a minor parent
+(according to the edges' field `isMajor`).
+"""
+function setGammas!(net::HybridNetwork, gammas::Vector)
+    for (i,nod) in enumerate(net.nodes_changed)
+        nod.hybrid || continue # skip tree nodes: nothing to do
+        majorhyb = getparentedge(nod) # major
+        minorhyb = getparentedgeminor(nod) # error if doesn't exit
+        majorhyb.gamma = gammas[i]
+        minorhyb.gamma = 1 - gammas[i]
+    end
+    return nothing
+end
+
+"""
+    getGammas(net)
+
+Vector of inheritance γ's of all major edges (tree edges and major hybrid edges),
+ordered according to the pre-order index of their child node,
+assuming this pre-order is already calculated
+(with up-to-date field `nodes_changed`).
+Here, a "major" edge is an edge with field `isMajor` set to true,
+regardless of its actual γ (below, at or above 0.5).
+
+See [`setGammas!`](@ref)
+"""
+function getGammas(net::HybridNetwork)
+    gammas = ones(length(net.nodes_changed))
+    for (i,node) in enumerate(net.nodes_changed)
+        node.hybrid || continue # skip tree nodes: their gamma is already set to 1
+        majorhybedge = getparentedge(node) # major
+        gammas[i] = majorhybedge.gamma
+    end
+    return gammas
+end
+
 #= ScalingHybrid = BM but with optimized weights of hybrid edges:
 minor edges have their original γ's changed to λγ. Same λ at all hybrids.
 see Bastide (2017) dissertation, section 4.3.2 p.175, at
