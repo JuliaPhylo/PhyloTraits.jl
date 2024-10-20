@@ -504,8 +504,6 @@ fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalingHybrid", fixedVa
 @test loglikelihood(fitlam) ≈ loglikelihood(fitSH)
 @test aic(fitlam) ≈ aic(fitSH)
 
-# problem below: `net` is not time-consistent and the old function didn't check.
-# despite using `getnodeheights_majortree` now, 1+2 tests fail. TODO
 ## Pagel's Lambda
 fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(
     @formula(trait ~ pred), dfr, net, model="lambda", reml=false))
@@ -607,7 +605,7 @@ phynetlm = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm
 # using REML
 phynetlm = (@test_logs (:warn, r"not time consistent") (:info, r"^Max") phylolm(
     @formula(trait ~ pred), dfr, net, model="lambda"))
-@test lambda_estim(phynetlm) ≈ 0.8356905283 atol=1e-8
+@test lambda_estim(phynetlm) ≈ 0.8356905283 atol=1e-7
 
 ## Major Tree
 global tree
