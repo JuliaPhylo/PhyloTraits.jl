@@ -403,8 +403,10 @@ function Base.show(io::IO, obj::ShiftNet)
 end
 
 function Base.:*(sh1::ShiftNet, sh2::ShiftNet)
-    isEqual(sh1.net, sh2.net) || error("Shifts to be concatenated must be defined on the same network.")
-    size(sh1.shift) == size(sh2.shift) || error("Shifts to be concatenated must have the same dimensions.")
+    PN.isEqual(sh1.net, sh2.net) ||
+        error("Shifts to be concatenated must be defined on the same network.")
+    size(sh1.shift) == size(sh2.shift) ||
+        error("Shifts to be concatenated must have the same dimensions.")
     shiftNew = zeros(size(sh1.shift))
     for i in 1:length(sh1.shift)
         if iszero(sh1.shift[i])
@@ -916,9 +918,18 @@ function phylolm(::PagelLambda, X::Matrix, Y::Vector, net::HybridNetwork,
                 startingValue=0.5::Real,
                 fixedValue=missing::Union{Real,Missing})
     # BM variance covariance
-    V = sharedPathMatrix(net)
+    V = sharedPathMatrix(net) # runs preorder!(net) by default
     gammas = getGammas(net)
-    times = getnodeheights(net, false) # false: no need to preorder again
+    if istimeconsistent(net, false) # false: no need to preorder again
+        times = getnodeheights(net, false)
+    else
+        @warn """The network is not time consistent (node heights are not well-defined).
+        The network should be calibrated for this analysis, as the theory for Pagel's model
+        assumes a time-consistent network.
+        The analysis will use node heights based on the major tree, in the meantime.
+        """
+        times = getnodeheights_majortree(net, false; warn=false)
+    end
     phylolm_lambda(X,Y,V,reml, gammas, times;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
@@ -1030,13 +1041,13 @@ function maxLambda(times::Vector, V::MatrixTopologicalOrder)
     # res = res * (1 - 1/5/maximum(times[maskTips]))
 end
 
-function transform_matrix_lambda!(V::MatrixTopologicalOrder, lam::AbstractFloat,
-                                  gammas::Vector, times::Vector)
-    for i in 1:size(V.V, 1)
-        for j in 1:size(V.V, 2)
-            V.V[i,j] *= lam
-        end
-    end
+function transform_matrix_lambda!(
+    V::MatrixTopologicalOrder,
+    lam::AbstractFloat,
+    gammas::Vector,
+    times::Vector
+)
+    V.V .*= lam
     maskTips = indexin(V.tipNumbers, V.nodeNumbersTopOrder)
     for i in maskTips
         V.V[i, i] += (1-lam) * (gammas[i]^2 + (1-gammas[i])^2) * times[i]
@@ -1045,13 +1056,17 @@ function transform_matrix_lambda!(V::MatrixTopologicalOrder, lam::AbstractFloat,
     #   V.V = lam * V.V .+ (1 - lam) .* V_diag
 end
 
-function logLik_lam(lam::AbstractFloat,
-                    X::Matrix, Y::Vector,
-                    V::MatrixTopologicalOrder,
-                    reml::Bool,
-                    gammas::Vector, times::Vector;
-                    nonmissing=trues(length(Y))::BitArray{1}, # Which tips are not missing ?
-                    ind=[0]::Vector{Int})
+function logLik_lam(
+    lam::AbstractFloat,
+    X::Matrix,
+    Y::Vector,
+    V::MatrixTopologicalOrder,
+    reml::Bool,
+    gammas::Vector,
+    times::Vector;
+    nonmissing::BitArray{1}=trues(length(Y)), # Which tips are not missing ?
+    ind::Vector{Int}=[0]
+)
     # Transform V according to lambda
     Vp = deepcopy(V)
     transform_matrix_lambda!(Vp, lam, gammas, times)
@@ -1063,19 +1078,22 @@ function logLik_lam(lam::AbstractFloat,
     return res
 end
 
-function phylolm_lambda(X::Matrix,Y::Vector,
-                    V::MatrixTopologicalOrder,
-                    reml::Bool,
-                    gammas::Vector,
-                    times::Vector;
-                    nonmissing=trues(length(Y))::BitArray{1}, # Which tips are not missing ?
-                    ind=[0]::Vector{Int},
-                    ftolRel=fRelTr::AbstractFloat,
-                    xtolRel=xRelTr::AbstractFloat,
-                    ftolAbs=fAbsTr::AbstractFloat,
-                    xtolAbs=xAbsTr::AbstractFloat,
-                    startingValue=0.5::Real,
-                    fixedValue=missing::Union{Real,Missing})
+function phylolm_lambda(
+    X::Matrix,
+    Y::Vector,
+    V::MatrixTopologicalOrder,
+    reml::Bool,
+    gammas::Vector,
+    times::Vector;
+    nonmissing::BitArray{1}=trues(length(Y)), # Which tips are not missing ?
+    ind::Vector{Int}=[0],
+    ftolRel::AbstractFloat=fRelTr,
+    xtolRel::AbstractFloat=xRelTr,
+    ftolAbs::AbstractFloat=fAbsTr,
+    xtolAbs::AbstractFloat=xAbsTr,
+    startingValue::Real=0.5,
+    fixedValue::Union{Real,Missing}=missing
+)
     if ismissing(fixedValue)
         # Find Best lambda using optimize from package NLopt
         opt = NLopt.Opt(:LN_BOBYQA, 1)

@@ -1,6 +1,5 @@
 runall = false;
 @testset "Testing traits_discrete" begin
-global net, n1, n2, d
 @testset "Testing Substitution Models, P and Q matrices" begin
 
 m1 = BinaryTraitSubstitutionModel(1.0, 2.0);

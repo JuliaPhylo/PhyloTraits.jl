@@ -38,7 +38,7 @@ mutable struct StatisticalSubstitutionModel <: StatsBase.StatisticalModel
     displayedtree::Vector{HybridNetwork}
     """
     prior log tree weight: log product of γ's.
-    In fit!: priorltw = `inheritanceWeight.(trees)`
+    In fit!: priorltw = `PhyloNetworks.inheritanceWeight.(trees)`
     (which returns missing for any negative γ and would cause an error here)
     """
     priorltw::Vector{Float64}
@@ -87,7 +87,7 @@ mutable struct StatisticalSubstitutionModel <: StatsBase.StatisticalModel
             error("""maxhybrid is too low.
                     Call using maxhybrid >= current number of hybrids""")
         # log tree weights: sum log(γ) over edges, for each displayed tree
-        priorltw = inheritanceWeight.(trees)
+        priorltw = PN.inheritanceWeight.(trees)
         all(!ismissing, priorltw) ||
           error("one or more inheritance γ's are missing or negative. fix using setGamma!(network, edge)")
         maxedges = length(net.edge) + 3*(maxhybrid-length(net.hybrid))
@@ -991,8 +991,8 @@ function check_matchtaxonnames!(species::AbstractVector, dat::AbstractVector, ne
         end
     end
     # 3. calculate order of rows to have species with node.number i on ith row
-    resetNodeNumbers!(net; checkPreorder=true, type=:ape) # tip species: now with numbers 1:n
-    resetEdgeNumbers!(net, false) # to use edge as indices: 1:numEdges
+    PN.resetNodeNumbers!(net; checkPreorder=true, type=:ape) # tip species: now with numbers 1:n
+    PN.resetEdgeNumbers!(net, false) # to use edge as indices: 1:numEdges
     netlab = [n.name for n in sort(net.leaf, by = x -> x.number)]
     nspecies = length(netlab)
     o = Vector{Int}(undef, nspecies)

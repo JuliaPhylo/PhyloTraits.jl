@@ -43,13 +43,10 @@ using StatsModels # re-exported by GLM. for ModelFrame ModelMatrix Formula etc
 
 const PN = PhyloNetworks
 
-
-
+# import: to extend methods from othe packages with new methods defined here
 import Base: show
 import GLM: ftest, fit!
-import PhyloNetworks: tipLabels,getTipSubmatrix,
-resetNodeNumbers!,resetEdgeNumbers!,
-inheritanceWeight, isEqual
+import PhyloNetworks: tipLabels
 import StatsModels: coefnames
 
 export ftest # from GLM
@@ -66,9 +63,6 @@ export lambda_estim
 export expectations, expectationsPlot
 export predint, predintPlot
 # discrete traits
-export parsimonySoftwired
-export parsimonyGF
-export maxParsimonyNet
 export TraitSubstitutionModel
 export EqualRatesSubstitutionModel, BinaryTraitSubstitutionModel
 export TwoBinaryTraitSubstitutionModel

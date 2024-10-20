@@ -1,7 +1,6 @@
 ## tests of phylolm
 
 @testset "phylolm on small network" begin
-global net
 
 tree_str= "(A:2.5,((B:1,#H1:0.5::0.1):1,(C:1,(D:0.5)#H1:0.5::0.9):1):0.5);"
 net = readTopology(tree_str)
@@ -145,7 +144,7 @@ end
 ### With shifts
 ###############################################################################
 @testset "Shifts and Transgressive Evolution" begin
-global net
+
 net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 preorder!(net)
 
@@ -175,11 +174,10 @@ fitShift = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net; reml=false)
 @test_logs show(devnull, fitShift)
 
 ## Test against fixed values lambda models
-# problem: the lamgda-model assumes a time-consistent network, but here `net` is
-# not time-consistent and the old function didn't check. The new function
-# `getnodeheights` (used by phylolm internally) now does check, and throws an error
-fitlam = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net, model="lambda", fixedValue=1.0,  reml=false)
-
+fitlam = (@test_logs (:warn,
+    r"^The network is not time consistent") phylolm(
+        @formula(trait ~ shift_8 + shift_17), dfr, net, model="lambda", fixedValue=1.0,  reml=false)
+)
 @test lambda_estim(fitlam) ≈ 1.0
 @test coef(fitlam) ≈ coef(fitShift)
 @test vcov(fitlam) ≈ vcov(fitShift)
@@ -254,7 +252,6 @@ end
 ### No intercept
 #################
 @testset "No Intercept" begin
-global net
 net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 preorder!(net)
 
@@ -304,7 +301,6 @@ end
 #### Other Network
 ###############################################################################
 @testset "phylolm and ancestralStateReconstruction" begin
-global net
 # originally: "(((Ag,(#H1:7.159::0.056,((Ak,(E:0.08,#H2:0.0::0.004):0.023):0.078,(M:0.0)#H2:::0.996):2.49):2.214):0.026,(((((Az:0.002,Ag2:0.023):2.11,As:2.027):1.697)#H1:0.0::0.944,Ap):0.187,Ar):0.723):5.943,(P,20):1.863,165);"
 # followed by changes in net.edge[?].length values to make the network ultrametric
 net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
@@ -477,9 +473,10 @@ fitnabis = phylolm(@formula(trait ~ pred), dfr, net)
 @test bic(fitna) ≈ bic(fitnabis)
 
 ## Tests against fixed values parameters
-fitlam = phylolm(@formula(trait ~ pred), dfr, net, model="lambda", fixedValue=1.0)
-#@show fitlam
-
+fitlam = (@test_logs (:warn,
+    r"^The network is not time consistent") phylolm(
+        @formula(trait ~ pred), dfr, net, model="lambda", fixedValue=1.0)
+)
 @test lambda_estim(fitlam) ≈ 1.0
 @test coef(fitlam) ≈ coef(fitnabis)
 @test vcov(fitlam) ≈ vcov(fitnabis)
@@ -507,8 +504,11 @@ fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalingHybrid", fixedVa
 @test loglikelihood(fitlam) ≈ loglikelihood(fitSH)
 @test aic(fitlam) ≈ aic(fitSH)
 
+# problem below: `net` is not time-consistent and the old function didn't check.
+# despite using `getnodeheights_majortree`now, 1+3 tests fail. TODO
 ## Pagel's Lambda
-fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(@formula(trait ~ pred), dfr, net, model="lambda", reml=false))
+fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(
+    @formula(trait ~ pred), dfr, net, model="lambda", reml=false))
 #@show fitlam
 @test lambda_estim(fitlam) ≈ 1.1135518305 atol=1e-6
 
@@ -587,7 +587,6 @@ end
 ## Data with no phylogenetic signal
 #################
 @testset "lambda when no signal" begin
-global net
 net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 
 #= Simulate correlated data in data frames
@@ -664,7 +663,6 @@ end
 # We would need `dropcollinear=false` in this test. fixit later: pass kwargs... ?
 # no predictors, so REML = ML in this case
 @testset "phylolm with no regressor" begin
-global net
 net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 
 params = ParamsBM(10, 1)

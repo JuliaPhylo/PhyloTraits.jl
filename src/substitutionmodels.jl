@@ -586,7 +586,7 @@ function randomTrait(obj::TSM, net::HybridNetwork;
     M = Matrix{Int}(undef, ntraits, nnodes) # M[i,j]= trait i for node j
     randomTrait!(M,obj,net)
     if !keepInternal
-        M = getTipSubmatrix(M, net, indexation=:cols) # subset columns only. rows=traits
+        M = PN.getTipSubmatrix(M, net, indexation=:cols) # subset columns only. rows=traits
         nodeLabels = [n.name for n in net.nodes_changed if n.leaf]
     else
         nodeLabels = [n.name == "" ? string(n.number) : n.name for n in net.nodes_changed]
