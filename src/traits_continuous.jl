@@ -98,8 +98,11 @@ AIC: 4.2125395947
 # See also
 [`phylolm`](@ref), [`descendenceMatrix`](@ref), [`regressorHybrid`](@ref).
 """
-function regressorShift(node::Vector{Node},
-                        net::HybridNetwork; checkpreorder=true::Bool)
+function regressorShift(
+    node::Vector{Node},
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
     T = PN.descendenceMatrix(net; checkpreorder=checkpreorder)
     regressorShift(node, net, T)
 end
@@ -127,17 +130,20 @@ function regressorShift(node::Vector{Node},
     return(df)
 end
 
-function regressorShift(edge::Vector{Edge},
-                        net::HybridNetwork; checkpreorder=true::Bool)
+function regressorShift(
+    edge::Vector{Edge},
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
     childs = [getchild(ee) for ee in edge]
     return(regressorShift(childs, net; checkpreorder=checkpreorder))
 end
 
-regressorShift(edge::Edge, net::HybridNetwork; checkpreorder=true::Bool) = regressorShift([edge], net; checkpreorder=checkpreorder)
-regressorShift(node::Node, net::HybridNetwork; checkpreorder=true::Bool) = regressorShift([node], net; checkpreorder=checkpreorder)
+regressorShift(edge::Edge, net::HybridNetwork; checkpreorder::Bool=true) = regressorShift([edge], net; checkpreorder=checkpreorder)
+regressorShift(node::Node, net::HybridNetwork; checkpreorder::Bool=true) = regressorShift([node], net; checkpreorder=checkpreorder)
 
 """
-    regressorHybrid(net::HybridNetwork; checkpreorder=true::Bool)
+    regressorHybrid(net::HybridNetwork; checkpreorder::Bool=true)
 
 Compute the regressor vectors associated with shifts on edges that imediatly below
 all hybrid nodes of `net`. It uses function [`PhyloNetworks.descendenceMatrix`](@ref) through
@@ -234,7 +240,7 @@ AIC: 7.4012043891
 # See also
 [`phylolm`](@ref), [`PhyloNetworks.descendenceMatrix`](@ref), [`regressorShift`](@ref).
 """
-function regressorHybrid(net::HybridNetwork; checkpreorder=true::Bool)
+function regressorHybrid(net::HybridNetwork; checkpreorder::Bool=true)
     childs = [getchild(nn) for nn in net.hybrid] # checks that each hybrid node has a single child
     dfr = regressorShift(childs, net; checkpreorder=checkpreorder)
     dfr[!,:sum] = sum.(eachrow(select(dfr, Not(:tipNames), copycols=false)))
@@ -252,13 +258,13 @@ corresponding to the shift on the parent edge of the node
 
 Two `ShiftNet` objects on the same network can be concatened with `*`.
 
-`ShiftNet(node::Vector{Node}, value::AbstractVector, net::HybridNetwork; checkpreorder=true::Bool)`
+`ShiftNet(node::Vector{Node}, value::AbstractVector, net::HybridNetwork; checkpreorder::Bool=true)`
 
 Constructor from a vector of nodes and associated values. The shifts are located
 on the edges above the nodes provided. Warning, shifts on hybrid edges are not
 allowed.
 
-`ShiftNet(edge::Vector{Edge}, value::AbstractVector, net::HybridNetwork; checkpreorder=true::Bool)`
+`ShiftNet(edge::Vector{Edge}, value::AbstractVector, net::HybridNetwork; checkpreorder::Bool=true)`
 
 Constructor from a vector of edges and associated values.
 Warning, shifts on hybrid edges are not allowed.
@@ -274,9 +280,12 @@ end
 ShiftNet(net::HybridNetwork, dim::Int) = ShiftNet(zeros(length(net.node), dim), net)
 ShiftNet(net::HybridNetwork) = ShiftNet(net, 1)
 
-function ShiftNet(node::Vector{Node}, value::AbstractMatrix,
-                  net::HybridNetwork; checkpreorder=true::Bool)
-
+function ShiftNet(
+    node::Vector{Node},
+    value::AbstractMatrix,
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
     n_nodes, dim = size(value)
     if length(node) != n_nodes
         error("The vector of nodes/edges and of values must have the same number or rows.")
@@ -293,53 +302,71 @@ function ShiftNet(node::Vector{Node}, value::AbstractMatrix,
     return(obj)
 end
 
-function ShiftNet(node::Vector{Node}, value::AbstractVector,
-                  net::HybridNetwork; checkpreorder=true::Bool)
+function ShiftNet(
+    node::Vector{Node},
+    value::AbstractVector,
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
     return ShiftNet(node, reshape(value, (length(value), 1)), net,
                     checkpreorder = checkpreorder)
 end
 
 # Construct from edges and values
-function ShiftNet(edge::Vector{Edge},
-                  value::Union{AbstractVector, AbstractMatrix},
-                  net::HybridNetwork; checkpreorder=true::Bool)
+function ShiftNet(
+    edge::Vector{Edge},
+    value::Union{AbstractVector, AbstractMatrix},
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
     childs = [getchild(ee) for ee in edge]
     return(ShiftNet(childs, value, net; checkpreorder=checkpreorder))
 end
 
-ShiftNet(edge::Edge, value::Float64, net::HybridNetwork; checkpreorder=true::Bool) = ShiftNet([edge], [value], net; checkpreorder=checkpreorder)
-ShiftNet(node::Node, value::Float64, net::HybridNetwork; checkpreorder=true::Bool) = ShiftNet([node], [value], net; checkpreorder=checkpreorder)
+ShiftNet(edge::Edge, value::Float64, net::HybridNetwork; checkpreorder::Bool=true) = ShiftNet([edge], [value], net; checkpreorder=checkpreorder)
+ShiftNet(node::Node, value::Float64, net::HybridNetwork; checkpreorder::Bool=true) = ShiftNet([node], [value], net; checkpreorder=checkpreorder)
 
-function ShiftNet(edge::Edge, value::AbstractVector{Float64},
-                  net::HybridNetwork; checkpreorder=true::Bool)
+function ShiftNet(
+    edge::Edge,
+    value::AbstractVector{Float64},
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
     return ShiftNet([edge], reshape(value, (1, length(value))), net,
                     checkpreorder = checkpreorder)
 end
 
-function ShiftNet(node::Node, value::AbstractVector{Float64},
-                  net::HybridNetwork; checkpreorder=true::Bool)
+function ShiftNet(
+    node::Node,
+    value::AbstractVector{Float64},
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
     return ShiftNet([node], reshape(value, (1, length(value))), net,
                     checkpreorder = checkpreorder)
 end
 
 
 """
-    shiftHybrid(value::Vector{T} where T<:Real, net::HybridNetwork; checkpreorder=true::Bool)
+    shiftHybrid(value::Vector{T} where T<:Real, net::HybridNetwork; checkpreorder::Bool=true)
 
 Construct an object [`ShiftNet`](@ref) with shifts on all the edges below
 hybrid nodes, with values provided. The vector of values must have the
 same length as the number of hybrids in the network.
 
 """
-function shiftHybrid(value::Union{Matrix{T}, Vector{T}} where T<:Real,
-                     net::HybridNetwork; checkpreorder=true::Bool)
+function shiftHybrid(
+    value::Union{Matrix{T}, Vector{T}} where T<:Real,
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
     if length(net.hybrid) != size(value, 1)
         error("You must provide as many values as the number of hybrid nodes.")
     end
     childs = [getchild(nn) for nn in net.hybrid] # checks for single child
     return(ShiftNet(childs, value, net; checkpreorder=checkpreorder))
 end
-shiftHybrid(value::Real, net::HybridNetwork; checkpreorder=true::Bool) = shiftHybrid([value], net; checkpreorder=checkpreorder)
+shiftHybrid(value::Real, net::HybridNetwork; checkpreorder::Bool=true) = shiftHybrid([value], net; checkpreorder=checkpreorder)
 
 """
     getShiftEdgeNumber(shift::ShiftNet)
@@ -870,20 +897,24 @@ with or without within-species variation:
 Return a [`PhyloNetworkLinearModel`](@ref) object.
 This method is called by `phylolm(formula, data, network; kwargs...)`.
 """
-function phylolm(X::Matrix, Y::Vector, net::HybridNetwork,
-                model::ContinuousTraitEM = BM();
-                reml::Bool=true,
-                nonmissing=trues(length(Y))::BitArray{1},
-                ind=[0]::Vector{Int},
-                ftolRel=fRelTr::AbstractFloat,
-                xtolRel=xRelTr::AbstractFloat,
-                ftolAbs=fAbsTr::AbstractFloat,
-                xtolAbs=xAbsTr::AbstractFloat,
-                startingValue=0.5::Real,
-                fixedValue=missing::Union{Real,Missing},
-                withinspecies_var::Bool=false,
-                counts::Union{Nothing, Vector}=nothing,
-                ySD::Union{Nothing, Vector}=nothing)
+function phylolm(
+    X::Matrix,
+    Y::Vector,
+    net::HybridNetwork,
+    model::ContinuousTraitEM = BM();
+    reml::Bool=true,
+    nonmissing::BitArray{1}=trues(length(Y)),
+    ind::Vector{Int}=[0],
+    ftolRel::AbstractFloat=fRelTr,
+    xtolRel::AbstractFloat=xRelTr,
+    ftolAbs::AbstractFloat=fAbsTr,
+    xtolAbs::AbstractFloat=xAbsTr,
+    startingValue::Real=0.5,
+    fixedValue::Union{Real,Missing}=missing,
+    withinspecies_var::Bool=false,
+    counts::Union{Nothing, Vector}=nothing,
+    ySD::Union{Nothing, Vector}=nothing
+)
     if withinspecies_var
         phylolm_wsp(model, X,Y,net, reml; nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
@@ -895,10 +926,16 @@ function phylolm(X::Matrix, Y::Vector, net::HybridNetwork,
     end
 end
 
-function phylolm(::BM, X::Matrix, Y::Vector, net::HybridNetwork, reml::Bool;
-                nonmissing=trues(length(Y))::BitArray{1},
-                ind=[0]::Vector{Int},
-                kwargs...)
+function phylolm(
+    ::BM,
+    X::Matrix,
+    Y::Vector,
+    net::HybridNetwork,
+    reml::Bool;
+    nonmissing::BitArray{1}=trues(length(Y)),
+    ind::Vector{Int}=[0],
+    kwargs...
+)
     # BM variance covariance:
     # V_ij = expected shared time for independent genes in i & j
     V = sharedPathMatrix(net)
@@ -907,16 +944,21 @@ function phylolm(::BM, X::Matrix, Y::Vector, net::HybridNetwork, reml::Bool;
                 logdetVy, reml, ind, nonmissing, BM())
 end
 
-function phylolm(::PagelLambda, X::Matrix, Y::Vector, net::HybridNetwork,
-                reml::Bool;
-                nonmissing=trues(length(Y))::BitArray{1},
-                ind=[0]::Vector{Int},
-                ftolRel=fRelTr::AbstractFloat,
-                xtolRel=xRelTr::AbstractFloat,
-                ftolAbs=fAbsTr::AbstractFloat,
-                xtolAbs=xAbsTr::AbstractFloat,
-                startingValue=0.5::Real,
-                fixedValue=missing::Union{Real,Missing})
+function phylolm(
+    ::PagelLambda,
+    X::Matrix,
+    Y::Vector,
+    net::HybridNetwork,
+    reml::Bool;
+    nonmissing::BitArray{1}=trues(length(Y)),
+    ind::Vector{Int}=[0],
+    ftolRel::AbstractFloat=fRelTr,
+    xtolRel::AbstractFloat=xRelTr,
+    ftolAbs::AbstractFloat=fAbsTr,
+    xtolAbs::AbstractFloat=xAbsTr,
+    startingValue::Real=0.5,
+    fixedValue::Union{Real,Missing}=missing
+)
     # BM variance covariance
     V = sharedPathMatrix(net) # runs preorder!(net) by default
     gammas = getGammas(net)
@@ -989,16 +1031,21 @@ minor edges have their original γ's changed to λγ. Same λ at all hybrids.
 see Bastide (2017) dissertation, section 4.3.2 p.175, at
 https://tel.archives-ouvertes.fr/tel-01629648
 =#
-function phylolm(::ScalingHybrid, X::Matrix, Y::Vector, net::HybridNetwork,
-                reml::Bool;
-                nonmissing=trues(length(Y))::BitArray{1},
-                ind=[0]::Vector{Int},
-                ftolRel=fRelTr::AbstractFloat,
-                xtolRel=xRelTr::AbstractFloat,
-                ftolAbs=fAbsTr::AbstractFloat,
-                xtolAbs=xAbsTr::AbstractFloat,
-                startingValue=0.5::Real,
-                fixedValue=missing::Union{Real,Missing})
+function phylolm(
+    ::ScalingHybrid,
+    X::Matrix,
+    Y::Vector,
+    net::HybridNetwork,
+    reml::Bool;
+    nonmissing::BitArray{1}=trues(length(Y)),
+    ind::Vector{Int}=[0],
+    ftolRel::AbstractFloat=fRelTr,
+    xtolRel::AbstractFloat=xRelTr,
+    ftolAbs::AbstractFloat=fAbsTr,
+    xtolAbs::AbstractFloat=xAbsTr,
+    startingValue::Real=0.5,
+    fixedValue::Union{Real,Missing}=missing
+)
     preorder!(net)
     gammas = getGammas(net)
     phylolm_scalingHybrid(X, Y, net, reml, gammas;
@@ -1011,16 +1058,16 @@ end
 ## Fit BM
 
 # Vanilla BM using covariance V. used for other models: V calculated beforehand
-function pgls(X::Matrix, Y::Vector, V::MatrixTopologicalOrder;
-        nonmissing=trues(length(Y))::BitArray{1}, # which tips are not missing?
-        ind=[0]::Vector{Int})
-    # Extract tips matrix
-    Vy = V[:Tips]
-    # Re-order if necessary
-    if (ind != [0]) Vy = Vy[ind, ind] end
-    # Keep only not missing values
+function pgls(
+    X::Matrix,
+    Y::Vector,
+    V::MatrixTopologicalOrder;
+    nonmissing::BitArray{1}=trues(length(Y)), # which tips are not missing?
+    ind::Vector{Int}=[0]
+)
+    Vy = V[:Tips] # extract tips matrix
+    if (ind != [0]) Vy = Vy[ind, ind] end # re-order if necessary
     Vy = Vy[nonmissing, nonmissing]
-    # Cholesky decomposition
     R = cholesky(Vy)
     RL = R.L
     # Fit with GLM.lm, and return quantities needed downstream
@@ -1141,11 +1188,16 @@ function matrix_scalingHybrid(net::HybridNetwork, lam::AbstractFloat,
     return V
 end
 
-function logLik_lam_hyb(lam::AbstractFloat,
-                        X::Matrix, Y::Vector,
-                        net::HybridNetwork, reml::Bool, gammas::Vector;
-                        nonmissing=trues(length(Y))::BitArray{1}, # Which tips are not missing ?
-                        ind=[0]::Vector{Int})
+function logLik_lam_hyb(
+    lam::AbstractFloat,
+    X::Matrix,
+    Y::Vector,
+    net::HybridNetwork,
+    reml::Bool,
+    gammas::Vector;
+    nonmissing::BitArray{1}=trues(length(Y)), # Which tips are not missing ?
+    ind::Vector{Int}=[0]
+)
     # Transform V according to lambda
     V = matrix_scalingHybrid(net, lam, gammas)
     # Fit and take likelihood
@@ -1156,18 +1208,21 @@ function logLik_lam_hyb(lam::AbstractFloat,
     return res
 end
 
-function phylolm_scalingHybrid(X::Matrix,Y::Vector,
-                    net::HybridNetwork,
-                    reml::Bool,
-                    gammas::Vector;
-                    nonmissing=trues(length(Y))::BitArray{1}, # Which tips are not missing ?
-                    ind=[0]::Vector{Int},
-                    ftolRel=fRelTr::AbstractFloat,
-                    xtolRel=xRelTr::AbstractFloat,
-                    ftolAbs=fAbsTr::AbstractFloat,
-                    xtolAbs=xAbsTr::AbstractFloat,
-                    startingValue=0.5::Real,
-                    fixedValue=missing::Union{Real,Missing})
+function phylolm_scalingHybrid(
+    X::Matrix,
+    Y::Vector,
+    net::HybridNetwork,
+    reml::Bool,
+    gammas::Vector;
+    nonmissing::BitArray{1}=trues(length(Y)), # Which tips are not missing ?
+    ind::Vector{Int}=[0],
+    ftolRel::AbstractFloat=fRelTr,
+    xtolRel::AbstractFloat=xRelTr,
+    ftolAbs::AbstractFloat=fAbsTr,
+    xtolAbs::AbstractFloat=xAbsTr,
+    startingValue::Real=0.5,
+    fixedValue::Union{Real,Missing}=missing
+)
     if ismissing(fixedValue)
         # Find Best lambda using optimize from package NLopt
         opt = NLopt.Opt(:LN_BOBYQA, 1)
@@ -1978,15 +2033,21 @@ end
 #  within-species variation (including measurement error)
 ###############################################################################
 
-function phylolm_wsp(::BM, X::Matrix, Y::Vector, net::HybridNetwork, reml::Bool;
-        nonmissing=trues(length(Y))::BitArray{1}, # which individuals have non-missing data?
-        ind=[0]::Vector{Int},
-        ftolRel=fRelTr::AbstractFloat,
-        xtolRel=xRelTr::AbstractFloat,
-        ftolAbs=fAbsTr::AbstractFloat,
-        xtolAbs=xAbsTr::AbstractFloat,
-        counts::Union{Nothing, Vector}=nothing,
-        ySD::Union{Nothing, Vector}=nothing)
+function phylolm_wsp(
+    ::BM,
+    X::Matrix,
+    Y::Vector,
+    net::HybridNetwork,
+    reml::Bool;
+    nonmissing::BitArray{1}=trues(length(Y)), # which individuals have non-missing data?
+    ind::Vector{Int}=[0],
+    ftolRel::AbstractFloat=fRelTr,
+    xtolRel::AbstractFloat=xRelTr,
+    ftolAbs::AbstractFloat=fAbsTr,
+    xtolAbs::AbstractFloat=xAbsTr,
+    counts::Union{Nothing, Vector}=nothing,
+    ySD::Union{Nothing, Vector}=nothing
+)
     V = sharedPathMatrix(net)
     phylolm_wsp(X,Y,V, reml, nonmissing,ind,
         ftolRel, xtolRel, ftolAbs, xtolAbs,
@@ -2309,7 +2370,7 @@ Keyword argument `markMissing` is a string that is appended to predicted
 tip values, so that they can be distinguished from the actual datapoints. Default to
 "*". Set to "" to remove any visual cue.
 """
-function expectationsPlot(obj::ReconstructedStates; markMissing="*"::AbstractString)
+function expectationsPlot(obj::ReconstructedStates; markMissing::AbstractString="*")
     # Retrieve values
     expe = expectations(obj)
     # Format values for plot
@@ -2333,11 +2394,11 @@ end
 StatsBase.stderror(obj::ReconstructedStates) = sqrt.(diag(obj.variances_nodes))
 
 """
-    predint(obj::ReconstructedStates; level=0.95::Real)
+    predint(obj::ReconstructedStates; level::Real=0.95)
 
 Prediction intervals with level `level` for internal nodes and missing tips.
 """
-function predint(obj::ReconstructedStates; level=0.95::Real)
+function predint(obj::ReconstructedStates; level::Real=0.95)
     if ismissing(obj.model)
         qq = quantile(Normal(), (1. - level)/2.)
     else
@@ -2356,7 +2417,7 @@ function Base.show(io::IO, obj::ReconstructedStates)
 end
 
 """
-    predintPlot(obj::ReconstructedStates; level=0.95::Real, withExp=false::Bool)
+    predintPlot(obj::ReconstructedStates; level::Real=0.95, withExp::Bool=false)
 
 Compute and format the prediction intervals for the plotting function.
 The resulting dataframe can be readily used as a `nodelabel` argument to
@@ -2365,7 +2426,7 @@ Keyworks argument `level` control the confidence level of the
 prediction interval. If `withExp` is set to true, then the best
 predicted value is also shown along with the interval.
 """
-function predintPlot(obj::ReconstructedStates; level=0.95::Real, withExp=false::Bool)
+function predintPlot(obj::ReconstructedStates; level::Real=0.95, withExp::Bool=false)
     # predInt
     pri = predint(obj; level=level)
     pritxt = Array{AbstractString}(undef, size(pri, 1))
@@ -2463,14 +2524,19 @@ function ancestralStateReconstruction(V::MatrixTopologicalOrder,
 end
 
 # Reconstruction from all the needed quantities
-function ancestralStateReconstruction(Vz::Matrix,
-            VzyVyinvchol::AbstractMatrix,
-            RL::LowerTriangular,
-            Y::Vector, m_y::Vector, m_z::Vector,
-            NodeNumbers::Vector, TipNumbers::Vector,
-            sigma2::Real,
-            add_var=zeros(size(Vz))::Matrix, # Additional variance for BLUP
-            model=missing::Union{PhyloNetworkLinearModel,Missing})
+function ancestralStateReconstruction(
+    Vz::Matrix,
+    VzyVyinvchol::AbstractMatrix,
+    RL::LowerTriangular,
+    Y::Vector,
+    m_y::Vector,
+    m_z::Vector,
+    NodeNumbers::Vector,
+    TipNumbers::Vector,
+    sigma2::Real,
+    add_var::Matrix=zeros(size(Vz)), # Additional variance for BLUP
+    model::Union{PhyloNetworkLinearModel,Missing}=missing
+)
     # E[z∣y] = E[z∣X] + Cov(z,y)⋅Var(y)⁻¹⋅(y-E[y∣X])
     m_z_cond_y = m_z + VzyVyinvchol * (RL \ (Y - m_y))
     V_z_cond_y = sigma2 .* (Vz - VzyVyinvchol * VzyVyinvchol')
@@ -2817,7 +2883,7 @@ end
 ## Old version of phylolm (naive)
 #################################################
 
-# function phylolmNaive(X::Matrix, Y::Vector, net::HybridNetwork, model="BM"::AbstractString)
+# function phylolmNaive(X::Matrix, Y::Vector, net::HybridNetwork, model::AbstractString="BM")
 #   # Geting variance covariance
 #   V = sharedPathMatrix(net)
 #   Vy = extractVarianceTips(V, net)

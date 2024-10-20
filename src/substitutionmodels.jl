@@ -576,8 +576,13 @@ julia> lab
  "A"  
 ```
 """
-function randomTrait(obj::TSM, net::HybridNetwork;
-    ntraits=1::Int, keepInternal=true::Bool, checkPreorder=true::Bool)
+function randomTrait(
+    obj::TSM,
+    net::HybridNetwork;
+    ntraits::Int=1,
+    keepInternal::Bool=true,
+    checkPreorder::Bool=true
+)
     net.isRooted || error("net needs to be rooted for preorder recursion")
     if(checkPreorder)
         preorder!(net)
@@ -693,12 +698,12 @@ struct JC69 <: NucleicAcidSubstitutionModel
         new(rate, relative, eigeninfo)
     end
 end
-function JC69(rate::AbstractVector, relative=true::Bool)
+function JC69(rate::AbstractVector, relative::Bool=true)
     obj = JC69(rate, relative, zeros(1))
     seteigeninfo!(obj)
     return obj
 end
-JC69(rate::Float64, relative=true::Bool) = JC69([rate], relative)
+JC69(rate::Float64, relative::Bool=true) = JC69([rate], relative)
 
 
 """
@@ -792,7 +797,7 @@ struct HKY85 <: NucleicAcidSubstitutionModel
         new(rate, pi, relative, eigeninfo)
     end
 end
-function HKY85(rate::AbstractVector, pi::Vector{Float64}, relative=true::Bool)
+function HKY85(rate::AbstractVector, pi::Vector{Float64}, relative::Bool=true)
     obj = HKY85(rate, pi, relative, zeros(5))
     seteigeninfo!(obj)
     return obj
@@ -1075,7 +1080,11 @@ rates: [0.0, 0.593, 0.91, 1.221, 1.721]
 probabilities: [0.1, 0.225, 0.225, 0.225, 0.225]
 ```
 """
-function RateVariationAcrossSites(; pinv=0.0::Float64, alpha=Inf64::Float64, ncat=1::Int)
+function RateVariationAcrossSites(;
+    pinv::Float64=0.0,
+    alpha::Float64=Inf64,
+    ncat::Int=1
+)
     ncat>1 && alpha == Inf && error("please specify ncat=1 or alpha<Inf")
     # ncat is 1 or α is finite here
     if pinv==0.0 # if α is infinite: no rate variation, RVASGamma with ncat=1
@@ -1089,7 +1098,7 @@ function RateVariationAcrossSites(; pinv=0.0::Float64, alpha=Inf64::Float64, nca
     return RVASGammaInv(pinv, alpha, ncat)
 end
 """
-    RateVariationAcrossSites(rvsymbol::Symbol, ncategories=4::Int)
+    RateVariationAcrossSites(rvsymbol::Symbol, ncategories::Int=4)
 
 Default model for rate variation across site, specified by a symbol:
 - `:noRV` for no rate variation
@@ -1097,7 +1106,7 @@ Default model for rate variation across site, specified by a symbol:
 - `:I` or `:Inv` for two categories: invariable and variable
 - `:GI` or `:GI` for both.
 """
-function RateVariationAcrossSites(rvsymbol::Symbol, ncategories=4::Int)
+function RateVariationAcrossSites(rvsymbol::Symbol, ncategories::Int=4)
     if rvsymbol == :noRV
         rvas = RateVariationAcrossSites()
     elseif rvsymbol == :Gamma || rvsymbol == :G
@@ -1118,7 +1127,7 @@ struct RVASGamma{S} <: RateVariationAcrossSites
     ratemultiplier::StaticArrays.MVector{S,Float64}
     lograteweight::StaticArrays.SVector{S,Float64} # will be uniform: log(1/ncat)
 end
-function RVASGamma(alpha=1.0::Float64, ncat=4::Int)
+function RVASGamma(alpha::Float64=1.0, ncat::Int=4)
     @assert ncat > 0 "ncat must be 1 or greater"
     uniflw = -log(ncat) # = log(1/ncat)
     obj = RVASGamma{ncat}(
@@ -1138,7 +1147,7 @@ struct RVASInv <: RateVariationAcrossSites
     ratemultiplier::StaticArrays.MVector{2,Float64}
     lograteweight::StaticArrays.MVector{2,Float64}
 end
-function RVASInv(pinv=0.05::Float64)
+function RVASInv(pinv::Float64=0.05)
     r = StaticArrays.MVector{2,Float64}(undef) # rates
     r[1] = 0.0 # invariable category
     obj = RVASInv(StaticArrays.MVector{1,Float64}(pinv),
@@ -1346,9 +1355,12 @@ Estimate base frequencies in DNA data `DNAdata`, ordered ACGT.
 - `useambiguous`: if `true`, ambiguous bases are used (except gaps and Ns).
   For example, `Y` adds 0.5 weight to `C` and 0.5 weight to `T`.
 """
-function empiricalDNAfrequencies(dnaDat::AbstractDataFrame, dnaWeights::Vector,
-    correctedestimate=true::Bool, useambiguous=true::Bool)
-
+function empiricalDNAfrequencies(
+    dnaDat::AbstractDataFrame,
+    dnaWeights::Vector,
+    correctedestimate::Bool=true,
+    useambiguous::Bool=true
+)
     # warning: checking first column and first row only
     dnadat1type = eltype(dnaDat[!,1])
     dnadat1type == BioSymbols.DNA || dnadat1type == Char ||

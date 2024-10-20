@@ -26,7 +26,7 @@ tipLabels(obj::TraitSimulation) = tipLabels(obj.M)
     simulate([rng::AbstractRNG,]
              net::HybridNetwork,
              params::ParamsProcess,
-             checkpreorder=true::Bool)
+             checkpreorder::Bool=true)
 
 Simulate traits on `net` using the parameters `params`. For now, only
 parameters of type [`ParamsBM`](@ref) (univariate Brownian Motion) and
@@ -146,13 +146,15 @@ julia> sim[:Tips, :Exp] # Extract expected values (also works for sim[:All, :Exp
  2.0  2.0  2.0  2.0
 ```
 """
-function simulate(net::HybridNetwork, params::ParamsProcess, checkpreorder=true::Bool)
+function simulate(net::HybridNetwork, params::ParamsProcess, checkpreorder::Bool=true)
     simulate(default_rng(), net, params, checkpreorder)
 end
-function simulate(rng::AbstractRNG,
-                  net::HybridNetwork,
-                  params::ParamsProcess,
-                  checkpreorder=true::Bool)
+function simulate(
+    rng::AbstractRNG,
+    net::HybridNetwork,
+    params::ParamsProcess,
+    checkpreorder::Bool=true
+)
     if isa(params, ParamsBM)
         model = "BM"
     elseif isa(params, ParamsMultiBM)
@@ -326,7 +328,7 @@ Getting submatrices of an object of type [`TraitSimulation`](@ref).
   * `:Tips` columns and/or rows corresponding to the tips
   * `:InternalNodes` columns and/or rows corresponding to the internal nodes
 """
-function Base.getindex(obj::TraitSimulation, d::Symbol, w=:Sim::Symbol)
+function Base.getindex(obj::TraitSimulation, d::Symbol, w::Symbol=:Sim)
     inds = siminds(obj.params, w)
     return getindex(obj.M, d)[inds, :]
 end

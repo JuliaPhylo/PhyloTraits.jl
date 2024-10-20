@@ -60,11 +60,14 @@ mutable struct StatisticalSubstitutionModel <: StatsBase.StatisticalModel
     _loglikcache::Array{Float64, 3} # size: nsites, nrates, ntrees
 
     "inner (default) constructor: from model, rate model, network, trait and site weights"
-    function StatisticalSubstitutionModel(model::SubstitutionModel,
-            ratemodel::RateVariationAcrossSites,
-            net::HybridNetwork, trait::AbstractVector,
-            siteweight=nothing::Union{Nothing, Vector{Float64}},
-            maxhybrid=length(net.hybrid)::Int)
+    function StatisticalSubstitutionModel(
+        model::SubstitutionModel,
+        ratemodel::RateVariationAcrossSites,
+        net::HybridNetwork,
+        trait::AbstractVector,
+        siteweight::Union{Nothing, Vector{Float64}}=nothing,
+        maxhybrid::Int=length(net.hybrid)
+    )
         length(trait) > 0 || error("no trait data!")
         nsites = length(trait[1])
         siteweight === nothing || length(siteweight) == nsites ||
@@ -110,21 +113,28 @@ const SSM = StatisticalSubstitutionModel
 # Works for DNA in fasta format. Probably need different versions for
 # different kinds of data (snp, amino acids). Similar to fitdiscrete()
 """
-    StatisticalSubstitutionModel(model::SubstitutionModel,
-            ratemodel::RateVariationAcrossSites,
-            net::HybridNetwork, trait::AbstractVector,
-            siteweight=nothing::Union{Nothing, Vector{Float64}},
-            maxhybrid=length(net.hybrid)::Int)
+    StatisticalSubstitutionModel(
+        model::SubstitutionModel,
+        ratemodel::RateVariationAcrossSites,
+        net::HybridNetwork,
+        trait::AbstractVector,
+        siteweight::Union{Nothing, Vector{Float64}}=nothing,
+        maxhybrid::Int=length(net.hybrid)
+    )
 
 Inner constructor. Makes a deep copy of the input model, rate model.
 Warning: does *not* make a deep copy of the network:
 modification of the `object.net` would modify the input `net`.
 Assumes that the network has valid gamma values (to extract displayed trees).
 
-    StatisticalSubstitutionModel(net::HybridNetwork, fastafile::String,
-            modsymbol::Symbol, rvsymbol=:noRV::Symbol,
-            ratecategories=4::Int;
-            maxhybrid=length(net.hybrid)::Int)
+    StatisticalSubstitutionModel(
+        net::HybridNetwork,
+        fastafile::String,
+        modsymbol::Symbol,
+        rvsymbol::Symbol=:noRV,
+        ratecategories::Int=4;
+        maxhybrid::Int=length(net.hybrid)
+    )
 
 Constructor from a network and a fasta file.
 The model symbol should be one of `:JC69`, `:HKY85`, `:ERSM` or `:BTSM`.
@@ -133,9 +143,14 @@ The `rvsymbol` should be as required by [`RateVariationAcrossSites`](@ref).
 The network's gamma values are modified if they are missing. After that,
 a deep copy of the network is passed to the inner constructor.
 """
-function StatisticalSubstitutionModel(net::HybridNetwork, fastafile::AbstractString,
-        modsymbol::Symbol, rvsymbol=:noRV::Symbol, ratecategories=4::Int;
-        maxhybrid=length(net.hybrid)::Int)
+function StatisticalSubstitutionModel(
+    net::HybridNetwork,
+    fastafile::AbstractString,
+    modsymbol::Symbol,
+    rvsymbol::Symbol=:noRV,
+    ratecategories::Int=4;
+    maxhybrid::Int=length(net.hybrid)
+)
     for e in net.edge # check for missing or inappropriate γ values
         if e.hybrid
             e.gamma > 0.0 && continue
@@ -172,7 +187,7 @@ function Base.show(io::IO, obj::SSM)
     end
 end
 """
-    showdata(io::IO, obj::SSM, fullsiteinfo=false::Bool)
+    showdata(io::IO, obj::SSM, fullsiteinfo::Bool=false)
 
 Return information about the data in an SSM object:
 number of species, number or traits or sites, number of distinct patterns,
@@ -187,7 +202,7 @@ Note: Missing is not considered an additional state. For example,
 if a site contains some missing data, but all non-missing values take the same
 state, then this site is counted in the category "invariant".
 """
-function showdata(io::IO, obj::SSM, fullsiteinfo=false::Bool)
+function showdata(io::IO, obj::SSM, fullsiteinfo::Bool=false)
     disp =  "data:\n  $(length(obj.trait)) species"
     ns = obj.totalsiteweight
     ns = (isapprox(ns, round(ns), atol=1e-5) ? Int(round(ns)) : ns)
@@ -464,8 +479,14 @@ function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
 end
 
 #wrapper: species, dat version with model symbol
-function fitdiscrete(net::HybridNetwork, modSymbol::Symbol,
-    species::Array{<:AbstractString}, dat::DataFrame, rvSymbol=:noRV::Symbol; kwargs...)
+function fitdiscrete(
+    net::HybridNetwork,
+    modSymbol::Symbol,
+    species::Array{<:AbstractString},
+    dat::DataFrame,
+    rvSymbol::Symbol=:noRV;
+    kwargs...
+)
     rate = startingrate(net)
     labels = learnlabels(modSymbol, dat)
     if modSymbol == :JC69
@@ -507,8 +528,14 @@ function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
 end
 
 #wrapper for dna data
-function fitdiscrete(net::HybridNetwork, modSymbol::Symbol, dnadata::DataFrame,
-    dnapatternweights::Array{<:AbstractFloat}, rvSymbol=:noRV::Symbol; kwargs...)
+function fitdiscrete(
+    net::HybridNetwork,
+    modSymbol::Symbol,
+    dnadata::DataFrame,
+    dnapatternweights::Array{<:AbstractFloat},
+    rvSymbol::Symbol=:noRV;
+    kwargs...
+)
     rate = startingrate(net)
     if modSymbol == :JC69
         model = JC69([1.0], true)  # 1.0 instead of rate because relative version
@@ -557,13 +584,22 @@ function StatsAPI.fit(::Type{SSM}, net::HybridNetwork, model::SubstitutionModel,
     fit!(obj; kwargs...)
 end
 
-function fit!(obj::SSM; optimizeQ=true::Bool, optimizeRVAS=true::Bool,
-    closeoptim=false::Bool, verbose=false::Bool, maxeval=1000::Int,
-    ftolRel=fRelTr::Float64, ftolAbs=fAbsTr::Float64,
-    xtolRel=xRelTr::Float64, xtolAbs=xAbsTr::Float64,
-    alphamin=alphaRASmin, alphamax=alphaRASmax,
-    pinvmin=pinvRASmin, pinvmax=pinvRASmax)
-
+function fit!(
+    obj::SSM;
+    optimizeQ::Bool=true,
+    optimizeRVAS::Bool=true,
+    closeoptim::Bool=false,
+    verbose::Bool=false,
+    maxeval::Int=1000,
+    ftolRel::Float64=fRelTr,
+    ftolAbs::Float64=fAbsTr,
+    xtolRel::Float64=xRelTr,
+    xtolAbs::Float64=xAbsTr,
+    alphamin=alphaRASmin,
+    alphamax=alphaRASmax,
+    pinvmin=pinvRASmin,
+    pinvmax=pinvRASmax
+)
     all(x -> x >= 0.0, [e.length for e in obj.net.edge]) || error("branch lengths should be >= 0")
     all(x -> x >= 0.0, [e.gamma for e in obj.net.edge]) || error("gammas should be >= 0")
     if optimizeQ && nparams(obj.model) <1
