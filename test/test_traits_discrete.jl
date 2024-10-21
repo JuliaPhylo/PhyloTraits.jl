@@ -1,5 +1,8 @@
 runall = false;
 @testset "Testing traits_discrete" begin
+
+net_caudata_47taxa_string = "((((((((((((((Ae_caudata_Tr275,Ae_caudata_Tr276),Ae_caudata_Tr139))#H1,#H2),(((Ae_umbellulata_Tr266,Ae_umbellulata_Tr257),Ae_umbellulata_Tr268),#H1)),((Ae_comosa_Tr271,Ae_comosa_Tr272),(((Ae_uniaristata_Tr403,Ae_uniaristata_Tr357),Ae_uniaristata_Tr402),Ae_uniaristata_Tr404))),(((Ae_tauschii_Tr352,Ae_tauschii_Tr351),(Ae_tauschii_Tr180,Ae_tauschii_Tr125)),(((((((Ae_longissima_Tr241,Ae_longissima_Tr242),Ae_longissima_Tr355),(Ae_sharonensis_Tr265,Ae_sharonensis_Tr264)),((Ae_bicornis_Tr408,Ae_bicornis_Tr407),Ae_bicornis_Tr406)),((Ae_searsii_Tr164,Ae_searsii_Tr165),Ae_searsii_Tr161)))#H2,#H4))),(((T_boeoticum_TS8,(T_boeoticum_TS10,T_boeoticum_TS3)),T_boeoticum_TS4),((T_urartu_Tr315,T_urartu_Tr232),(T_urartu_Tr317,T_urartu_Tr309)))),(((((Ae_speltoides_Tr320,Ae_speltoides_Tr323),Ae_speltoides_Tr223),Ae_speltoides_Tr251))H3,((((Ae_mutica_Tr237,Ae_mutica_Tr329),Ae_mutica_Tr244),Ae_mutica_Tr332))#H4))),Ta_caputMedusae_TB2),S_vavilovii_Tr279),Er_bonaepartis_TB1),H_vulgare_HVens23);"
+
 @testset "Testing Substitution Models, P and Q matrices" begin
 
 m1 = BinaryTraitSubstitutionModel(1.0, 2.0);
@@ -345,21 +348,55 @@ end # end of testset, fixed topology
 
 @testset "testing readfastatodna" begin
 fastafile = joinpath(@__DIR__, "..", "examples", "test_8_withrepeatingsites.aln")
-#fastafile = abspath(joinpath(dirname(Base.find_package("PhyloNetworks")), "..", "examples", "test_8_withrepeatingsites.aln"))
+#fastafile = abspath(joinpath(dirname(Base.find_package("PhyloTraits")), "..", "examples", "test_8_withrepeatingsites.aln"))
 dat, weights = readfastatodna(fastafile, true);
 @test weights ==  [3.0, 1.0, 1.0, 2.0, 1.0]
-#check that no columns are repeated, only correct columns removed
-@test size(dat,2) == 6
+@test size(dat,2) == 6 # 3 (repeated) columns removed
 
-#test on data with no repeated site patterns
+# test on data with no repeated site patterns
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_8sites.aln")
-#fastafile = abspath(joinpath(dirname(Base.find_package("PhyloNetworks")), "..", "examples", "Ae_bicornis_8sites.aln"))
+#fastafile = abspath(joinpath(dirname(Base.find_package("PhyloTraits")), "..", "examples", "Ae_bicornis_8sites.aln"))
 dat, weights = readfastatodna(fastafile, true);
-#check that weights are correct
 @test weights == ones(Float64, 8)
-#check that no columns are repeated, only correct columns removed
 @test size(dat,2) == 9
-end #testing readfastatodna
+end # testing readfastatodna
+
+@testset "data to SSM pruning: complex network" begin
+fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_8sites.aln")
+#fastafile = abspath(joinpath(dirname(Base.find_package("PhyloTraits")), "..", "examples", "Ae_bicornis_8sites.aln"))
+
+net = readTopology(net_caudata_47taxa_string);
+PN.fuseedgesat!(93, net)
+# assign non-missing edges lengths and gammas
+for e in net.edge e.length = 1.0; end
+for h in net.hybrid setGamma!(getparentedge(h),0.6); end
+obj = (@test_logs (:warn, r"pruned") PhyloTraits.StatisticalSubstitutionModel(net, fastafile, :JC69))
+@test length(obj.net.leaf) == 22
+@test length(obj.net.edge) == 52
+@test length(obj.net.hybrid) == 3
+@test !PN.hashybridladder(obj.net)
+
+# network with 47 taxa, but data on 22 taxa
+net = readTopology(net_caudata_47taxa_string);
+PN.fuseedgesat!(93, net)
+obj = (@test_logs (:warn, r"taxa with no data") PhyloTraits.StatisticalSubstitutionModel(net, fastafile, :JC69))
+@test length(obj.net.leaf) == 22
+io = IOBuffer();
+PhyloTraits.showdata(io, obj)
+@test String(take!(io)) == "data:\n  22 species\n  8 sites"
+PhyloTraits.showdata(io, obj, true)
+@test String(take!(io)) ==
+"data:
+  22 species
+  8 sites
+  0 sites with no data (0.0%)
+  2 invariant sites (25.0%)
+  6 sites with 2 distinct states (75.0%)
+  6 parsimony-informative sites (75.0%)
+  6 sites with 1 or more missing values (75.0%)
+  3.41% missing values overall"
+close(io)
+end # testing data to SSM pruning
 
 @testset "NucleicAcidSubsitutionModels" begin
 
@@ -556,7 +593,7 @@ s4 = fitdiscrete(net_dat, :HKY85, species_alone, dna_alone, :G; optimizeRVAS=fal
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln")
 #fastafile = abspath(joinpath(dirname(Base.find_package("PhyloNetworks")), "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln"))
 dna_dat, dna_weights = readfastatodna(fastafile, true);
-net_dna = readTopology("((((((((((((((Ae_caudata_Tr275,Ae_caudata_Tr276),Ae_caudata_Tr139))#H1,#H2),(((Ae_umbellulata_Tr266,Ae_umbellulata_Tr257),Ae_umbellulata_Tr268),#H1)),((Ae_comosa_Tr271,Ae_comosa_Tr272),(((Ae_uniaristata_Tr403,Ae_uniaristata_Tr357),Ae_uniaristata_Tr402),Ae_uniaristata_Tr404))),(((Ae_tauschii_Tr352,Ae_tauschii_Tr351),(Ae_tauschii_Tr180,Ae_tauschii_Tr125)),(((((((Ae_longissima_Tr241,Ae_longissima_Tr242),Ae_longissima_Tr355),(Ae_sharonensis_Tr265,Ae_sharonensis_Tr264)),((Ae_bicornis_Tr408,Ae_bicornis_Tr407),Ae_bicornis_Tr406)),((Ae_searsii_Tr164,Ae_searsii_Tr165),Ae_searsii_Tr161)))#H2,#H4))),(((T_boeoticum_TS8,(T_boeoticum_TS10,T_boeoticum_TS3)),T_boeoticum_TS4),((T_urartu_Tr315,T_urartu_Tr232),(T_urartu_Tr317,T_urartu_Tr309)))),(((((Ae_speltoides_Tr320,Ae_speltoides_Tr323),Ae_speltoides_Tr223),Ae_speltoides_Tr251))H3,((((Ae_mutica_Tr237,Ae_mutica_Tr329),Ae_mutica_Tr244),Ae_mutica_Tr332))#H4))),Ta_caputMedusae_TB2),S_vavilovii_Tr279),Er_bonaepartis_TB1),H_vulgare_HVens23);");
+net_dna = readTopology(net_caudata_47taxa_string);
 @test PhyloTraits.startingrate(net_dna) ≈ 0.02127659574468085 # 1/length(net_dna.leaf)
 for edge in net_dna.edge # adds branch lengths
     edge.length = 1.0
@@ -588,7 +625,7 @@ fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_Tr406_Contig10132.
 #fastafile = abspath(joinpath(dirname(Base.find_package("PhyloNetworks")), "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln"))
 dna_dat, dna_weights = readfastatodna(fastafile, true);
 
-dna_net_top = readTopology("((((((((((((((Ae_caudata_Tr275,Ae_caudata_Tr276),Ae_caudata_Tr139))#H1,#H2),(((Ae_umbellulata_Tr266,Ae_umbellulata_Tr257),Ae_umbellulata_Tr268),#H1)),((Ae_comosa_Tr271,Ae_comosa_Tr272),(((Ae_uniaristata_Tr403,Ae_uniaristata_Tr357),Ae_uniaristata_Tr402),Ae_uniaristata_Tr404))),(((Ae_tauschii_Tr352,Ae_tauschii_Tr351),(Ae_tauschii_Tr180,Ae_tauschii_Tr125)),(((((((Ae_longissima_Tr241,Ae_longissima_Tr242),Ae_longissima_Tr355),(Ae_sharonensis_Tr265,Ae_sharonensis_Tr264)),((Ae_bicornis_Tr408,Ae_bicornis_Tr407),Ae_bicornis_Tr406)),((Ae_searsii_Tr164,Ae_searsii_Tr165),Ae_searsii_Tr161)))#H2,#H4))),(((T_boeoticum_TS8,(T_boeoticum_TS10,T_boeoticum_TS3)),T_boeoticum_TS4),((T_urartu_Tr315,T_urartu_Tr232),(T_urartu_Tr317,T_urartu_Tr309)))),(((((Ae_speltoides_Tr320,Ae_speltoides_Tr323),Ae_speltoides_Tr223),Ae_speltoides_Tr251))H3,((((Ae_mutica_Tr237,Ae_mutica_Tr329),Ae_mutica_Tr244),Ae_mutica_Tr332))#H4))),Ta_caputMedusae_TB2),S_vavilovii_Tr279),Er_bonaepartis_TB1),H_vulgare_HVens23);");
+dna_net_top = readTopology(net_caudata_47taxa_string);
 (x-> x.length = 1).(dna_net_top.edge) # add branch lengths of 1
 
 nasm_model = JC69([0.3], false);       # relative=false: absolute version
@@ -667,17 +704,12 @@ dna_bad = view(DataFrame(A = ["s1", "s2"], trait1 = ["hi", "lo"], trait2 = ["lo"
 
 end #testing stationary and empiricalDNAfrequencies functions
 
-#= fixit:
-- startingBL! defined in phyLiNCoptimization.jl
-- some tests below seem to target readfastatodna, which will remain in PN for now
-=#
-
-@testset "startingBL!" begin
+@testset "traitlabels2indices" begin
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_8sites.aln") # 8 sites only
 # locally: fastafile = joinpath(@__DIR__, "../../dev/PhyloNetworks/", "examples", "Ae_bicornis_8sites.aln") #small data
 dna_dat, dna_weights = readfastatodna(fastafile, true);
 # 22 species, 3 hybrid nodes, 103 edges
-dna_net = readTopology("((((((((((((((Ae_caudata_Tr275,Ae_caudata_Tr276),Ae_caudata_Tr139))#H1,#H2),(((Ae_umbellulata_Tr266,Ae_umbellulata_Tr257),Ae_umbellulata_Tr268),#H1)),((Ae_comosa_Tr271,Ae_comosa_Tr272),(((Ae_uniaristata_Tr403,Ae_uniaristata_Tr357),Ae_uniaristata_Tr402),Ae_uniaristata_Tr404))),(((Ae_tauschii_Tr352,Ae_tauschii_Tr351),(Ae_tauschii_Tr180,Ae_tauschii_Tr125)),(((((((Ae_longissima_Tr241,Ae_longissima_Tr242),Ae_longissima_Tr355),(Ae_sharonensis_Tr265,Ae_sharonensis_Tr264)),((Ae_bicornis_Tr408,Ae_bicornis_Tr407),Ae_bicornis_Tr406)),((Ae_searsii_Tr164,Ae_searsii_Tr165),Ae_searsii_Tr161)))#H2,#H4))),(((T_boeoticum_TS8,(T_boeoticum_TS10,T_boeoticum_TS3)),T_boeoticum_TS4),((T_urartu_Tr315,T_urartu_Tr232),(T_urartu_Tr317,T_urartu_Tr309)))),(((((Ae_speltoides_Tr320,Ae_speltoides_Tr323),Ae_speltoides_Tr223),Ae_speltoides_Tr251))H3,((((Ae_mutica_Tr237,Ae_mutica_Tr329),Ae_mutica_Tr244),Ae_mutica_Tr332))#H4))),Ta_caputMedusae_TB2),S_vavilovii_Tr279),Er_bonaepartis_TB1),H_vulgare_HVens23);");
+dna_net = readTopology(net_caudata_47taxa_string);
 # create trait object
 dat2 = PhyloTraits.traitlabels2indices(dna_dat[!,2:end], JC69([0.5]))
 o, dna_net = @test_logs (:warn, "the network contains taxa with no data: those will be pruned") match_mode=:any PhyloTraits.check_matchtaxonnames!(dna_dat[:,1], dat2, dna_net)
@@ -687,14 +719,14 @@ o, dna_net = @test_logs (:warn, "the network contains taxa with no data: those w
 @test size(dat2) == (22,)
 
 dna_dat, dna_weights = readfastatodna(fastafile, true);
-dna_net = readTopology("((((((((((((((Ae_caudata_Tr275,Ae_caudata_Tr276),Ae_caudata_Tr139))#H1,#H2),(((Ae_umbellulata_Tr266,Ae_umbellulata_Tr257),Ae_umbellulata_Tr268),#H1)),((Ae_comosa_Tr271,Ae_comosa_Tr272),(((Ae_uniaristata_Tr403,Ae_uniaristata_Tr357),Ae_uniaristata_Tr402),Ae_uniaristata_Tr404))),(((Ae_tauschii_Tr352,Ae_tauschii_Tr351),(Ae_tauschii_Tr180,Ae_tauschii_Tr125)),(((((((Ae_longissima_Tr241,Ae_longissima_Tr242),Ae_longissima_Tr355),(Ae_sharonensis_Tr265,Ae_sharonensis_Tr264)),((Ae_bicornis_Tr408,Ae_bicornis_Tr407),Ae_bicornis_Tr406)),((Ae_searsii_Tr164,Ae_searsii_Tr165),Ae_searsii_Tr161)))#H2,#H4))),(((T_boeoticum_TS8,(T_boeoticum_TS10,T_boeoticum_TS3)),T_boeoticum_TS4),((T_urartu_Tr315,T_urartu_Tr232),(T_urartu_Tr317,T_urartu_Tr309)))),(((((Ae_speltoides_Tr320,Ae_speltoides_Tr323),Ae_speltoides_Tr223),Ae_speltoides_Tr251))H3,((((Ae_mutica_Tr237,Ae_mutica_Tr329),Ae_mutica_Tr244),Ae_mutica_Tr332))#H4))),Ta_caputMedusae_TB2),S_vavilovii_Tr279),Er_bonaepartis_TB1),H_vulgare_HVens23);");
+dna_net = readTopology(net_caudata_47taxa_string);
 dat2 = PhyloTraits.traitlabels2indices(dna_dat[!,2:end], HKY85([0.5], [0.25, 0.25, 0.25, 0.25], true))
 o, dna_net = @test_logs (:warn, "the network contains taxa with no data: those will be pruned") match_mode=:any PhyloTraits.check_matchtaxonnames!(dna_dat[:,1], dat2, dna_net)
 @test isa(o,Vector{Int})
 @test isa(dat2,Vector{Vector{Union{Missing, Int}}})
 @test length(o) == 22
 @test size(dat2) == (22,)
-end # of startingBL!
+end # of traitlabels2indices
 
 @testset "testing prep and wrapper functions" begin
 # read in data
@@ -702,7 +734,7 @@ end # of startingBL!
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln")
 dna_dat, dna_weights = readfastatodna(fastafile, true);
 
-dna_net_top = readTopology("((((((((((((((Ae_caudata_Tr275,Ae_caudata_Tr276),Ae_caudata_Tr139))#H1,#H2),(((Ae_umbellulata_Tr266,Ae_umbellulata_Tr257),Ae_umbellulata_Tr268),#H1)),((Ae_comosa_Tr271,Ae_comosa_Tr272),(((Ae_uniaristata_Tr403,Ae_uniaristata_Tr357),Ae_uniaristata_Tr402),Ae_uniaristata_Tr404))),(((Ae_tauschii_Tr352,Ae_tauschii_Tr351),(Ae_tauschii_Tr180,Ae_tauschii_Tr125)),(((((((Ae_longissima_Tr241,Ae_longissima_Tr242),Ae_longissima_Tr355),(Ae_sharonensis_Tr265,Ae_sharonensis_Tr264)),((Ae_bicornis_Tr408,Ae_bicornis_Tr407),Ae_bicornis_Tr406)),((Ae_searsii_Tr164,Ae_searsii_Tr165),Ae_searsii_Tr161)))#H2,#H4))),(((T_boeoticum_TS8,(T_boeoticum_TS10,T_boeoticum_TS3)),T_boeoticum_TS4),((T_urartu_Tr315,T_urartu_Tr232),(T_urartu_Tr317,T_urartu_Tr309)))),(((((Ae_speltoides_Tr320,Ae_speltoides_Tr323),Ae_speltoides_Tr223),Ae_speltoides_Tr251))H3,((((Ae_mutica_Tr237,Ae_mutica_Tr329),Ae_mutica_Tr244),Ae_mutica_Tr332))#H4))),Ta_caputMedusae_TB2),S_vavilovii_Tr279),Er_bonaepartis_TB1),H_vulgare_HVens23);");
+dna_net_top = readTopology(net_caudata_47taxa_string);
 (x-> x.length = 1).(dna_net_top.edge) # add branch lengths  of 1
 #Fixes the gamma error (creates a network)
 setGamma!(dna_net_top.edge[6],0.6)
@@ -739,7 +771,7 @@ end #of testing prep and wrapper functions
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln")
 dna_dat, dna_weights = readfastatodna(fastafile, true);
 
-dna_net_top = readTopology("((((((((((((((Ae_caudata_Tr275,Ae_caudata_Tr276),Ae_caudata_Tr139))#H1,#H2),(((Ae_umbellulata_Tr266,Ae_umbellulata_Tr257),Ae_umbellulata_Tr268),#H1)),((Ae_comosa_Tr271,Ae_comosa_Tr272),(((Ae_uniaristata_Tr403,Ae_uniaristata_Tr357),Ae_uniaristata_Tr402),Ae_uniaristata_Tr404))),(((Ae_tauschii_Tr352,Ae_tauschii_Tr351),(Ae_tauschii_Tr180,Ae_tauschii_Tr125)),(((((((Ae_longissima_Tr241,Ae_longissima_Tr242),Ae_longissima_Tr355),(Ae_sharonensis_Tr265,Ae_sharonensis_Tr264)),((Ae_bicornis_Tr408,Ae_bicornis_Tr407),Ae_bicornis_Tr406)),((Ae_searsii_Tr164,Ae_searsii_Tr165),Ae_searsii_Tr161)))#H2,#H4))),(((T_boeoticum_TS8,(T_boeoticum_TS10,T_boeoticum_TS3)),T_boeoticum_TS4),((T_urartu_Tr315,T_urartu_Tr232),(T_urartu_Tr317,T_urartu_Tr309)))),(((((Ae_speltoides_Tr320,Ae_speltoides_Tr323),Ae_speltoides_Tr223),Ae_speltoides_Tr251))H3,((((Ae_mutica_Tr237,Ae_mutica_Tr329),Ae_mutica_Tr244),Ae_mutica_Tr332))#H4))),Ta_caputMedusae_TB2),S_vavilovii_Tr279),Er_bonaepartis_TB1),H_vulgare_HVens23);");
+dna_net_top = readTopology(net_caudata_47taxa_string);
 (x-> x.length = 1).(dna_net_top.edge) # add branch lengths of 1
 #Fixes the gamma error (creates a network)
 setGamma!(dna_net_top.edge[6],0.6)

@@ -27,7 +27,7 @@ df = DataFrame(trait1=trait1, trait2=trait2, trait3=trait3,tipNames=labels)
 =#
 
 n = 4; m = 3
-starnet = readTopology(PhyloNetworks.startree_newick(n))
+starnet = readTopology(PN.startree_newick(n))
 netnames = ["t1","t2","t3","t4"] # = tipLabels(starnet) # was generated to have length n
 df = DataFrame(
     species = repeat(netnames, inner=m),
@@ -540,7 +540,7 @@ insertcols!(dfbig, 1, :speciesIds => dfbig[!,:species])
 netbig = deepcopy(net)
 for i in 1:nrow(dfbig)
     sp_name = dfbig[i, :species]; tip_name = sp_name * string(i)
-    PhyloNetworks.addleaf!(netbig, getNode(sp_name, netbig), tip_name, 0.0)
+    PN.addleaf!(netbig, getNode(sp_name, netbig), tip_name, 0.0)
     dfbig[i, :speciesIds] = tip_name
 end
 # (((((D1:0.0,D2:0.0,D3:0.0)D:0.4,(C4:0.0,C5:0.0,C6:0.0)C:0.4):4.8,(((A7:0.0,A8:0.0,A9:0.0)A:0.8,(B10:0.0,B11:0.0,B12:0.0)B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0.0::0.3,(E13:0.0,E14:0.0,E15:0.0)E:3.0):6.2):2.0,(O16:0.0,O17:0.0,O18:0.0)O:11.2);

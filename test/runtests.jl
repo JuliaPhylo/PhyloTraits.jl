@@ -15,6 +15,8 @@ using Statistics
 using StatsBase # for aic etc., stderr
 using StatsAPI
 
+const PN = PhyloNetworks
+
 @testset "PhyloTraits Code quality (Aqua.jl)" begin
     Test.detect_ambiguities(PhyloTraits)
     Aqua.test_all(
