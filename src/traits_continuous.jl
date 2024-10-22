@@ -1364,11 +1364,11 @@ species standard deviation / sample sizes (if used) will throw an error.
 ## Examples: Without within-species variation
 
 ```jldoctest
-julia> phy = readTopology(joinpath(dirname(pathof(PhyloNetworks)), "..", "examples", "caudata_tree.txt"));
+julia> phy = readTopology(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "caudata_tree.txt"));
 
 julia> using DataFrames, CSV # to read data file, next
 
-julia> dat = CSV.read(joinpath(dirname(pathof(PhyloNetworks)), "..", "examples", "caudata_trait.txt"), DataFrame);
+julia> dat = CSV.read(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "caudata_trait.txt"), DataFrame);
 
 julia> using StatsModels # for stat model formulas
 
@@ -2633,9 +2633,9 @@ Returns an object of type [`ReconstructedStates`](@ref).
 ```jldoctest; filter = [r" PhyloNetworks .*:\d+", ]
 julia> using DataFrames, CSV # to read data file
 
-julia> phy = readTopology(joinpath(dirname(pathof(PhyloNetworks)), "..", "examples", "carnivores_tree.txt"));
+julia> phy = readTopology(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "carnivores_tree.txt"));
 
-julia> dat = CSV.read(joinpath(dirname(pathof(PhyloNetworks)), "..", "examples", "carnivores_trait.txt"), DataFrame);
+julia> dat = CSV.read(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "carnivores_trait.txt"), DataFrame);
 
 julia> using StatsModels # for statistical model formulas
 
@@ -2646,7 +2646,7 @@ julia> ancStates = ancestralStateReconstruction(fitBM) # Should produce a warnin
 │ assuming that the estimated variance rate of evolution is correct.
 │ Additional uncertainty in the estimation of this variance rate is
 │ ignored, so prediction intervals should be larger.
-└ @ PhyloNetworks ~/build/juliaphylo/PhyloTraits.jl/src/traits.jl:3359
+└ @ PhyloTraits ~/build/JuliaPhylo/PhyloTraits.jl/src/traits_continuous.jl:2601
 ReconstructedStates:
 ───────────────────────────────────────────────
   Node index      Pred.        Min.  Max. (95%)
@@ -2793,7 +2793,7 @@ julia> ancStates = ancestralStateReconstruction(fitBM);
 │ assuming that the estimated variance rate of evolution is correct.
 │ Additional uncertainty in the estimation of this variance rate is
 │ ignored, so prediction intervals should be larger.
-└ @ PhyloNetworks ~/build/juliaphylo/PhyloTraits.jl/src/traits.jl:3166
+└ @ PhyloTraits ~/build/JuliaPhylo/PhyloTraits.jl/src/traits_continuous.jl:2601
 
 julia> first(expectations(ancStates), 3) # looking at first 3 nodes only
 3×2 DataFrame
