@@ -13,7 +13,9 @@ Documentation for [PhyloTraits](https://github.com/JuliaPhylo/PhyloTraits.jl).
 
 ```@contents
 Pages = [
-    "man/trait_tree.md
+    "man/trait_tree.md",
+    "man/fitDiscrete.md",
+    "man/fitdiscreteDNA.md",
 ]
 Depth = 3
 ```

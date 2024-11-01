@@ -34,6 +34,7 @@ makedocs(;
         "Manual" => [
             "Continuous Trait Evolution" => "man/trait_tree.md",
             "Discrete Trait Evolution" => "man/fitDiscrete.md",
+            "DNA evolution" => "man/fitdiscreteDNA.md",
         ]
     ],
     plugins=[links],
