@@ -31,7 +31,7 @@ with or without transgressive evolution after reticulations:
 
 Continuous traits, accounting for within-species variation:
 
-- Benjamin Teo, Jeffrey P. Rose, Paul Bastide & Cécile Ané (2022).
+- Benjamin Teo, Jeffrey P. Rose, Paul Bastide & Cécile Ané (2023).
   Accounting for intraspecific variation in continuous trait evolution
   on a reticulate phylogeny.
   Bulletin of the Society of Systematic Biologists, 2(3):1-29.
