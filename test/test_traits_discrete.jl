@@ -109,7 +109,7 @@ Random.seed!(12345);
 anc = [1,3,4,2,1]
 @test sum(randomTrait(m2, 0.05, anc) .== anc) >= 4
 # on a network
-net = readTopology("(A:1.0,(B:1.0,(C:1.0,D:1.0):1.0):1.0);")
+net = readnewick("(A:1.0,(B:1.0,(C:1.0,D:1.0):1.0):1.0);")
 Random.seed!(21);
 a,b = randomTrait(m1, net)
 @test size(a) == (1, 7)
@@ -131,7 +131,7 @@ if runall
     length([x for x in a[:,7] if x==4])/length(a[:,7]) # expect 0.25
 end
 
-net2 = readTopology("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0):1.0):3.0,D:5.0);")
+net2 = readnewick("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0):1.0):3.0,D:5.0);")
 Random.seed!(496);
 a,b = randomTrait(m1, net2; keepInternal=false)
 @test a == [1  1  1  2]
@@ -211,7 +211,7 @@ fitER = fitdiscrete(mytree, states, model="ARD"); lik = fitER$lik
 lik(Q, root="flat") # -2.1207856874033491
 =#
 
-net = readTopology("(A:3.0,(B:2.0,(C:1.0,D:1.0):1.0):1.0);");
+net = readnewick("(A:3.0,(B:2.0,(C:1.0,D:1.0):1.0):1.0);");
 tips = Dict("A" => "lo", "B" => "lo", "C" => "hi", "D" => "hi"); #? this is supposed to be an AbstractVector, is a Dict{String,String}
 m1 = EqualRatesSubstitutionModel(2,[0.36836216513047726], ["lo", "hi"]);
 fit1 = (@test_logs fitdiscrete(net, m1, tips; optimizeQ=false, optimizeRVAS=false));
@@ -239,17 +239,17 @@ fit3 = (@test_logs fitdiscrete(net, m2, String7.(species), dat2; optimizeQ=false
 fit!(fit3; optimizeQ=true, optimizeRVAS=false)
 @test fit3.model.rate ≈ [0.3245645980184735, 0.5079500171263976] atol=1e-4
 fit!(fit3; optimizeQ=true, optimizeRVAS=true)
-fit3.net = readTopology("(A,(B,(C,D):1.0):1.0);"); # no branch lengths
+fit3.net = readnewick("(A,(B,(C,D):1.0):1.0);"); # no branch lengths
 @test_throws ErrorException fit!(fit3; optimizeQ=true, optimizeRVAS=true)
 # fit() catches the error (due to negative branch lengths)
 
 # test on a network, 1 hybridization
-net = readTopology("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0::0.1):1.0):3.0,D:5.0);")
+net = readnewick("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0::0.1):1.0):3.0,D:5.0);")
 # function below used to check that simulation proportions == likelihood
 m1 = BinaryTraitSubstitutionModel([1.0, 2.0], [1,2]) # model.label = model.index
 function traitprobabilities(model, net, ntraits=10)
     res, lab = randomTrait(model, net; ntraits=ntraits)
-    tips = findall(in(tipLabels(net)), lab) # indices of tips: columns in res
+    tips = findall(in(tiplabels(net)), lab) # indices of tips: columns in res
     dat = DataFrame(species = lab[tips])
     tmp = StatsBase.countmap([res[i,tips] for i in 1:ntraits])
     i = 0
@@ -306,7 +306,7 @@ fit1 = fitdiscrete(net, m1, d[!,:species], d[!,2:17]; optimizeQ=false, optimizeR
 @test fit1.loglik ≈ sum(traitloglik_all16) # log of product = sum of logs
 
 # with parameter estimation
-net = readTopology("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);")
+net = readnewick("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);")
 m1 = BinaryTraitSubstitutionModel([1.0, 1.0], ["lo", "hi"])
 dat = DataFrame(species=["C","A","B","D"], trait=["hi","lo","lo","hi"])
 fit1 = fitdiscrete(net, m1, dat; optimizeQ=false, optimizeRVAS=false)
@@ -318,7 +318,7 @@ fit!(fit1; optimizeQ=true, optimizeRVAS=false)
 function simulateManyTraits_estimate(ntraits)
     m1 = BinaryTraitSubstitutionModel([1.0, 0.5], [1,2])
     res, lab = randomTrait(m1, net; ntraits=ntraits)
-    tips = findall(in(tipLabels(net)), lab) # indices of tips: columns in res
+    tips = findall(in(tiplabels(net)), lab) # indices of tips: columns in res
     dat = DataFrame(transpose(res[:,tips])); species = lab[tips]
     return fitdiscrete(net, m1, species, dat; optimizeRVAS = false)
 end
@@ -365,11 +365,11 @@ end # testing readfastatodna
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_8sites.aln")
 #fastafile = abspath(joinpath(dirname(Base.find_package("PhyloTraits")), "..", "examples", "Ae_bicornis_8sites.aln"))
 
-net = readTopology(net_caudata_47taxa_string);
+net = readnewick(net_caudata_47taxa_string);
 PN.fuseedgesat!(93, net)
 # assign non-missing edges lengths and gammas
 for e in net.edge e.length = 1.0; end
-for h in net.hybrid setGamma!(getparentedge(h),0.6); end
+for h in net.hybrid setgamma!(getparentedge(h),0.6); end
 obj = (@test_logs (:warn, r"pruned") PhyloTraits.StatisticalSubstitutionModel(net, fastafile, :JC69))
 @test length(obj.net.leaf) == 22
 @test length(obj.net.edge) == 52
@@ -377,7 +377,7 @@ obj = (@test_logs (:warn, r"pruned") PhyloTraits.StatisticalSubstitutionModel(ne
 @test !PN.hashybridladder(obj.net)
 
 # network with 47 taxa, but data on 22 taxa
-net = readTopology(net_caudata_47taxa_string);
+net = readnewick(net_caudata_47taxa_string);
 PN.fuseedgesat!(93, net)
 obj = (@test_logs (:warn, r"taxa with no data") PhyloTraits.StatisticalSubstitutionModel(net, fastafile, :JC69))
 @test length(obj.net.leaf) == 22
@@ -490,7 +490,7 @@ end # end of testing NASMs
 @testset "fitdiscrete for NucleicAcidSubsitutionModels & RateVariationAcrossSites" begin
 # test fitdiscrete with NASM #
     # based on 3 alignments in PhyloNetworks/examples
-net = readTopology("(A:3.0,(B:2.0,(C:1.0,D:1.0):1.0):1.0);");
+net = readnewick("(A:3.0,(B:2.0,(C:1.0,D:1.0):1.0):1.0);");
 tips = Dict("A" => BioSymbols.DNA_A, "B" => BioSymbols.DNA_A, "C" => BioSymbols.DNA_G, "D" => BioSymbols.DNA_G);
 
 # JC without optimization (confirmed with ape ace() function and phangorn)
@@ -564,11 +564,11 @@ fitHKY85rvOpt = fitdiscrete(net, mHKY85, rv, tips; optimizeQ=false, optimizeRVAS
 
 ## TEST WRAPPERS ##
 #for species, trait data
-net_dat = readTopology("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);")
+net_dat = readnewick("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);")
 dat = DataFrame(species=["C","A","B","D"], trait=["hi","lo","lo","hi"])
 species_alone = ["C","A","B","D"]
 dat_alone = DataFrame(trait=["hi","lo","lo","hi"])
-net_tips = readTopology("(A:3.0,(B:2.0,(C:1.0,D:1.0):1.0):1.0);");
+net_tips = readnewick("(A:3.0,(B:2.0,(C:1.0,D:1.0):1.0):1.0);");
 @test_throws ErrorException fitdiscrete(net_dat, :bogus, species_alone, dat_alone);
 @test_throws ErrorException fitdiscrete(net_dat, BinaryTraitSubstitutionModel([1.,1.], ["lo","hi"]), dat_alone);
 s1 = fitdiscrete(net_dat, :ERSM, species_alone, dat_alone; optimizeQ=false)
@@ -593,12 +593,12 @@ s4 = fitdiscrete(net_dat, :HKY85, species_alone, dna_alone, :G; optimizeRVAS=fal
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln")
 #fastafile = abspath(joinpath(dirname(Base.find_package("PhyloNetworks")), "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln"))
 dna_dat, dna_weights = readfastatodna(fastafile, true);
-net_dna = readTopology(net_caudata_47taxa_string);
+net_dna = readnewick(net_caudata_47taxa_string);
 @test PhyloTraits.startingrate(net_dna) ≈ 0.02127659574468085 # 1/length(net_dna.leaf)
 for edge in net_dna.edge # adds branch lengths
     edge.length = 1.0
     if edge.gamma < 0
-        setGamma!(edge, 0.5)
+        setgamma!(edge, 0.5)
     end
 end
 
@@ -625,7 +625,7 @@ fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_Tr406_Contig10132.
 #fastafile = abspath(joinpath(dirname(Base.find_package("PhyloNetworks")), "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln"))
 dna_dat, dna_weights = readfastatodna(fastafile, true);
 
-dna_net_top = readTopology(net_caudata_47taxa_string);
+dna_net_top = readnewick(net_caudata_47taxa_string);
 (x-> x.length = 1).(dna_net_top.edge) # add branch lengths of 1
 
 nasm_model = JC69([0.3], false);       # relative=false: absolute version
@@ -633,9 +633,9 @@ rv = RateVariationAcrossSites(alpha=1.0, ncat=2); # 2 rates to go faster
 # below: error because missing gammas, after warning for extra taxa
 (@test_logs (:warn, r"pruned") @test_throws ErrorException fitdiscrete(dna_net_top, nasm_model, dna_dat, dna_weights; optimizeQ=false, optimizeRVAS=false))
 # set gamma at the 3 reticulations, to fix error above
-setGamma!(dna_net_top.edge[6],0.6)
-setGamma!(dna_net_top.edge[7],0.6)
-setGamma!(dna_net_top.edge[58],0.6)
+setgamma!(dna_net_top.edge[6],0.6)
+setgamma!(dna_net_top.edge[7],0.6)
+setgamma!(dna_net_top.edge[58],0.6)
 
 dna_net = (@test_logs (:warn, r"^the network contains taxa with no data") fitdiscrete(dna_net_top,
     nasm_model, dna_dat, dna_weights; optimizeQ=false))
@@ -709,7 +709,7 @@ fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_8sites.aln") # 8 s
 # locally: fastafile = joinpath(@__DIR__, "../../dev/PhyloNetworks/", "examples", "Ae_bicornis_8sites.aln") #small data
 dna_dat, dna_weights = readfastatodna(fastafile, true);
 # 22 species, 3 hybrid nodes, 103 edges
-dna_net = readTopology(net_caudata_47taxa_string);
+dna_net = readnewick(net_caudata_47taxa_string);
 # create trait object
 dat2 = PhyloTraits.traitlabels2indices(dna_dat[!,2:end], JC69([0.5]))
 o, dna_net = @test_logs (:warn, "the network contains taxa with no data: those will be pruned") match_mode=:any PhyloTraits.check_matchtaxonnames!(dna_dat[:,1], dat2, dna_net)
@@ -719,7 +719,7 @@ o, dna_net = @test_logs (:warn, "the network contains taxa with no data: those w
 @test size(dat2) == (22,)
 
 dna_dat, dna_weights = readfastatodna(fastafile, true);
-dna_net = readTopology(net_caudata_47taxa_string);
+dna_net = readnewick(net_caudata_47taxa_string);
 dat2 = PhyloTraits.traitlabels2indices(dna_dat[!,2:end], HKY85([0.5], [0.25, 0.25, 0.25, 0.25], true))
 o, dna_net = @test_logs (:warn, "the network contains taxa with no data: those will be pruned") match_mode=:any PhyloTraits.check_matchtaxonnames!(dna_dat[:,1], dat2, dna_net)
 @test isa(o,Vector{Int})
@@ -734,15 +734,15 @@ end # of traitlabels2indices
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln")
 dna_dat, dna_weights = readfastatodna(fastafile, true);
 
-dna_net_top = readTopology(net_caudata_47taxa_string);
+dna_net_top = readnewick(net_caudata_47taxa_string);
 (x-> x.length = 1).(dna_net_top.edge) # add branch lengths  of 1
 #Fixes the gamma error (creates a network)
-setGamma!(dna_net_top.edge[6],0.6)
-setGamma!(dna_net_top.edge[7],0.6)
-setGamma!(dna_net_top.edge[58],0.6)
+setgamma!(dna_net_top.edge[6],0.6)
+setgamma!(dna_net_top.edge[7],0.6)
+setgamma!(dna_net_top.edge[58],0.6)
 
 # tests #
-net_dat = readTopology("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);")
+net_dat = readnewick("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);")
 dat = DataFrame(species=["C","A","B","D"], trait=["hi","lo","lo","hi"])
 
 jmod = PhyloTraits.defaultsubstitutionmodel(dna_net_top, :JC69, dna_dat, dna_weights)
@@ -771,12 +771,12 @@ end #of testing prep and wrapper functions
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln")
 dna_dat, dna_weights = readfastatodna(fastafile, true);
 
-dna_net_top = readTopology(net_caudata_47taxa_string);
+dna_net_top = readnewick(net_caudata_47taxa_string);
 (x-> x.length = 1).(dna_net_top.edge) # add branch lengths of 1
 #Fixes the gamma error (creates a network)
-setGamma!(dna_net_top.edge[6],0.6)
-setGamma!(dna_net_top.edge[7],0.6)
-setGamma!(dna_net_top.edge[58],0.6)
+setgamma!(dna_net_top.edge[6],0.6)
+setgamma!(dna_net_top.edge[7],0.6)
+setgamma!(dna_net_top.edge[58],0.6)
 @test_logs (:warn, r"pruned") match_mode=:any PhyloTraits.StatisticalSubstitutionModel(dna_net_top, fastafile, :JC69)
 end #of testing fit! functions for full network optimization
 

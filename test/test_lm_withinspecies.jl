@@ -12,7 +12,7 @@ function simTraits(net, m, paramsprocess)
 end
 
 n = 4; m = 3
-starnet = readTopology(PhyloNetworks.startree_newick(n))
+starnet = readnewick(PhyloNetworks.startree_newick(n))
 Random.seed!(6591)
 trait1 = simTraits(starnet, m, ParamsBM(2, 0.5)) # var: 0.5
 trait2 = simTraits(starnet, m, ParamsBM(-2, 1))
@@ -27,8 +27,8 @@ df = DataFrame(trait1=trait1, trait2=trait2, trait3=trait3,tipNames=labels)
 =#
 
 n = 4; m = 3
-starnet = readTopology(PN.startree_newick(n))
-netnames = ["t1","t2","t3","t4"] # = tipLabels(starnet) # was generated to have length n
+starnet = readnewick(PN.startree_newick(n))
+netnames = ["t1","t2","t3","t4"] # = tiplabels(starnet) # was generated to have length n
 df = DataFrame(
     species = repeat(netnames, inner=m),
     trait1 = [2.8564, missing, 2.8564, 2.8457, 2.8457, 2.8457, 0.4197, 0.4197, 0.4197, 2.2359, 2.2359, 2.2359],
@@ -131,7 +131,7 @@ y <- cbind(rep(1,5),X)%*%(1:3)+bsperr # response, true beta vector is c(1,2,3)
 
 df <- data.frame(y,X,species=tree$tip.label)
 =#
-net = readTopology("((t1:0.8121974445,(t2:0.4806586387,t3:0.4806586387):0.3315388057):0.1878025555,(t4:0.1206907041,t5:0.1206907041):0.8793092959);")
+net = readnewick("((t1:0.8121974445,(t2:0.4806586387,t3:0.4806586387):0.3315388057):0.1878025555,(t4:0.1206907041,t5:0.1206907041):0.8793092959);")
 df = DataFrame(
       y = [-4.18366,0.625801,-0.307011,2.612,2.2391],
       x1 = [-0.550371,-0.750359,-0.759922,-0.421798,-0.983923],
@@ -229,7 +229,7 @@ y <- cbind(rep(1,5),X)%*%(1:3)+bsperr+msrerr # response, true beta vector is c(1
 
 df <- data.frame(y,y_sd,X,species=tree$tip.label)
 =#
-net = readTopology("(((t4:0.2537636499,t5:0.2537636499):0.2103870459,t3:0.4641506959):0.5358493041,(t1:0.4807642475,t2:0.4807642475):0.5192357525);")
+net = readnewick("(((t4:0.2537636499,t5:0.2537636499):0.2103870459,t3:0.4641506959):0.5358493041,(t1:0.4807642475,t2:0.4807642475):0.5192357525);")
 df = DataFrame(
       y=[11.399108,3.216645,13.648011,4.851454,-4.922803],
       y_sd=[0.2463003,0.3236629,0.2458547,0.4866844,0.3434582],
@@ -387,7 +387,7 @@ function simTraits(net, m, paramsprocess)
       return repeat(trait, inner=m)
 end
 n = 6; m = 3 # 6 species, 3 individuals per species
-net = readTopology("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
+net = readnewick("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
 Random.seed!(18480224);
 trait1 = simTraits(net, m, ParamsBM(2, 0.5)) # simulate a BM with mean 2 and variance 0.5 on net
 trait2 = simTraits(net, m, ParamsBM(-2, 1.0)) # simulate a BM with mean -2 and variance 1.0 on net
@@ -408,7 +408,7 @@ df_r = combine(gdf, :trait1 => (x -> mean(x)) => :trait1,
                     :trait3 => (x -> length(x)) => :trait3_n)
 =#
 n = 6; m = 3
-net = readTopology("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
+net = readnewick("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
 df = DataFrame(
       species = repeat(["D","C","A","B","E","O"],inner=m),
       trait1 = [4.08298,4.08298,4.08298,3.10782,3.10782,3.10782,2.17078,2.17078,2.17078,1.87333,1.87333,1.87333,2.8445,

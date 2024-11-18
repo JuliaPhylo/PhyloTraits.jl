@@ -15,9 +15,11 @@ We assume a fixed network, correctly rooted, with branch lengths
 proportional to calendar time. Here, we consider the true network that was
 used in the previous sections, and which is ultrametric (all the tips are contemporary).
 ```@example tree_trait
-truenet = readTopology("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
+truenet = readnewick("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
 ```
-As previously, we can plot the network thanks to the `RCall` package.
+We can plot the network thanks to package
+[PhyloPlots](https://github.com/juliaphylo/PhyloPlots.jl), which uses
+[`RCall`](https://juliainterop.github.io/RCall.jl/stable/gettingstarted/).
 The `name` function is only instrumental here, to ensure that the figure is
 saved in the correct directory when the documentation is built.
 We only show the commands to actually save the plot in this first example for
@@ -50,7 +52,7 @@ Each row also corresponds to a tip in the network, and rows are
 ordered in the same way as columns.
 
 The computation of this matrix is based on the more general function
-[`sharedPathMatrix`](@ref). It is at the core of all the Phylogenetic
+[`sharedpathmatrix`](@ref). It is at the core of all the Phylogenetic
 Comparative Methods described below.
 
 
@@ -114,7 +116,7 @@ Here, we generated the traits ourselves, so they are all in the same order.
 ```@repl tree_trait
 using DataFrames
 dat = DataFrame(trait1 = trait1, trait2 = trait2, trait3 = trait3,
-                tipNames = tipLabels(sim1))
+                tipNames = tiplabels(sim1))
 ```
 
 Phylogenetic regression / ANOVA is based on the
@@ -246,7 +248,7 @@ intercept, and then do ancestral state reconstruction) can be done all at once
 with a single call of the function [`ancestralStateReconstruction`](@ref) on a
 DataFrame with the trait to reconstruct, and the tip labels:
 ```@example tree_trait
-datTrait1 = DataFrame(trait1 = trait1, tipNames = tipLabels(sim1))
+datTrait1 = DataFrame(trait1 = trait1, tipNames = tiplabels(sim1))
 ancTrait1Approx = ancestralStateReconstruction(datTrait1, truenet)
 nothing # hide
 ```
@@ -345,7 +347,7 @@ compared to the others
 (see [^B18] for transgressive evolution after a reticulation event).
 ```@example tree_trait
 delta = 5.0; # value of heterosis
-underHyb = [(n == "A" || n == "B") for n in tipLabels(sim1)] # tips under hybrid
+underHyb = [(n == "A" || n == "B") for n in tiplabels(sim1)] # tips under hybrid
 underHyb
 for i in 1:length(trait3)
     underHyb[i] && (trait3[i]+=delta) # add delta to tips A and B
@@ -363,7 +365,7 @@ then transform the column `underHyb` to be `categorical` (shown in commments).
 ```@example tree_trait
 dat = DataFrame(trait1 = trait1, trait2 = trait2, trait3 = trait3,
                 underHyb = string.(underHyb),
-                tipNames = tipLabels(sim1))
+                tipNames = tiplabels(sim1))
 # using CategoricalArrays
 # transform!(dat, :underHyb => categorical, renamecols=false)
 nothing # hide
@@ -486,7 +488,7 @@ nothing # hide
 
 Let's assume that we measured `trait_sh`, and that we want to test whether
 there were some ancestral hybridizations. To do that, we can use the 
-custom columns of the [`descendenceMatrix`](@ref), that can be directly
+custom columns of the [`descendencematrix`](@ref), that can be directly
 defined thanks to function [`regressorHybrid`](@ref).
 ```@example tree_trait
 df_shift = regressorHybrid(truenet) # Regressors matching Hybrid Shifts
@@ -498,7 +500,7 @@ hybrid.
 We can use this dataframe as regressors in the `phylolm` function.
 
 ```@example tree_trait
-dat = DataFrame(trait = trait_sh, tipNames = tipLabels(sim_sh))  # Data
+dat = DataFrame(trait = trait_sh, tipNames = tiplabels(sim_sh))  # Data
 dat = innerjoin(dat, df_shift, on=:tipNames)                     # join the two
 fit_sh = phylolm(@formula(trait ~ shift_6), dat, truenet) # fit
 ```

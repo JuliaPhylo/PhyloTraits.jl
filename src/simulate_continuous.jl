@@ -3,7 +3,7 @@
 
 Result of a trait simulation on an [`HybridNetwork`](@ref) with function [`simulate`](@ref).
 
-The following functions and extractors can be applied to it: [`tipLabels`](@ref), `obj[:Tips]`, `obj[:InternalNodes]` (see documentation for function [`getindex(::TraitSimulation, ::Symbol)`](@ref)).
+The following functions and extractors can be applied to it: [`tiplabels`](@ref), `obj[:Tips]`, `obj[:InternalNodes]` (see documentation for function [`getindex(::TraitSimulation, ::Symbol)`](@ref)).
 
 The `TraitSimulation` object has fields: `M`, `params`, `model`.
 """
@@ -20,7 +20,7 @@ function Base.show(io::IO, obj::TraitSimulation)
     println(io, disp)
 end
 
-tipLabels(obj::TraitSimulation) = tipLabels(obj.M)
+tiplabels(obj::TraitSimulation) = tiplabels(obj.M)
 
 """
     simulate([rng::AbstractRNG,]
@@ -48,7 +48,7 @@ See examples below for accessing expectations and simulated trait values.
 ## Univariate
 
 ```jldoctest
-julia> phy = readTopology("(A:2.5,((U:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
+julia> phy = readnewick("(A:2.5,((U:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
 
 julia> par = ParamsBM(1, 0.1) # BM with expectation 1 and variance 0.1.
 ParamsBM:
@@ -111,7 +111,7 @@ julia> traits = sim[:Tips, :Exp] # Extract expected values at the tips (also wor
 ## Multivariate
 
 ```jldoctest
-julia> phy = readTopology("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(V:0.5)#H1:0.5::0.6):1):0.5);");
+julia> phy = readnewick("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(V:0.5)#H1:0.5::0.6):1):0.5);");
 
 julia> par = ParamsMultiBM([1.0, 2.0], [1.0 0.5; 0.5 1.0]) # BM with expectation [1.0, 2.0] and variance [1.0 0.5; 0.5 1.0].
 ParamsMultiBM:
@@ -164,12 +164,12 @@ function simulate(
     end
     !ismissing(params.shift) || (params.shift = ShiftNet(net, process_dim(params)))
 
-    net.isRooted || error("The net needs to be rooted for trait simulation.")
+    net.isrooted || error("The net needs to be rooted for trait simulation.")
     !anyShiftOnRootEdge(params.shift) || error("Shifts are not allowed above the root node. Please put all root specifications in the process parameter.")
 
     checkpreorder && preorder!(net)
     f = preorderFunctions(params, rng)
-    V = PN.traversal_preorder(net.nodes_changed,
+    V = PN.traversal_preorder(net.vec_node,
             f[:init], f[:root], f[:tree], f[:hybrid], params)
     M = MatrixTopologicalOrder(V, net, :c) # nodes in columns of V
     TraitSimulation(M, params, model)
@@ -192,7 +192,7 @@ end
 
 function anyShiftOnRootEdge(shift::ShiftNet)
     nodInd = getShiftRowInds(shift)
-    for n in shift.net.nodes_changed[nodInd]
+    for n in shift.net.vec_node[nodInd]
         !(getMajorParentEdgeNumber(n) == -1) || return(true)
     end
     return false

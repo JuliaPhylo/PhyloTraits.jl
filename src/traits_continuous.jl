@@ -4,7 +4,7 @@
     regressorShift(edge::Vector{Edge}, net::HybridNetwork; checkpreorder=true)
 
 Compute the regressor vectors associated with shifts on edges that are above nodes
-`node`, or on edges `edge`, on a network `net`. It uses function [`descendenceMatrix`](@ref), so
+`node`, or on edges `edge`, on a network `net`. It uses function [`descendencematrix`](@ref), so
 `net` might be modified to sort it in a pre-order.
 Return a `DataFrame` with as many rows as there are tips in net, and a column for
 each shift, each labelled according to the pattern shift_{number_of_edge}. It has
@@ -12,7 +12,7 @@ an aditional column labelled `tipNames` to allow easy fitting afterward (see exa
 
 # Examples
 ```jldoctest
-julia> net = readTopology("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
+julia> net = readnewick("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
 
 julia> preorder!(net)
 
@@ -96,14 +96,14 @@ AIC: 4.2125395947
 ```
 
 # See also
-[`phylolm`](@ref), [`descendenceMatrix`](@ref), [`regressorHybrid`](@ref).
+[`phylolm`](@ref), [`descendencematrix`](@ref), [`regressorHybrid`](@ref).
 """
 function regressorShift(
     node::Vector{Node},
     net::HybridNetwork;
     checkpreorder::Bool=true
 )
-    T = PN.descendenceMatrix(net; checkpreorder=checkpreorder)
+    T = PN.descendencematrix(net; checkpreorder=checkpreorder)
     regressorShift(node, net, T)
 end
 
@@ -116,12 +116,12 @@ function regressorShift(node::Vector{Node},
     ind = zeros(Int, length(node))
     for (i,nod) in enumerate(node)
         !nod.hybrid || error("Shifts on hybrid edges are not allowed")
-        ii = findfirst(n -> n===nod, net.nodes_changed)
+        ii = findfirst(n -> n===nod, net.vec_node)
         isnothing(ii) && error("node number $(nod.number) (i=$i) not in preorder list")
         ind[i] = ii
     end
     ## get column names
-    eNum = [getMajorParentEdgeNumber(n) for n in net.nodes_changed[ind]]
+    eNum = [getMajorParentEdgeNumber(n) for n in net.vec_node[ind]]
     function tmp_fun(x::Int)
         return(Symbol("shift_$(x)"))
     end
@@ -146,7 +146,7 @@ regressorShift(node::Node, net::HybridNetwork; checkpreorder::Bool=true) = regre
     regressorHybrid(net::HybridNetwork; checkpreorder::Bool=true)
 
 Compute the regressor vectors associated with shifts on edges that imediatly below
-all hybrid nodes of `net`. It uses function [`PhyloNetworks.descendenceMatrix`](@ref) through
+all hybrid nodes of `net`. It uses function [`PhyloNetworks.descendencematrix`](@ref) through
 a call to [`regressorShift`](@ref), so `net` might be modified to sort it in a pre-order.
 Return a `DataFrame` with as many rows as there are tips in net, and a column for
 each hybrid, each labelled according to the pattern shift_{number_of_edge}. It has
@@ -158,7 +158,7 @@ This function can be used to test for heterosis.
 ```jldoctest
 julia> using DataFrames # Needed to handle data frames.
 
-julia> net = readTopology("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
+julia> net = readnewick("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
 
 julia> preorder!(net)
 
@@ -238,7 +238,7 @@ AIC: 7.4012043891
 ```
 
 # See also
-[`phylolm`](@ref), [`PhyloNetworks.descendenceMatrix`](@ref), [`regressorShift`](@ref).
+[`phylolm`](@ref), [`PhyloNetworks.descendencematrix`](@ref), [`regressorShift`](@ref).
 """
 function regressorHybrid(net::HybridNetwork; checkpreorder::Bool=true)
     childs = [getchild(nn) for nn in net.hybrid] # checks that each hybrid node has a single child
@@ -296,7 +296,7 @@ function ShiftNet(
     obj = ShiftNet(net, dim)
     for i in 1:length(node)
         !node[i].hybrid || error("Shifts on hybrid edges are not allowed")
-        ind = findfirst(x -> x===node[i], net.nodes_changed)
+        ind = findfirst(x -> x===node[i], net.vec_node)
         obj.shift[ind, :] .= @view value[i, :]
     end
     return(obj)
@@ -377,7 +377,7 @@ of a shift is set to -1 (as if missing).
 """
 function getShiftEdgeNumber(shift::ShiftNet)
     nodInd = getShiftRowInds(shift)
-    [getMajorParentEdgeNumber(n) for n in shift.net.nodes_changed[nodInd]]
+    [getMajorParentEdgeNumber(n) for n in shift.net.vec_node[nodInd]]
 end
 
 function getMajorParentEdgeNumber(n::Node)
@@ -544,7 +544,7 @@ Parameters of a MBD with fixed root:
 mu: [1.0, -0.5]
 Sigma: [2.0 0.3; 0.3 1.0]
 
-julia> net = readTopology("((A:1,B:1):1,C:2);");
+julia> net = readnewick("((A:1,B:1):1,C:2);");
 
 julia> shifts = ShiftNet(net.node[2], [-1.0, 2.0], net);
 
@@ -697,7 +697,7 @@ of a trait (or of the residuals from a linear model). Under the BM model,
 the population (or species) means have a multivariate normal distribution with
 covariance matrix = σ²λV, where σ² is the between-species
 variance-rate (to be estimated), and the matrix V is obtained from
-[`sharedPathMatrix`](@ref)(net)[:Tips].
+[`sharedpathmatrix`](@ref)(net)[:Tips].
 
 λ is set to 1 by default, and is immutable.
 In future versions, λ may be used to control the scale for σ².
@@ -938,7 +938,7 @@ function phylolm(
 )
     # BM variance covariance:
     # V_ij = expected shared time for independent genes in i & j
-    V = sharedPathMatrix(net)
+    V = sharedpathmatrix(net)
     linmod, Vy, RL, logdetVy = pgls(X,Y,V; nonmissing=nonmissing, ind=ind)
     return PhyloNetworkLinearModel(linmod, V, Vy, RL, Y, X,
                 logdetVy, reml, ind, nonmissing, BM())
@@ -960,7 +960,7 @@ function phylolm(
     fixedValue::Union{Real,Missing}=missing
 )
     # BM variance covariance
-    V = sharedPathMatrix(net) # runs preorder!(net) by default
+    V = sharedpathmatrix(net) # runs preorder!(net) by default
     gammas = getGammas(net)
     if istimeconsistent(net, false) # false: no need to preorder again
         times = getnodeheights(net, false)
@@ -983,18 +983,18 @@ end
     setGammas!(net, γ vector)
 
 Set inheritance γ's of hybrid edges, using input vector for *major* edges.
-Assume pre-order calculated already, with up-to-date field `nodes_changed`.
+Assume pre-order calculated already, with up-to-date field `vec_node`.
 See [`getGammas`](@ref).
 
-**Warning**: very different from [`setGamma!`](@ref), which focuses on a
+**Warning**: very different from [`setgamma!`](@ref), which focuses on a
 single hybrid event,
-updates the field `isMajor` according to the new γ, and is not used here.
+updates the field `ismajor` according to the new γ, and is not used here.
 
 **Assumption**: each hybrid node has only 2 parents, a major and a minor parent
-(according to the edges' field `isMajor`).
+(according to the edges' field `ismajor`).
 """
 function setGammas!(net::HybridNetwork, gammas::Vector)
-    for (i,nod) in enumerate(net.nodes_changed)
+    for (i,nod) in enumerate(net.vec_node)
         nod.hybrid || continue # skip tree nodes: nothing to do
         majorhyb = getparentedge(nod) # major
         minorhyb = getparentedgeminor(nod) # error if doesn't exit
@@ -1010,15 +1010,15 @@ end
 Vector of inheritance γ's of all major edges (tree edges and major hybrid edges),
 ordered according to the pre-order index of their child node,
 assuming this pre-order is already calculated
-(with up-to-date field `nodes_changed`).
-Here, a "major" edge is an edge with field `isMajor` set to true,
+(with up-to-date field `vec_node`).
+Here, a "major" edge is an edge with field `ismajor` set to true,
 regardless of its actual γ (below, at or above 0.5).
 
 See [`setGammas!`](@ref)
 """
 function getGammas(net::HybridNetwork)
-    gammas = ones(length(net.nodes_changed))
-    for (i,node) in enumerate(net.nodes_changed)
+    gammas = ones(length(net.vec_node))
+    for (i,node) in enumerate(net.vec_node)
         node.hybrid || continue # skip tree nodes: their gamma is already set to 1
         majorhybedge = getparentedge(node) # major
         gammas[i] = majorhybedge.gamma
@@ -1183,7 +1183,7 @@ end
 function matrix_scalingHybrid(net::HybridNetwork, lam::AbstractFloat,
                               gammas::Vector)
     setGammas!(net, 1.0 .- lam .* (1. .- gammas))
-    V = sharedPathMatrix(net)
+    V = sharedpathmatrix(net)
     setGammas!(net, gammas)
     return V
 end
@@ -1364,7 +1364,7 @@ species standard deviation / sample sizes (if used) will throw an error.
 ## Examples: Without within-species variation
 
 ```jldoctest
-julia> phy = readTopology(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "caudata_tree.txt"));
+julia> phy = readnewick(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "caudata_tree.txt"));
 
 julia> using DataFrames, CSV # to read data file, next
 
@@ -1506,7 +1506,7 @@ julia> round.(predict(fitBM), digits=5)
 ```jldoctest
 julia> using DataFrames, StatsModels # for statistical model formulas
 
-julia> net = readTopology("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
+julia> net = readnewick("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
 
 julia> df = DataFrame( # individual-level observations
            species = repeat(["D","C","A","B","E","O"],inner=3),
@@ -1594,13 +1594,13 @@ function phylolm(f::StatsModels.FormulaTerm,
              in the network and in the dataframe."""
     else
         nodatanames = !any(DataFrames.propertynames(fr) .== tipnames)
-        nodatanames && any(tipLabels(net) == "") &&
+        nodatanames && any(tiplabels(net) == "") &&
             error("""The network provided has no tip names, and the input dataframe has no
                   column "$tipnames" for species names, so I can't match the data on the network
                   unambiguously. If you are sure that the tips of the network are in the
                   same order as the values of the dataframe provided, then please re-run
                   this function with argument no_name=true.""")
-        any(tipLabels(net) == "") &&
+        any(tiplabels(net) == "") &&
             error("""The network provided has no tip names, so I can't match the data
                   on the network unambiguously. If you are sure that the tips of the
                   network are in the same order as the values of the dataframe provided,
@@ -1610,7 +1610,7 @@ function phylolm(f::StatsModels.FormulaTerm,
                   match the data on the network unambiguously. If you are sure that the
                   tips of the network are in the same order as the values of the dataframe
                   provided, then please re-run this function with argument no_name=true.""")
-        ind = indexin(fr[!, tipnames], tipLabels(net))
+        ind = indexin(fr[!, tipnames], tiplabels(net))
         any(isnothing, ind) &&
             error("""Tips with data are not in the network: $(fr[isnothing.(ind), tipnames])
                   please provide a larger network including these tips.""")
@@ -2048,7 +2048,7 @@ function phylolm_wsp(
     counts::Union{Nothing, Vector}=nothing,
     ySD::Union{Nothing, Vector}=nothing
 )
-    V = sharedPathMatrix(net)
+    V = sharedpathmatrix(net)
     phylolm_wsp(X,Y,V, reml, nonmissing,ind,
         ftolRel, xtolRel, ftolAbs, xtolAbs,
         counts,ySD)
@@ -2101,7 +2101,7 @@ function phylolm_wsp(X::Matrix, Y::Vector, V::MatrixTopologicalOrder,
         end
         Vsp = V[:Tips][ind_sp,ind_sp]
         # redefine "ind" and "nonmissing" at species level. ind = index of species
-        # in tipLabels(net), in same order in which species come in means Ysp.
+        # in tiplabels(net), in same order in which species come in means Ysp.
         # nonmissing: no need to list species with no data
         ind = ind_sp
         nonmissing = trues(n_sp)
@@ -2467,7 +2467,7 @@ higher-level methods, for real data:
      * internal nodes first, in the same order in which they appear in net.node,
        i.e in V.internalNodeNumbers
      * then leaves with no data, in the same order in which they appear in
-       tipLabels(net), i.e. in V.tipNumbers.
+       tiplabels(net), i.e. in V.tipNumbers.
    - extracts the predicted values for all network nodes, and the unscaled
      3 covariance matrices of interest (nodes with data, nodes w/o, crossed)
    - computes "universal" kriging (as opposed to "simple" kriging, which would
@@ -2498,7 +2498,7 @@ function, see `ancestralStateReconstruction(obj::PhyloNetworkLinearModel[, X_n::
 function ancestralStateReconstruction(net::HybridNetwork,
                                       Y::Vector,
                                       params::ParamsBM)
-    V = sharedPathMatrix(net)
+    V = sharedpathmatrix(net)
     ancestralStateReconstruction(V, Y, params)
 end
 
@@ -2633,7 +2633,7 @@ Returns an object of type [`ReconstructedStates`](@ref).
 ```jldoctest; filter = [r" PhyloNetworks .*:\d+", ]
 julia> using DataFrames, CSV # to read data file
 
-julia> phy = readTopology(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "carnivores_tree.txt"));
+julia> phy = readnewick(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "carnivores_tree.txt"));
 
 julia> dat = CSV.read(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "carnivores_trait.txt"), DataFrame);
 
@@ -2885,7 +2885,7 @@ end
 
 # function phylolmNaive(X::Matrix, Y::Vector, net::HybridNetwork, model::AbstractString="BM")
 #   # Geting variance covariance
-#   V = sharedPathMatrix(net)
+#   V = sharedpathmatrix(net)
 #   Vy = extractVarianceTips(V, net)
 #   # Needed quantities (naive)
 #   ntaxa = length(Y)

@@ -23,7 +23,7 @@ The simplest way is to use a vector of species names with a data frame of traits
 
 ```@repl fitdiscrete_trait
 # read in network
-net = readTopology("(O:4,(A:3,((B:0.4)#H1:1.6::0.92,((#H1:0::0.08,C:0.4):0.6,(D:.2,E:.2):0.8):1):1):1);");
+net = readnewick("(O:4,(A:3,((B:0.4)#H1:1.6::0.92,((#H1:0::0.08,C:0.4):0.6,(D:.2,E:.2):0.8):1):1):1);");
 # read in trait data
 species = ["C","A","D","B","O","E"];
 dat = DataFrame(trait=["hi","lo","lo","hi","lo","lo"])
@@ -45,15 +45,15 @@ using RCall, PhyloPlots
 R"svg"(figname("fitdiscrete_trait_net_1.svg"), width=4, height=3); # hide
 R"par"(mar=[0,0,0,0]); # to reduce margins
 res = plot(net, tipoffset=0.3); # the results "res" provides point coordinates, to use for data annotation
-o = [findfirst(isequal(tax), species) for tax in tipLabels(net)] # 5,2,4,1,3,6: order to match taxa from "species" to tip labels
-isequal(species[o], tipLabels(net)) # true :)
+o = [findfirst(isequal(tax), species) for tax in tiplabels(net)] # 5,2,4,1,3,6: order to match taxa from "species" to tip labels
+isequal(species[o], tiplabels(net)) # true :)
 traitcolor = map(x -> (x=="lo" ? "grey" : "red"), dat.trait[o])
 leaves = res[13][!,:lea]
 R"points"(x=res[13][leaves,:x] .+0.1, y=res[13][leaves,:y], pch=16, col=traitcolor, cex=1.5); # adds grey & red points
 R"legend"(x=1, y=7, legend=["hi","lo"], pch=16, col=["red","grey"],
           title="my trait", bty="n",var"title.adj"=0);
 # next: add to gene flow edge the proportion γ of genes affected
-hi = findfirst([!e.isMajor for e in net.edge]) # 6 : "h"ybrid "i"ndex: index of gene flow edge (minor hybrid) in net: horizontal segment
+hi = findfirst([!e.ismajor for e in net.edge]) # 6 : "h"ybrid "i"ndex: index of gene flow edge (minor hybrid) in net: horizontal segment
 R"text"(res[14][hi,:x]-0.3, res[14][hi,:y]-0.1, res[14][hi,:gam], col="deepskyblue", cex=0.75); # add the γ value
 R"dev.off"(); # hide
 nothing # hide

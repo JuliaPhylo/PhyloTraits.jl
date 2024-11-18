@@ -3,7 +3,7 @@
 @testset "phylolm on small network" begin
 
 tree_str= "(A:2.5,((B:1,#H1:0.5::0.1):1,(C:1,(D:0.5)#H1:0.5::0.9):1):0.5);"
-net = readTopology(tree_str)
+net = readnewick(tree_str)
 preorder!(net)
 
 # Rk: Is there a way to check that the branch length are coherent with
@@ -145,7 +145,7 @@ end
 ###############################################################################
 @testset "Shifts and Transgressive Evolution" begin
 
-net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
+net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 preorder!(net)
 
 ## Simulate
@@ -252,7 +252,7 @@ end
 ### No intercept
 #################
 @testset "No Intercept" begin
-net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
+net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 preorder!(net)
 
 ## data
@@ -303,7 +303,7 @@ end
 @testset "phylolm and ancestralStateReconstruction" begin
 # originally: "(((Ag,(#H1:7.159::0.056,((Ak,(E:0.08,#H2:0.0::0.004):0.023):0.078,(M:0.0)#H2:::0.996):2.49):2.214):0.026,(((((Az:0.002,Ag2:0.023):2.11,As:2.027):1.697)#H1:0.0::0.944,Ap):0.187,Ar):0.723):5.943,(P,20):1.863,165);"
 # followed by changes in net.edge[?].length values to make the network ultrametric
-net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
+net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 
 #= Simulate correlated data in data frames
 b0 = 1
@@ -517,7 +517,7 @@ fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalingHybrid", reml=fa
 
 ### Ancestral State Reconstruction
 params = ParamsBM(3, 1)
-# sim = simulate(net, params); Y = sim[:Tips]; tipnam=tipLabels(sim)
+# sim = simulate(net, params); Y = sim[:Tips]; tipnam=tiplabels(sim)
 Y = [7.49814057852738,7.713232061975018,7.4314117011628795,0.9850885689559203,4.970152778471174,5.384066549416034,4.326644522544125,0.6079385242666691,4.084254785718834,5.501648315448596,3.8732700346136597,4.790127215808698]
 tipnam = ["Ag","Ak","E","M","Az","Ag2","As","Ap","Ar","P","20","165"]
 # From known parameters
@@ -585,18 +585,18 @@ end
 ## Data with no phylogenetic signal
 #################
 @testset "lambda when no signal" begin
-net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
+net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 
 #= Simulate correlated data in data frames
 b0 = 1
 b1 = 10
 Random.seed!(5678);
-A = randn(size(tipLabels(net), 1))
-B = b0 .+ (b1 .* A + randn(size(tipLabels(net), 1)))
+A = randn(size(tiplabels(net), 1))
+B = b0 .+ (b1 .* A + randn(size(tiplabels(net), 1)))
 =#
 A = [-1.2217252038914663, 0.8431411538631137, 0.3847679754817904, 0.10277471357263539, 1.0944221266744778, 2.053347250198844, 1.4708882134841876, 1.1056475371071361, -0.94952153892202, -0.3477162381565148, -0.2742415177451819, 0.25034046948064764]
 B = [-9.849415384443805, 10.765309004952346, 4.8269904926118565, 1.7279441642635127, 11.535570136728504, 20.16670120778599, 13.971404727143286, 13.019084912634444, -8.278125099304921, -4.784290010378141, -2.537139017477904, 2.9460706727827755]
-dfr = DataFrame(trait = B, pred = A, tipNames = tipLabels(net))
+dfr = DataFrame(trait = B, pred = A, tipNames = tiplabels(net))
 
 ## Network
 phynetlm = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(
@@ -609,7 +609,7 @@ phynetlm = (@test_logs (:warn, r"not time consistent") (:info, r"^Max") phylolm(
 
 ## Major Tree
 global tree
-tree = majorTree(net)
+tree = majortree(net)
 phynetlm = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(@formula(trait ~ pred), dfr, tree, model="lambda", reml=false))
 
 @test lambda_estim(phynetlm) ≈ 0.5903394415 atol=1e-6
@@ -635,7 +635,7 @@ end
 ###############################################################################
 @testset "Undefined branch length" begin
     ## No branch length
-    net = readTopology("(A:2.5,((B,#H1:1::0.1):1,(C:1,(D:1)#H1:1::0.9):1):0.5);");
+    net = readnewick("(A:2.5,((B,#H1:1::0.1):1,(C:1,(D:1)#H1:1::0.9):1):0.5);");
     dfr = DataFrame(trait = [11.6,8.1,10.3,9.1], tipNames = ["A","B","C","D"]);
     @test_throws ErrorException("""Branch(es) number 2 have no length.
         The variance-covariance matrix of the network is not defined.
@@ -663,7 +663,7 @@ end
 # We would need `dropcollinear=false` in this test. fixit later: pass kwargs... ?
 # no predictors, so REML = ML in this case
 @testset "phylolm with no regressor" begin
-net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
+net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 
 params = ParamsBM(10, 1)
 Random.seed!(2468) # sets the seed for reproducibility, to debug potential error

@@ -31,14 +31,14 @@ mutable struct StatisticalSubstitutionModel <: StatsBase.StatisticalModel
     loglik::Union{Missings.Missing, Float64}
     """
     log of transition probabilities.
-    size: k,k, net.numEdges, r where k=nstates(model)
+    size: k,k, net.numedges, r where k=nstates(model)
     """
     logtrans::Array{Float64,4}
     # type based on extracting displayed trees
     displayedtree::Vector{HybridNetwork}
     """
     prior log tree weight: log product of γ's.
-    In fit!: priorltw = `PhyloNetworks.inheritanceWeight.(trees)`
+    In fit!: priorltw = `PhyloNetworks.inheritanceweight.(trees)`
     (which returns missing for any negative γ and would cause an error here)
     """
     priorltw::Vector{Float64}
@@ -48,12 +48,12 @@ mutable struct StatisticalSubstitutionModel <: StatsBase.StatisticalModel
     - forward likelihood: log P{data below node n (in tree t) given state i at n}
     - direct likelihood:  log P{data below edge e (in tree t) given i at parent of e}
     - backward likelihood:log P{data at all non-descendants of n (in t) and state i at n}
-    sizes: k, net.numNodes or net.numEdges.
+    sizes: k, net.numnodes or net.numedges.
     """
     # reset for each trait and rate
-    forwardlik::Array{Float64,2} # size: k, net.numNodes
-    directlik::Array{Float64,2}  # size: k, net.numEdges
-    backwardlik::Array{Float64,2}# size: k, net.numNodes
+    forwardlik::Array{Float64,2} # size: k, net.numnodes
+    directlik::Array{Float64,2}  # size: k, net.numedges
+    backwardlik::Array{Float64,2}# size: k, net.numnodes
     "log-likelihood of site k"
     _sitecache::Array{Float64,1} # size: nsites
     "log-likelihood of ith displayed tree t & rate category j, of site k"
@@ -81,18 +81,18 @@ mutable struct StatisticalSubstitutionModel <: StatsBase.StatisticalModel
         end
         # T = eltype(getlabels(model))
         # extract displayed trees
-        trees = displayedTrees(net, 0.0; nofuse=true, keeporiginalroot=true)
+        trees = displayedtrees(net, 0.0; nofuse=true, keeporiginalroot=true)
         for tree in trees
-            preorder!(tree) # no need to call directEdges! before: already done on net
+            preorder!(tree) # no need to call directedges! before: already done on net
         end
         ntrees = 2^maxhybrid
         ntrees >= length(trees) ||
             error("""maxhybrid is too low.
                     Call using maxhybrid >= current number of hybrids""")
         # log tree weights: sum log(γ) over edges, for each displayed tree
-        priorltw = PN.inheritanceWeight.(trees)
+        priorltw = PN.inheritanceweight.(trees)
         all(!ismissing, priorltw) ||
-          error("one or more inheritance γ's are missing or negative. fix using setGamma!(network, edge)")
+          error("one or more inheritance γ's are missing or negative. fix using setgamma!(network, edge)")
         maxedges = length(net.edge) + 3*(maxhybrid-length(net.hybrid))
         maxnodes = length(net.node) + 2*(maxhybrid-length(net.hybrid))
         logtrans   = zeros(Float64, k,k, maxedges, length(ratemodel.ratemultiplier))
@@ -154,7 +154,7 @@ function StatisticalSubstitutionModel(
     for e in net.edge # check for missing or inappropriate γ values
         if e.hybrid
             e.gamma > 0.0 && continue
-            setGamma!(e, (e.isMajor ? 0.6 : 0.4)) # to maintain isMajor as is
+            setgamma!(e, (e.ismajor ? 0.6 : 0.4)) # to maintain ismajor as is
         else
             e.gamma == 1.0 || error("tree edge number $(e.number) has γ not 1.0")
         end
@@ -179,7 +179,7 @@ function Base.show(io::IO, obj::SSM)
     if nparams(obj.ratemodel) > 0
         disp *= replace(string(obj.ratemodel), r"\n" => "\n  ") * "\n"
     end
-    disp *= "on a network with $(obj.net.numHybrids) reticulations\n"
+    disp *= "on a network with $(obj.net.numhybrids) reticulations\n"
     print(io, disp)
     showdata(io, obj)
     if !ismissing(obj.loglik)
@@ -321,7 +321,7 @@ Optional arguments (default):
 # examples:
 
 ```jldoctest fitDiscrete_block
-julia> net = readTopology("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);");
+julia> net = readnewick("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);");
 
 julia> m1 = BinaryTraitSubstitutionModel([0.1, 0.1], ["lo", "hi"]);
 
@@ -359,7 +359,7 @@ but the internal representation of the network may be different in
 `fit1.net` and in the original network `net`:
 
 ```jldoctest fitDiscrete_block
-julia> net = readTopology("(sp1:3.0,(sp2:2.0,(sp3:1.0,sp4:1.0):1.0):1.0);");
+julia> net = readnewick("(sp1:3.0,(sp2:2.0,(sp3:1.0,sp4:1.0):1.0):1.0);");
 
 julia> using BioSymbols
 
@@ -788,8 +788,8 @@ function discrete_corelikelihood_trait!(obj::SSM, t::Integer, ci::Integer, ri::I
     fill!(forwardlik, 0.0) # re-initialize for each trait, each iteration
     fill!(directlik,  0.0)
     loglik = 0.
-    for ni in reverse(1:length(tree.nodes_changed)) # post-order
-        n = tree.nodes_changed[ni]
+    for ni in reverse(1:length(tree.vec_node)) # post-order
+        n = tree.vec_node[ni]
         nnum = n.number # same n.number across trees for a given node
         if n.leaf # need forwardlik initialized at 0: keep at 0 = log(1) if no data
             state = obj.trait[nnum][ci] # here: data assumed in a row n.number
@@ -841,7 +841,7 @@ model object `obj`.
 # examples
 
 ```jldoctest
-julia> net = readTopology("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);");
+julia> net = readnewick("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);");
 
 julia> m1 = BinaryTraitSubstitutionModel([0.1, 0.1], ["lo", "hi"]); # arbitrary rates
 
@@ -891,7 +891,7 @@ These probabilities are conditional on the model parameters in `obj`.
 # examples
 
 ```jldoctest
-julia> net = readTopology("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);");
+julia> net = readnewick("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);");
 
 julia> m1 = BinaryTraitSubstitutionModel([0.1, 0.1], ["lo", "hi"]); # arbitrary rates
 
@@ -1010,7 +1010,7 @@ function check_matchtaxonnames!(species::AbstractVector, dat::AbstractVector, ne
     end
     @assert length(dat) == length(species) "need as many species as rows in trait data"
     # 2. match taxon labels between data and network
-    netlab = tipLabels(net)
+    netlab = tiplabels(net)
     ind2notinnet = findall(x -> x ∉ netlab, species) # species not in network
     deleteat!(species, ind2notinnet)
     deleteat!(dat,     ind2notinnet)
@@ -1027,8 +1027,8 @@ function check_matchtaxonnames!(species::AbstractVector, dat::AbstractVector, ne
         end
     end
     # 3. calculate order of rows to have species with node.number i on ith row
-    PN.resetNodeNumbers!(net; checkPreorder=true, type=:ape) # tip species: now with numbers 1:n
-    PN.resetEdgeNumbers!(net, false) # to use edge as indices: 1:numEdges
+    PN.resetnodenumbers!(net; checkPreorder=true, type=:ape) # tip species: now with numbers 1:n
+    PN.resetedgenumbers!(net, false) # to use edge as indices: 1:numedges
     netlab = [n.name for n in sort(net.leaf, by = x -> x.number)]
     nspecies = length(netlab)
     o = Vector{Int}(undef, nspecies)
@@ -1076,7 +1076,7 @@ See also [`posterior_logtreeweight`](@ref) and
 # examples
 
 ```jldoctest
-julia> net = readTopology("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);");
+julia> net = readnewick("(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);");
 
 julia> m1 = BinaryTraitSubstitutionModel([0.1, 0.1], ["lo", "hi"]);
 
@@ -1168,8 +1168,8 @@ function discrete_backwardlikelihood_trait!(obj::SSM, t::Integer, ri::Integer)
     else #trait models
         logprior = [-log(k) for i in 1:k] # uniform prior at root
     end
-    for ni in 1:length(tree.nodes_changed) # pre-order traversal to calculate backwardlik
-        n = tree.nodes_changed[ni]
+    for ni in 1:length(tree.vec_node) # pre-order traversal to calculate backwardlik
+        n = tree.vec_node[ni]
         nnum = n.number
         if ni == 1 # n is the root
             backwardlik[:,nnum] = logprior
@@ -1248,7 +1248,7 @@ function startingrate(net::HybridNetwork)
         end
     end
     if totaledgelength == 0.0 # as when all edge lengths are missing
-        totaledgelength = net.numTaxa
+        totaledgelength = net.numtaxa
     end
     return 1.0/totaledgelength
 end

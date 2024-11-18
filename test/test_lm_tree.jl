@@ -5,9 +5,9 @@
 
 @testset "phylolm: Caudata Dataset" begin
 ## Export "caudata" dataset (from geiger)
-phy = readTopology(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
+phy = readnewick(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
 
-V = sharedPathMatrix(phy);
+V = sharedpathmatrix(phy);
 VR = CSV.read(joinpath(@__DIR__,"..","examples","caudata_shared_paths.txt"), DataFrame)
 VR = Matrix(VR);
 
@@ -34,7 +34,7 @@ write.table(V, file="caudata_shared_paths.txt", sep = ",", row.names=F, col.name
 ## Caudata dataset - BM
 
 ## Export "caudata" dataset (from geiger)
-phy = readTopology(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
+phy = readnewick(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
 dat = CSV.read(joinpath(@__DIR__,"..","examples","caudata_trait.txt"), DataFrame);
 
 ## Fit a BM
@@ -246,7 +246,7 @@ sprintf("%.10f", predict(fitphylolm)) # df
 ###############################################################################
 
 ## Export "caudata" dataset (from geiger)
-phy = readTopology(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
+phy = readnewick(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
 dat = CSV.read(joinpath(@__DIR__,"..","examples","caudata_trait.txt"), DataFrame)
 
 ## Add some shifts in the model
@@ -316,7 +316,7 @@ end
 @testset "phylolm: Lizard Dataset" begin
 
 ## Export "lizard" dataset (Mahler et al 2013)
-phy = readTopology(joinpath(@__DIR__, "..", "examples", "lizard_tree.txt"));
+phy = readnewick(joinpath(@__DIR__, "..", "examples", "lizard_tree.txt"));
 dat = CSV.read(joinpath(@__DIR__,"..","examples","lizard_trait.txt"), DataFrame)
 dat[!,:region] = string.(dat[:,:region]) # avoid CategoricalArrays.categorical dependency
 

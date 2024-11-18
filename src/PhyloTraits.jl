@@ -46,7 +46,7 @@ const PN = PhyloNetworks
 # import: to extend methods from othe packages with new methods defined here
 import Base: show
 import GLM: ftest, fit!
-import PhyloNetworks: tipLabels
+import PhyloNetworks: tiplabels
 import StatsModels: coefnames
 
 export ftest # from GLM

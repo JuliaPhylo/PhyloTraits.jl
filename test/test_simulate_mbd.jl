@@ -1,7 +1,7 @@
 # Tests to simulate multivariate traits
 
 ## Get an ultrametric network ('net' already in global scope)
-net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
+net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 
 @testset "Simulate data and check means and dimensions" begin
 
@@ -33,11 +33,11 @@ traitsTips = sim[:Tips];
 traitsNodes = sim[:InternalNodes];
 
 # Check dimensions
-@test size(traitsTips) == (trait_dim, net.numTaxa)
-@test size(traitsNodes) == (trait_dim, net.numNodes - net.numTaxa)
+@test size(traitsTips) == (trait_dim, net.numtaxa)
+@test size(traitsNodes) == (trait_dim, net.numnodes - net.numtaxa)
 
 # Check means (no shifts)
-@test sim[:All, :Exp] ≈ μ * ones(net.numNodes)'
+@test sim[:All, :Exp] ≈ μ * ones(net.numnodes)'
 
 end
 
@@ -55,7 +55,7 @@ Random.seed!(18480224); # fix the seed
 pars = ParamsMultiBM(μ, Σ); # params of a MBD
 
 N = 10000
-S = length(tipLabels(net));
+S = length(tiplabels(net));
 μ_sim = zeros(trait_dim, S)
 Σ_sim = zeros(trait_dim * S, trait_dim * S)
 for i = 1:N
@@ -101,7 +101,7 @@ pars.randomRoot = true
 show(devnull, pars)
 
 N = 10000
-S = length(tipLabels(net));
+S = length(tiplabels(net));
 μ_sim = zeros(trait_dim, S)
 Σ_sim = zeros(trait_dim * S, trait_dim * S)
 for i = 1:N
@@ -129,7 +129,7 @@ end
 ## With shifts
 ################################################################################
 
-net = readTopology("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);")
+net = readnewick("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);")
 
 @testset "Simulate with Shifts" begin
 trait_dim = 3
@@ -181,7 +181,7 @@ pars = ParamsMultiBM(μ, Σ, sh)
 show(devnull, pars)
 
 N = 10000
-S = length(tipLabels(net));
+S = length(tiplabels(net));
 μ_sim = zeros(trait_dim, S)
 Σ_sim = zeros(trait_dim * S, trait_dim * S)
 for i = 1:N

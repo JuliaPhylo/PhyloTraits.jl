@@ -552,7 +552,7 @@ output:
 ```jldoctest
 julia> m1 = BinaryTraitSubstitutionModel(1.0, 2.0, ["low","high"]);
 
-julia> net = readTopology("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0::0.1):1.0):3.0,D:5.0);");
+julia> net = readnewick("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0::0.1):1.0):3.0,D:5.0);");
 
 julia> using Random; Random.seed!(95);
 
@@ -583,25 +583,23 @@ function randomTrait(
     keepInternal::Bool=true,
     checkPreorder::Bool=true
 )
-    net.isRooted || error("net needs to be rooted for preorder recursion")
-    if(checkPreorder)
-        preorder!(net)
-    end
-    nnodes = net.numNodes
+    net.isrooted || error("net needs to be rooted for preorder recursion")
+    checkPreorder && preorder!(net)
+    nnodes = net.numnodes
     M = Matrix{Int}(undef, ntraits, nnodes) # M[i,j]= trait i for node j
     randomTrait!(M,obj,net)
     if !keepInternal
         M = PN.getTipSubmatrix(M, net, indexation=:cols) # subset columns only. rows=traits
-        nodeLabels = [n.name for n in net.nodes_changed if n.leaf]
+        nodeLabels = [n.name for n in net.vec_node if n.leaf]
     else
-        nodeLabels = [n.name == "" ? string(n.number) : n.name for n in net.nodes_changed]
+        nodeLabels = [n.name == "" ? string(n.number) : n.name for n in net.vec_node]
     end
     return M, nodeLabels
 end
 
 function randomTrait!(M::Matrix, obj::TSM, net::HybridNetwork)
     return PN.traversal_preorder!(
-        net.nodes_changed,
+        net.vec_node,
         M, # updates M in place
         updateRootRandomTrait!,
         updateTreeRandomTrait!,

@@ -1,7 +1,7 @@
 # Tests to simulate traits
 
 ## Get a network and make it ultrametric
-net = readTopology("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
+net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
 
 @testset "Simulate function against fixed values" begin
 
@@ -37,7 +37,7 @@ end
 Random.seed!(18480224); # fix the seed
 pars = ParamsBM(1, 0.1); # params of a BM
 N = 50000
-S = length(tipLabels(net));
+S = length(tiplabels(net));
 values = zeros(Float64, (S, N));
 for i = 1:N
     values[:,i] = simulate(net, pars)[:Tips]
@@ -49,7 +49,7 @@ for s in 1:S
 end
 
 ## Check for variances
-V = sharedPathMatrix(net);
+V = sharedpathmatrix(net);
 Sig = V[:Tips] * pars.sigma2;
 for s in 1:S
     for t in s:S
@@ -62,7 +62,7 @@ end
 ## With Shifts
 ###############################################################################
 @testset "Simulate with Shifts" begin
-net = readTopology("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);")
+net = readnewick("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);")
 
 ## Test construction function
 @test_throws ErrorException ShiftNet(net.edge[7], 3.0,  net) # can't put a shift on hybrid branch
@@ -129,7 +129,7 @@ Random.seed!(18480224); # fix the seed
 @test_throws ErrorException ParamsBM(1, 0.1, ShiftNet(net.edge[8], [3.0, 1.0],  net))
 pars = ParamsBM(1, 0.1, ShiftNet(net.edge[8], 3.0,  net)); # params of a BM
 N = 50000
-S = length(tipLabels(net));
+S = length(tiplabels(net));
 values = zeros(Float64, (S, N));
 for i = 1:N
     values[:,i] = simulate(net, pars)[:Tips]
@@ -142,7 +142,7 @@ for s in 1:S
 end
 
 ## Check for variances
-V = sharedPathMatrix(net);
+V = sharedpathmatrix(net);
 Sig = V[:Tips] * pars.sigma2;
 for s in 1:S
     for t in s:S
