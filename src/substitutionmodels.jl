@@ -487,8 +487,8 @@ function Q(obj::ERSM)
 end
 
 """
-    randomTrait(model, t, start)
-    randomTrait!(end, model, t, start)
+    randomTrait([rng::AbstractRNG,] model, t, start)
+    randomTrait!(rng::AbstractRNG, end, model, t, start)
 
 Simulate traits along one edge of length t.
 `start` must be a vector of integers, each representing the starting value of one trait.
@@ -513,23 +513,38 @@ julia> randomTrait(m1, 0.2, [1,2,1,2,2])
 ```
 """
 function randomTrait(obj::TSM, t::Float64, start::AbstractVector{Int})
+    randomTrait(default_rng(), obj, t, start)
+end
+function randomTrait(
+    rng::AbstractRNG,
+    obj::TSM,
+    t::Float64,
+    start::AbstractVector{Int}
+)
     res = Vector{Int}(undef, length(start))
-    randomTrait!(res, obj, t, start)
+    randomTrait!(rng, res, obj, t, start)
 end
 
 @doc (@doc randomTrait) randomTrait!
-function randomTrait!(endTrait::AbstractVector{Int}, obj::TSM, t::Float64, start::AbstractVector{Int})
+function randomTrait!(
+    rng::AbstractRNG,
+    endTrait::AbstractVector{Int},
+    obj::TSM,
+    t::Float64,
+    start::AbstractVector{Int}
+)
     Pt = P(obj, t)
     k = size(Pt, 1) # number of states
     w = [aweights(Pt[i,:]) for i in 1:k]
-    for i in 1:length(start)
-        endTrait[i] =sample(1:k, w[start[i]])
+    for i in eachindex(start)
+        endTrait[i] = sample(rng, 1:k, w[start[i]])
     end
     return endTrait
 end
 
 """
-    randomTrait(model, net; ntraits=1, keepInternal=true, checkPreorder=true)
+    randomTrait([rng::AbstractRNG,] model, net;
+                ntraits=1, keepInternal=true, checkPreorder=true)
 
 Simulate evolution of discrete traits on a rooted evolutionary network based on
 the supplied evolutionary model. Trait sampling is uniform at the root.
@@ -576,7 +591,11 @@ julia> lab
  "A"  
 ```
 """
+function randomTrait(obj::TSM, net::HybridNetwork; kwargs...)
+    randomTrait(default_rng(), obj, net; kwargs...)
+end
 function randomTrait(
+    rng::AbstractRNG,
     obj::TSM,
     net::HybridNetwork;
     ntraits::Int=1,
@@ -587,7 +606,7 @@ function randomTrait(
     checkPreorder && preorder!(net)
     nnodes = net.numnodes
     M = Matrix{Int}(undef, ntraits, nnodes) # M[i,j]= trait i for node j
-    randomTrait!(M,obj,net)
+    randomTrait!(rng, M, obj, net)
     if !keepInternal
         M = PN.getTipSubmatrix(M, net, indexation=:cols) # subset columns only. rows=traits
         nodeLabels = [n.name for n in net.vec_node if n.leaf]
@@ -597,25 +616,36 @@ function randomTrait(
     return M, nodeLabels
 end
 
-function randomTrait!(M::Matrix, obj::TSM, net::HybridNetwork)
+function randomTrait!(
+    rng::AbstractRNG,
+    M::Matrix,
+    obj::TSM,
+    net::HybridNetwork
+)
     return PN.traversal_preorder!(
         net.vec_node,
         M, # updates M in place
         updateRootRandomTrait!,
         updateTreeRandomTrait!,
         updateHybridRandomTrait!,
-        obj)
+        obj,
+        rng)
 end
 
-function updateRootRandomTrait!(V::AbstractArray, i::Int, obj)
-    sample!(1:nstates(obj), view(V, :, i)) # uniform at the root
+function updateRootRandomTrait!(V::AbstractArray, i::Int, obj, rng)
+    sample!(rng, 1:nstates(obj), view(V, :, i)) # uniform at the root
     return true
 end
 
-function updateTreeRandomTrait!(V::Matrix,
-    i::Int,parentIndex::Int,edge::Edge,
-    obj)
-    randomTrait!(view(V, :, i), obj, edge.length, view(V, :, parentIndex))
+function updateTreeRandomTrait!(
+    V::Matrix,
+    i::Int,
+    parentIndex::Int,
+    edge::Edge,
+    obj,
+    rng,
+)
+    randomTrait!(rng, view(V, :, i), obj, edge.length, view(V, :, parentIndex))
     return true
 end
 
@@ -625,13 +655,14 @@ function updateHybridRandomTrait!(
     parindx::AbstractVector{Int},
     paredge::AbstractVector{Edge},
     obj,
+    rng,
 )
     nump = length(parindx) # 2 parents if bicombining
-    randomTrait!(view(V, :, i), obj, paredge[1].length, view(V, :, parindx[1]))
-    tmp = [randomTrait(obj, paredge[p].length, view(V, :, parindx[p])) for p in 2:nump]
+    randomTrait!(rng, view(V, :, i), obj, paredge[1].length, view(V, :, parindx[1]))
+    tmp = [randomTrait(rng, obj, paredge[p].length, view(V, :, parindx[p])) for p in 2:nump]
     cs = cumsum(e.gamma for e in paredge) # last value should be 1 = sum of γs
     for j in 1:size(V,1) # loop over traits
-        u = rand() # next: find index p such that cs[p-1] < u < cs[p]
+        u = rand(rng) # next: find index p such that cs[p-1] < u < cs[p]
         p = findfirst(s -> u < s, cs) # inherit from parent p
         if p > 1 # parent 1 was stored in V already: nothing to do if p=1
             V[j,i] = tmp[p-1][j] # switch to inherit trait of parent p

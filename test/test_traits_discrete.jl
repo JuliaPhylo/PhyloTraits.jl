@@ -102,16 +102,16 @@ end
 m1 = BinaryTraitSubstitutionModel(1.0,2.0, ["carnivory", "non-carnivory"]);
 m2 = EqualRatesSubstitutionModel(4, [3.0], ["S1","S2","S3","S4"]);
 # on a single branch
-Random.seed!(1234);
+rng = StableRNG(1234)
 anc = [1,2,1,2,2]
-@test sum(randomTrait(m1, 0.1, anc) .== anc) >= 4
-Random.seed!(12345);
+@test sum(randomTrait(rng, m1, 0.1, anc) .== anc) >= 4
+rng = StableRNG(12345)
 anc = [1,3,4,2,1]
-@test sum(randomTrait(m2, 0.05, anc) .== anc) >= 4
+@test sum(randomTrait(rng, m2, 0.05, anc) .== anc) >= 4
 # on a network
 net = readnewick("(A:1.0,(B:1.0,(C:1.0,D:1.0):1.0):1.0);")
-Random.seed!(21);
-a,b = randomTrait(m1, net)
+rng = StableRNG(21)
+a,b = randomTrait(rng,m1, net)
 @test size(a) == (1, 7)
 @test all(x in [1,2] for x in a)
 @test sum(a .== 1) >=2 && sum(a .== 2) >= 2
@@ -132,12 +132,10 @@ if runall
 end
 
 net2 = readnewick("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0):1.0):3.0,D:5.0);")
-Random.seed!(496);
-a,b = randomTrait(m1, net2; keepInternal=false)
-@test a == [1  1  1  2]
+a,b = randomTrait(StableRNG(49), m1, net2; keepInternal=false)
+@test a == [1  2  1  1]
 @test b == ["D", "C", "B", "A"]
-Random.seed!(496);
-a,b = randomTrait(m1, net2; keepInternal=true)
+a,b = randomTrait(StableRNG(49), m1, net2; keepInternal=true)
 @test size(a) == (1, 9)
 @test all(x in [1,2] for x in a)
 @test b == ["-2", "D", "-3", "-6", "C", "-4", "H1", "B", "A"]

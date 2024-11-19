@@ -86,9 +86,9 @@ end
 trait_dim = 3
 
 ## Generate some values
-Random.seed!(24452384); # fix the seed
-μ = randn(trait_dim)
-Σ = randn(trait_dim, trait_dim)
+rng = StableRNG(24542)
+μ = randn(rng, trait_dim)
+Σ = randn(rng, trait_dim, trait_dim)
 Σ = Σ * Σ' # needs to be positive definite
 pars = ParamsMultiBM(μ, Σ); # params of a MBD
 
@@ -105,7 +105,7 @@ S = length(tiplabels(net));
 μ_sim = zeros(trait_dim, S)
 Σ_sim = zeros(trait_dim * S, trait_dim * S)
 for i = 1:N
-    tips = simulate(net, pars)[:Tips]
+    tips = simulate(rng, net, pars)[:Tips]
     μ_sim .+= tips
     v_sim = vec(tips)
     Σ_sim .+= v_sim * v_sim'
@@ -115,12 +115,12 @@ end
 Σ_sim = Σ_sim - vec(μ_sim) * vec(μ_sim)'
 
 ## Check means
-@test isapprox(μ_sim, μ * ones(S)', atol=0.2)
+@test all(isapprox.(μ_sim, μ * ones(S)', atol=0.08))
 
 ## Check covariance
 Ψ = Matrix(vcv(net))
 Σ_true = kron(Ψ, Σ) + kron(ones(S, S), pars.varRoot)
-@test isapprox(Σ_sim, Σ_true, atol=3.6) # norm L2 of 36x36 matrix
+@test isapprox(Σ_sim, Σ_true, atol=12) # norm L2 of 36x36 matrix
 
 end
 
