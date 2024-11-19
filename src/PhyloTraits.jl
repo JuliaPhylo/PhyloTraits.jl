@@ -14,7 +14,6 @@ const kappamax = 20.0
 
 using BioSequences
 using BioSymbols
-using CSV
 using DataFrames # innerjoin new in v0.21
 using Distributions #for RateVariationAcrossSites
 using FASTX

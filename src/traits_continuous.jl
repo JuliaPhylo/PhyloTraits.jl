@@ -2630,7 +2630,7 @@ Returns an object of type [`ReconstructedStates`](@ref).
 
 # Examples
 
-```jldoctest; filter = [r" PhyloNetworks .*:\d+", ]
+```jldoctest; filter = [r" PhyloTraits .*:\d+", ]
 julia> using DataFrames, CSV # to read data file
 
 julia> phy = readnewick(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "carnivores_tree.txt"));
