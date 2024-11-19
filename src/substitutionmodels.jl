@@ -487,8 +487,15 @@ function Q(obj::ERSM)
 end
 
 """
-    randomTrait([rng::AbstractRNG,] model, t, start)
-    randomTrait!(rng::AbstractRNG, end, model, t, start)
+    randomTrait([rng::AbstractRNG,]
+                model::TraitSubstitutionModel,
+                t::Float64,
+                start::AbstractVector{Int})
+    randomTrait!(rng::AbstractRNG,
+                 end::AbstractVector{Int},
+                 model::TraitSubstitutionModel,
+                 t::Float64,
+                 start::AbstractVector{Int})
 
 Simulate traits along one edge of length t.
 `start` must be a vector of integers, each representing the starting value of one trait.
@@ -543,8 +550,12 @@ function randomTrait!(
 end
 
 """
-    randomTrait([rng::AbstractRNG,] model, net;
-                ntraits=1, keepInternal=true, checkPreorder=true)
+    randomTrait([rng::AbstractRNG,]
+                model::TraitSubstitutionModel,
+                net::HybridNetwork;
+                ntraits=1,
+                keepInternal=true,
+                checkpreorder=true)
 
 Simulate evolution of discrete traits on a rooted evolutionary network based on
 the supplied evolutionary model. Trait sampling is uniform at the root.
@@ -600,10 +611,10 @@ function randomTrait(
     net::HybridNetwork;
     ntraits::Int=1,
     keepInternal::Bool=true,
-    checkPreorder::Bool=true
+    checkpreorder::Bool=true
 )
     net.isrooted || error("net needs to be rooted for preorder recursion")
-    checkPreorder && preorder!(net)
+    checkpreorder && preorder!(net)
     nnodes = net.numnodes
     M = Matrix{Int}(undef, ntraits, nnodes) # M[i,j]= trait i for node j
     randomTrait!(rng, M, obj, net)
