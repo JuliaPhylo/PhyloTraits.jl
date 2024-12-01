@@ -12,13 +12,13 @@ VR = CSV.read(joinpath(@__DIR__,"..","examples","caudata_shared_paths.txt"), Dat
 VR = Matrix(VR);
 
 # Tips
-@test V[:Tips] ≈ VR[1:197, 1:197]
+@test V[:tips] ≈ VR[1:197, 1:197]
 
 # Internal nodes
-intnodes_in_VR = -V.internalNodeNumbers .+ 196
-@test V[:InternalNodes] ≈ VR[intnodes_in_VR, intnodes_in_VR]
+intnodes_in_VR = -V.internalnodenumbers .+ 196
+@test V[:internalnodes] ≈ VR[intnodes_in_VR, intnodes_in_VR]
 # tips in rows, internal nodes in columns
-@test V[:TipsNodes] ≈ VR[1:197, intnodes_in_VR]
+@test V[:tipsnodes] ≈ VR[1:197, intnodes_in_VR]
 
 #= R Code to get those results
 library(geiger)
@@ -251,7 +251,7 @@ dat = CSV.read(joinpath(@__DIR__,"..","examples","caudata_trait.txt"), DataFrame
 
 ## Add some shifts in the model
 df_shift = regressorShift(phy.edge[[98, 326, 287]], phy)
-dat = innerjoin(dat, df_shift, on=:tipNames)
+dat = innerjoin(dat, df_shift, on=:tipnames)
 ## Fit a BM
 fitBM = phylolm(@formula(trait ~ shift_98 + shift_326 + shift_287), dat, phy; reml=false)
 

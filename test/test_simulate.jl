@@ -10,13 +10,13 @@ Random.seed!(17920921); # fix the seed
 pars = ParamsBM(1, 0.1); # params of a BM
 @test_logs show(devnull, pars)
 
-sim = simulate(net, pars); # simulate according to a BM
+sim = rand(net, pars); # simulate according to a BM
 @test_logs show(devnull, sim)
-@test_throws ErrorException sim[:Tips, :Broken]
+@test_throws ErrorException sim[:tips, :Broken]
 
 # Extract simulated values
-traitsTips = sim[:Tips]
-traitsNodes = sim[:InternalNodes]
+traitsTips = sim[:tips]
+traitsNodes = sim[:internalnodes]
 # values simulated under julia v1.6.4
 #traitsTipsExp = [0.6455995230091043,-0.22588106270381064,0.05703904710270408,-0.692650796714688,1.578622599565194,1.4106438068675058,1.9166557600811194,1.0579005662214953,1.2340762902144904,1.4130757789427886,0.7115737497673081,2.201943319276716];
 #traitsNodesExp = [-0.3481603206484607,-0.6698437934551933,-0.018135478212541654,-0.33844527112230455,-0.0717742134084467,0.19417331380691694,1.3919535151447147,1.5106942025265466,1.2526948727806593,1.1552248152172964,1.224823113083187,1.0617270280846993,1.0436547766241817,1.0];
@@ -40,7 +40,7 @@ N = 50000
 S = length(tiplabels(net));
 values = zeros(Float64, (S, N));
 for i = 1:N
-    values[:,i] = simulate(net, pars)[:Tips]
+    values[:,i] = rand(net, pars)[:tips]
 end
 
 ## Check that each tip has same mean (1)
@@ -50,7 +50,7 @@ end
 
 ## Check for variances
 V = sharedpathmatrix(net);
-Sig = V[:Tips] * pars.sigma2;
+Sig = V[:tips] * pars.sigma2;
 for s in 1:S
     for t in s:S
         @test cov(values[s, :], values[t, :]) ≈ Sig[s, t] atol=0.01
@@ -87,10 +87,10 @@ sh = ShiftNet(net.node[7], 3.0,  net)
 @test shiftHybrid([2.0], net).shift ≈ ShiftNet(net.edge[6], 2.0, net).shift
 @test shiftHybrid(2.0, net).shift ≈ shiftHybrid([2.0], net).shift
 
-## Test simulate
+## Test rand(net, ::ParamsProcess)
 
 # No shift on root
-@test_throws ErrorException simulate(net, ParamsBM(1.0, 0.1, ShiftNet(net.node[9], 3.0,  net)))
+@test_throws ErrorException rand(net, ParamsBM(1.0, 0.1, ShiftNet(net.node[9], 3.0,  net)))
 
 @test ParamsBM(1.0, 1.0, net).shift.shift ≈ ParamsBM(1.0, 1.0, ShiftNet(net)).shift.shift
 
@@ -99,13 +99,13 @@ pars = ParamsBM(1, 0.1, ShiftNet(net.edge[8], 3.0,  net)); # params of a BM
 @test_logs show(devnull, pars.shift)
 
 Random.seed!(17920921); # fix the seed
-sim = simulate(net, pars); # simulate according to a BM
+sim = rand(net, pars); # simulate according to a BM
 @test_logs show(devnull, sim)
 
-traitsTips = sim[:Tips];
-traitsNodes = sim[:InternalNodes];
-meansTips = sim[:Tips, :Exp];
-meansNodes = sim[:InternalNodes, :Exp];
+traitsTips = sim[:tips];
+traitsNodes = sim[:internalnodes];
+meansTips = sim[:tips, :exp];
+meansNodes = sim[:internalnodes, :exp];
 @test meansTips == [1.,1.,1.0+3,1.0+3.0*0.6]
 @test meansNodes == [1., 1.0+3.0*0.6, 1.0+3, 1., 1.]
 @test length(traitsTips)  == 4
@@ -116,9 +116,9 @@ meansNodes = sim[:InternalNodes, :Exp];
 
 # Test same as MultiBM
 pars = ParamsMultiBM([1.0], 0.1*ones(1,1), ShiftNet(net.edge[8], 3.0,  net));
-simMulti = simulate(net, pars); 
-@test simMulti[:Tips, :Exp] ≈ sim[:Tips, :Exp]'
-@test simMulti[:InternalNodes, :Exp] ≈ sim[:InternalNodes, :Exp]'
+simMulti = rand(net, pars);
+@test simMulti[:tips, :exp] ≈ sim[:tips, :exp]'
+@test simMulti[:internalnodes, :exp] ≈ sim[:internalnodes, :exp]'
 
 ###############################################################################
 ## Test of distibution - with shifts
@@ -132,18 +132,18 @@ N = 50000
 S = length(tiplabels(net));
 values = zeros(Float64, (S, N));
 for i = 1:N
-    values[:,i] = simulate(net, pars)[:Tips]
+    values[:,i] = rand(net, pars)[:tips]
 end
 
 ## Check that each tip has same mean (1)
-expectations = simulate(net, pars)[:Tips,:Exp]
+expectations = rand(net, pars)[:tips,:exp]
 for s in 1:S
     @test mean(values[s, :]) ≈ expectations[s] atol=1e-2
 end
 
 ## Check for variances
 V = sharedpathmatrix(net);
-Sig = V[:Tips] * pars.sigma2;
+Sig = V[:tips] * pars.sigma2;
 for s in 1:S
     for t in s:S
         @test cov(values[s, :], values[t,:]) ≈ Sig[s, t] atol=1e-2

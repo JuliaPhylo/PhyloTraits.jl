@@ -164,7 +164,7 @@ function StatisticalSubstitutionModel(
     ratemodel = RateVariationAcrossSites(rvsymbol, ratecategories)
     dat2 = traitlabels2indices(view(data, :, 2:size(data,2)), model)
     # check_matchtaxonnames makes a deep copy of the network
-    o, net = check_matchtaxonnames!(data[:,1], dat2, net) # calls resetNodeNumbers, which calls preorder!
+    o, net = check_matchtaxonnames!(data[:,1], dat2, net) # calls resetnodenumbers, which calls preorder!
     trait = dat2[o]
     obj = StatisticalSubstitutionModel(model, ratemodel, net, trait, siteweights,
                            maxhybrid)

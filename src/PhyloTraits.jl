@@ -43,15 +43,16 @@ using StatsModels # re-exported by GLM. for ModelFrame ModelMatrix Formula etc
 const PN = PhyloNetworks
 
 # import: to extend methods from othe packages with new methods defined here
-import Base: show
+import Base: show, rand
 import GLM: ftest, fit!
 import PhyloNetworks: tiplabels
+import Random: rand!
 import StatsModels: coefnames
 
 export ftest # from GLM
 # continuous traits
 export phylolm, PhyloNetworkLinearModel
-export simulate, TraitSimulation
+export rand, TraitSimulation
 export ParamsBM, ParamsMultiBM
 export ShiftNet, shiftHybrid, getShiftEdgeNumber, getShiftValue
 export regressorShift, regressorHybrid
@@ -71,7 +72,7 @@ export Q
 export getlabels
 export nparams
 export RateVariationAcrossSites
-export randomTrait, randomTrait!
+export rand, rand!
 export fitdiscrete
 export readfastatodna
 export stationary

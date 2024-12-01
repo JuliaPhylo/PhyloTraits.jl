@@ -104,24 +104,24 @@ m2 = EqualRatesSubstitutionModel(4, [3.0], ["S1","S2","S3","S4"]);
 # on a single branch
 rng = StableRNG(1234)
 anc = [1,2,1,2,2]
-@test sum(randomTrait(rng, m1, 0.1, anc) .== anc) >= 4
+@test sum(rand(rng, m1, 0.1, anc) .== anc) >= 4
 rng = StableRNG(12345)
 anc = [1,3,4,2,1]
-@test sum(randomTrait(rng, m2, 0.05, anc) .== anc) >= 4
+@test sum(rand(rng, m2, 0.05, anc) .== anc) >= 4
 # on a network
 net = readnewick("(A:1.0,(B:1.0,(C:1.0,D:1.0):1.0):1.0);")
 rng = StableRNG(21)
-a,b = randomTrait(rng,m1, net)
+a,b = rand(rng,m1, net)
 @test size(a) == (1, 7)
 @test all(x in [1,2] for x in a)
 @test sum(a .== 1) >=2 && sum(a .== 2) >= 2
 @test b == ["-2", "-3", "-4", "D", "C", "B", "A"]
 if runall
     for e in net.edge e.length = 10.0; end
-    @time a,b = randomTrait(m1, net; ntraits=100000) # ~ 0.014 seconds
+    @time a,b = rand(m1, net; ntraits=100000) # ~ 0.014 seconds
     sum(a[:,1])/100000 # expect 1.5 at root
     sum(a[:,2])/100000 # expect 1.333 at other nodes
-    @time a,b = randomTrait(m2, net; ntraits=100000) # ~ 0.02 seconds
+    @time a,b = rand(m2, net; ntraits=100000) # ~ 0.02 seconds
     length([x for x in a[:,1] if x==4])/length(a[:,1]) # expect 0.25
     length([x for x in a[:,2] if x==4])/length(a[:,2])
     length([x for x in a[:,3] if x==4])/length(a[:,3])
@@ -132,10 +132,10 @@ if runall
 end
 
 net2 = readnewick("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0):1.0):3.0,D:5.0);")
-a,b = randomTrait(StableRNG(49), m1, net2; keepInternal=false)
+a,b = rand(StableRNG(49), m1, net2; keepinternal=false)
 @test a == [1  2  1  1]
 @test b == ["D", "C", "B", "A"]
-a,b = randomTrait(StableRNG(49), m1, net2; keepInternal=true)
+a,b = rand(StableRNG(49), m1, net2; keepinternal=true)
 @test size(a) == (1, 9)
 @test all(x in [1,2] for x in a)
 @test b == ["-2", "D", "-3", "-6", "C", "-4", "H1", "B", "A"]
@@ -145,7 +145,7 @@ if runall
             e.length = 0.0
         end
     end
-    a,b = randomTrait(m1, net2; ntraits=100000)
+    a,b = rand(m1, net2; ntraits=100000)
     # plot(net2, shownodenumber=true) shows: H1 listed 7th, parents listed 4th and 6th
     c = map( != , a[:, 4],a[:, 6] ); # traits when parents have different traits
     n1 = sum(map( ==, a[c,7],a[c,6] )) # 39644 traits: hybrid ≠ major parent
@@ -156,7 +156,7 @@ if runall
         e.length = 0.0
     end
     net2.edge[4].length = 10.0
-    a,b = randomTrait(m1, net2; ntraits=100000);
+    a,b = rand(m1, net2; ntraits=100000);
     a[:, 1] == a[:, 2]  # true: root = leaf D, as expected
     a[:, 1] == a[:, 5]  # true: root = leaf C
     sum(a[:, 6])/100000 # expected 1.3333
@@ -246,7 +246,7 @@ net = readnewick("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0::0.1):1.0):3.
 # function below used to check that simulation proportions == likelihood
 m1 = BinaryTraitSubstitutionModel([1.0, 2.0], [1,2]) # model.label = model.index
 function traitprobabilities(model, net, ntraits=10)
-    res, lab = randomTrait(model, net; ntraits=ntraits)
+    res, lab = rand(model, net; ntraits=ntraits)
     tips = findall(in(tiplabels(net)), lab) # indices of tips: columns in res
     dat = DataFrame(species = lab[tips])
     tmp = StatsBase.countmap([res[i,tips] for i in 1:ntraits])
@@ -315,7 +315,7 @@ fit!(fit1; optimizeQ=true, optimizeRVAS=false)
 # for information only: function used locally to check for correct parameter estimation
 function simulateManyTraits_estimate(ntraits)
     m1 = BinaryTraitSubstitutionModel([1.0, 0.5], [1,2])
-    res, lab = randomTrait(m1, net; ntraits=ntraits)
+    res, lab = rand(m1, net; ntraits=ntraits)
     tips = findall(in(tiplabels(net)), lab) # indices of tips: columns in res
     dat = DataFrame(transpose(res[:,tips])); species = lab[tips]
     return fitdiscrete(net, m1, species, dat; optimizeRVAS = false)

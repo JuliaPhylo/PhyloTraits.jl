@@ -8,7 +8,7 @@ Compute the regressor vectors associated with shifts on edges that are above nod
 `net` might be modified to sort it in a pre-order.
 Return a `DataFrame` with as many rows as there are tips in net, and a column for
 each shift, each labelled according to the pattern shift_{number_of_edge}. It has
-an aditional column labelled `tipNames` to allow easy fitting afterward (see example).
+an aditional column labelled `tipnames` to allow easy fitting afterward (see example).
 
 # Examples
 ```jldoctest
@@ -41,16 +41,16 @@ There are 2 shifts on the network:
 
 julia> using Random; Random.seed!(2468); # sets the seed for reproducibility
 
-julia> sim = simulate(net, params); # simulate a dataset with shifts
+julia> sim = rand(net, params); # simulate a dataset with shifts
 
 julia> using DataFrames # to handle data frames
 
-julia> dat = DataFrame(trait = sim[:Tips], tipNames = sim.M.tipNames);
+julia> dat = DataFrame(trait = sim[:tips], tipnames = sim.M.tipnames);
 
 julia> dat = DataFrame(trait = [13.391976856737717, 9.55741491696386, 7.17703734817448, 7.889062527849697],
-        tipNames = ["A","B","C","D"]) # hard-coded, to be independent of random number generator
+        tipnames = ["A","B","C","D"]) # hard-coded, to be independent of random number generator
 4×2 DataFrame
- Row │ trait     tipNames 
+ Row │ trait     tipnames 
      │ Float64   String   
 ─────┼────────────────────
    1 │ 13.392    A
@@ -60,7 +60,7 @@ julia> dat = DataFrame(trait = [13.391976856737717, 9.55741491696386, 7.17703734
 
 julia> dfr_shift = regressorShift(net.node[nodes_shifts], net) # the regressors matching the shifts.
 4×3 DataFrame
- Row │ shift_1  shift_8  tipNames 
+ Row │ shift_1  shift_8  tipnames 
      │ Float64  Float64  String   
 ─────┼────────────────────────────
    1 │     1.0      0.0  A
@@ -68,7 +68,7 @@ julia> dfr_shift = regressorShift(net.node[nodes_shifts], net) # the regressors 
    3 │     0.0      1.0  C
    4 │     0.0      0.6  D
 
-julia> dfr = innerjoin(dat, dfr_shift, on=:tipNames); # join data and regressors in a single dataframe
+julia> dfr = innerjoin(dat, dfr_shift, on=:tipnames); # join data and regressors in a single dataframe
 
 julia> using StatsModels # for statistical model formulas
 
@@ -111,7 +111,7 @@ function regressorShift(node::Vector{Node},
                         net::HybridNetwork,
                         T::MatrixTopologicalOrder)
     ## Get the descendence matrix for tips
-    T_t = T[:Tips]
+    T_t = T[:tips]
     ## Get the indices of the columns to keep
     ind = zeros(Int, length(node))
     for (i,nod) in enumerate(node)
@@ -126,7 +126,7 @@ function regressorShift(node::Vector{Node},
         return(Symbol("shift_$(x)"))
     end
     df = DataFrame(T_t[:, ind], [tmp_fun(num) for num in eNum])
-    df[!,:tipNames]=T.tipNames
+    df[!,:tipnames]=T.tipnames
     return(df)
 end
 
@@ -150,7 +150,7 @@ all hybrid nodes of `net`. It uses function [`PhyloNetworks.descendencematrix`](
 a call to [`regressorShift`](@ref), so `net` might be modified to sort it in a pre-order.
 Return a `DataFrame` with as many rows as there are tips in net, and a column for
 each hybrid, each labelled according to the pattern shift_{number_of_edge}. It has
-an aditional column labelled `tipNames` to allow easy fitting afterward (see example).
+an aditional column labelled `tipnames` to allow easy fitting afterward (see example).
 
 This function can be used to test for heterosis.
 
@@ -186,14 +186,14 @@ There are 1 shifts on the network:
 
 julia> using Random; Random.seed!(2468); # sets the seed for reproducibility
 
-julia> sim = simulate(net, params); # simulate a dataset with shifts
+julia> sim = rand(net, params); # simulate a dataset with shifts
 
-julia> dat = DataFrame(trait = sim[:Tips], tipNames = sim.M.tipNames);
+julia> dat = DataFrame(trait = sim[:tips], tipnames = sim.M.tipnames);
 
 julia> dat = DataFrame(trait = [10.391976856737717, 9.55741491696386, 10.17703734817448, 12.689062527849698],
-          tipNames = ["A","B","C","D"]) # hard-code values for more reproducibility
+          tipnames = ["A","B","C","D"]) # hard-code values for more reproducibility
 4×2 DataFrame
- Row │ trait     tipNames 
+ Row │ trait     tipnames 
      │ Float64   String   
 ─────┼────────────────────
    1 │ 10.392    A
@@ -203,7 +203,7 @@ julia> dat = DataFrame(trait = [10.391976856737717, 9.55741491696386, 10.1770373
 
 julia> dfr_hybrid = regressorHybrid(net) # the regressors matching the hybrids.
 4×3 DataFrame
- Row │ shift_6  tipNames  sum     
+ Row │ shift_6  tipnames  sum     
      │ Float64  String    Float64 
 ─────┼────────────────────────────
    1 │     0.0  A             0.0
@@ -211,7 +211,7 @@ julia> dfr_hybrid = regressorHybrid(net) # the regressors matching the hybrids.
    3 │     0.0  C             0.0
    4 │     1.0  D             1.0
 
-julia> dfr = innerjoin(dat, dfr_hybrid, on=:tipNames); # join data and regressors in a single dataframe
+julia> dfr = innerjoin(dat, dfr_hybrid, on=:tipnames); # join data and regressors in a single dataframe
 
 julia> using StatsModels
 
@@ -243,7 +243,7 @@ AIC: 7.4012043891
 function regressorHybrid(net::HybridNetwork; checkpreorder::Bool=true)
     childs = [getchild(nn) for nn in net.hybrid] # checks that each hybrid node has a single child
     dfr = regressorShift(childs, net; checkpreorder=checkpreorder)
-    dfr[!,:sum] = sum.(eachrow(select(dfr, Not(:tipNames), copycols=false)))
+    dfr[!,:sum] = sum.(eachrow(select(dfr, Not(:tipnames), copycols=false)))
     return(dfr)
 end
 
@@ -697,7 +697,7 @@ of a trait (or of the residuals from a linear model). Under the BM model,
 the population (or species) means have a multivariate normal distribution with
 covariance matrix = σ²λV, where σ² is the between-species
 variance-rate (to be estimated), and the matrix V is obtained from
-[`sharedpathmatrix`](@ref)(net)[:Tips].
+[`sharedpathmatrix`](@ref)(net)[:tips].
 
 λ is set to 1 by default, and is immutable.
 In future versions, λ may be used to control the scale for σ².
@@ -1065,7 +1065,7 @@ function pgls(
     nonmissing::BitArray{1}=trues(length(Y)), # which tips are not missing?
     ind::Vector{Int}=[0]
 )
-    Vy = V[:Tips] # extract tips matrix
+    Vy = V[:tips] # extract tips matrix
     if (ind != [0]) Vy = Vy[ind, ind] end # re-order if necessary
     Vy = Vy[nonmissing, nonmissing]
     R = cholesky(Vy)
@@ -1081,8 +1081,8 @@ end
 
 
 function maxLambda(times::Vector, V::MatrixTopologicalOrder)
-    maskTips = indexin(V.tipNumbers, V.nodeNumbersTopOrder)
-    maskNodes = indexin(V.internalNodeNumbers, V.nodeNumbersTopOrder)
+    maskTips = indexin(V.tipnumbers, V.nodenumbers_toporder)
+    maskNodes = indexin(V.internalnodenumbers, V.nodenumbers_toporder)
     return minimum(times[maskTips]) / maximum(times[maskNodes])
     # res = minimum(times[maskTips]) / maximum(times[maskNodes])
     # res = res * (1 - 1/5/maximum(times[maskTips]))
@@ -1095,7 +1095,7 @@ function transform_matrix_lambda!(
     times::Vector
 )
     V.V .*= lam
-    maskTips = indexin(V.tipNumbers, V.nodeNumbersTopOrder)
+    maskTips = indexin(V.tipnumbers, V.nodenumbers_toporder)
     for i in maskTips
         V.V[i, i] += (1-lam) * (gammas[i]^2 + (1-gammas[i])^2) * times[i]
     end
@@ -1275,7 +1275,7 @@ Keyword arguments
 * `model="BM"`: model for trait evolution (as a string)
   "lambda" (Pagel's lambda), "scalingHybrid" are other possible values
   (see [`ContinuousTraitEM`](@ref))
-* `tipnames=:tipNames`: column name for species/tip-labels, represented
+* `tipnames=:tipnames`: column name for species/tip-labels, represented
   as a symbol. For example, if the column containing the species/tip labels in
   `fr` is named "Species", then do `tipnames=:Species`.
 * `no_names=false`: If `true`, force the function to ignore the tips names.
@@ -1359,7 +1359,7 @@ species standard deviation / sample sizes (if used) will throw an error.
 
 ## See also
 
-[`simulate`](@ref), [`ancestralStateReconstruction`](@ref), [`vcv`](@ref)
+[`rand`](@ref), [`ancestralStateReconstruction`](@ref), [`vcv`](@ref)
 
 ## Examples: Without within-species variation
 
@@ -1574,7 +1574,7 @@ function phylolm(f::StatsModels.FormulaTerm,
                 fr::AbstractDataFrame,
                 net::HybridNetwork;
                 model::AbstractString="BM",
-                tipnames::Symbol=:tipNames,
+                tipnames::Symbol=:tipnames,
                 no_names::Bool=false,
                 reml::Bool=true,
                 ftolRel::AbstractFloat=fRelTr,
@@ -2062,7 +2062,7 @@ end
   including those with some missing data, so:
   * nonmissing has length >= length of Y
   * sum(nonmissing) = length of Y
-- V[:Tips][ind,ind][nonmissing,nonmissing] correspond to the data rows
+- V[:tips][ind,ind][nonmissing,nonmissing] correspond to the data rows
 
 extra problems:
 - a species may be listed 1+ times in ind, but not in ind[nonmissing]
@@ -2099,7 +2099,7 @@ function phylolm_wsp(X::Matrix, Y::Vector, V::MatrixTopologicalOrder,
             Ysp[i0] = ymean
             RSS += sum((Y[iii] .- ymean).^2)
         end
-        Vsp = V[:Tips][ind_sp,ind_sp]
+        Vsp = V[:tips][ind_sp,ind_sp]
         # redefine "ind" and "nonmissing" at species level. ind = index of species
         # in tiplabels(net), in same order in which species come in means Ysp.
         # nonmissing: no need to list species with no data
@@ -2113,7 +2113,7 @@ function phylolm_wsp(X::Matrix, Y::Vector, V::MatrixTopologicalOrder,
         Xsp = X
         RSS = sum((ySD .^ 2) .* (counts .- 1.0))
         ind_nm = ind[nonmissing]
-        Vsp = V[:Tips][ind_nm,ind_nm]
+        Vsp = V[:tips][ind_nm,ind_nm]
     end
 
     model_within, RL = withinsp_varianceratio(Xsp,Ysp,Vsp, reml,
@@ -2333,7 +2333,7 @@ The following functions can be applied to it:
 [`expectations`](@ref) (vector of expectations at all nodes), `stderror` (the standard error),
 `predint` (the prediction interval).
 
-The `ReconstructedStates` object has fields: `traits_nodes`, `variances_nodes`, `NodeNumbers`, `traits_tips`, `tipNumbers`, `model`.
+The `ReconstructedStates` object has fields: `traits_nodes`, `variances_nodes`, `nodenumbers`, `traits_tips`, `tipnumbers`, `model`.
 Type in "?ReconstructedStates.field" to get help on a specific field.
 """
 struct ReconstructedStates
@@ -2341,12 +2341,12 @@ struct ReconstructedStates
     traits_nodes::Vector # Nodes are actually "missing" data (including tips)
     "variances_nodes: the variance covariance matrix between all the 'missing' nodes"
     variances_nodes::Matrix
-    "NodeNumbers: vector of the nodes numbers, in the same order as `traits_nodes`"
-    NodeNumbers::Vector{Int}
+    "nodenumbers: vector of the nodes numbers, in the same order as `traits_nodes`"
+    nodenumbers::Vector{Int}
     "traits_tips: the observed traits values at the tips"
     traits_tips::Vector # Observed values at tips
-    "TipNumbers: vector of tips numbers, in the same order as `traits_tips`"
-    TipNumbers::Vector # Observed tips only
+    "tipnumbers: vector of tips numbers, in the same order as `traits_tips`"
+    tipnumbers::Vector # Observed tips only
     "model: if not missing, the `PhyloNetworkLinearModel` used for the computations."
     model::Union{PhyloNetworkLinearModel, Missing} # if empirical, corresponding fitted object
 end
@@ -2357,7 +2357,7 @@ end
 Estimated reconstructed states at the nodes and tips.
 """
 function expectations(obj::ReconstructedStates)
-    return DataFrame(nodeNumber = [obj.NodeNumbers; obj.TipNumbers], condExpectation = [obj.traits_nodes; obj.traits_tips])
+    return DataFrame(nodeNumber = [obj.nodenumbers; obj.tipnumbers], condExpectation = [obj.traits_nodes; obj.traits_tips])
 end
 
 """
@@ -2382,13 +2382,13 @@ function expectationsPlot(obj::ReconstructedStates; markMissing::AbstractString=
     if !ismissing(obj.model)
         nonmissing = obj.model.nonmissing
         ind = obj.model.ind
-        tipnumbers = obj.model.V.tipNumbers # all tips, even those absent from dataframe
+        tipnumbers = obj.model.V.tipnumbers # all tips, even those absent from dataframe
         tipnumbers_data = tipnumbers[ind][nonmissing] # listed and data non-missing
         tipnumbers_imputed = setdiff(tipnumbers, tipnumbers_data)
         indexMissing = indexin(tipnumbers_imputed, expe[!,:nodeNumber])
         expetxt[indexMissing] .*= markMissing
     end
-    return DataFrame(nodeNumber = [obj.NodeNumbers; obj.TipNumbers], PredInt = expetxt)
+    return DataFrame(nodeNumber = [obj.nodenumbers; obj.tipnumbers], PredInt = expetxt)
 end
 
 StatsBase.stderror(obj::ReconstructedStates) = sqrt.(diag(obj.variances_nodes))
@@ -2411,9 +2411,9 @@ end
 
 function Base.show(io::IO, obj::ReconstructedStates)
     println(io, "$(typeof(obj)):\n",
-            CoefTable(hcat(vcat(obj.NodeNumbers, obj.TipNumbers), vcat(obj.traits_nodes, obj.traits_tips), predint(obj)),
+            CoefTable(hcat(vcat(obj.nodenumbers, obj.tipnumbers), vcat(obj.traits_nodes, obj.traits_tips), predint(obj)),
                       ["Node index", "Pred.", "Min.", "Max. (95%)"],
-                      fill("", length(obj.NodeNumbers)+length(obj.TipNumbers))))
+                      fill("", length(obj.nodenumbers)+length(obj.tipnumbers))))
 end
 
 """
@@ -2432,14 +2432,14 @@ function predintPlot(obj::ReconstructedStates; level::Real=0.95, withExp::Bool=f
     pritxt = Array{AbstractString}(undef, size(pri, 1))
     # Exp
     withExp ? exptxt = expectationsPlot(obj, markMissing="") : exptxt = ""
-    for i=1:length(obj.NodeNumbers)
+    for i=1:length(obj.nodenumbers)
         !withExp ? sep = ", " : sep = "; " * exptxt[i, 2] * "; "
         pritxt[i] = "[" * string(round(pri[i, 1], digits=2)) * sep * string(round(pri[i, 2], digits=2)) * "]"
     end
-    for i=(length(obj.NodeNumbers)+1):size(pri, 1)
+    for i=(length(obj.nodenumbers)+1):size(pri, 1)
         pritxt[i] = string(round(pri[i, 1], digits=2))
     end
-    return DataFrame(nodeNumber = [obj.NodeNumbers; obj.TipNumbers], PredInt = pritxt)
+    return DataFrame(nodeNumber = [obj.nodenumbers; obj.tipnumbers], PredInt = pritxt)
 end
 
 #= ----- roadmap of ancestralStateReconstruction, continuous traits ------
@@ -2448,11 +2448,11 @@ all methods return a ReconstructedStates object.
 core method called by every other method:
 
 1. ancestralStateReconstruction(Vzz, VzyVyinvchol, RL, Y, m_y, m_z,
-                                NodeNumbers, TipNumbers, sigma2, add_var, model)
+                                nodenumbers, tipnumbers, sigma2, add_var, model)
 
 higher-level methods, for real data:
 
-2. ancestralStateReconstruction(dataframe, net; tipnames=:tipNames, kwargs...)
+2. ancestralStateReconstruction(dataframe, net; tipnames=:tipnames, kwargs...)
    - dataframe: 2 columns only, species names & tip response values
    - fits an intercept-only model, then calls #3
    - by default without kwargs: model = BM w/o within-species variation
@@ -2465,9 +2465,9 @@ higher-level methods, for real data:
      must contain the predictor(s) at nodes with *no* data, with nodes listed in
      the following order:
      * internal nodes first, in the same order in which they appear in net.node,
-       i.e in V.internalNodeNumbers
+       i.e in V.internalnodenumbers
      * then leaves with no data, in the same order in which they appear in
-       tiplabels(net), i.e. in V.tipNumbers.
+       tiplabels(net), i.e. in V.tipnumbers.
    - extracts the predicted values for all network nodes, and the unscaled
      3 covariance matrices of interest (nodes with data, nodes w/o, crossed)
    - computes "universal" kriging (as opposed to "simple" kriging, which would
@@ -2506,9 +2506,9 @@ function ancestralStateReconstruction(V::MatrixTopologicalOrder,
                                       Y::Vector,
                                       params::ParamsBM)
     # Variances matrices
-    Vy = V[:Tips]
-    Vz = V[:InternalNodes]
-    Vyz = V[:TipsNodes]
+    Vy = V[:tips]
+    Vz = V[:internalnodes]
+    Vyz = V[:tipsnodes]
     R = cholesky(Vy)
     RL = R.L
     VzyVyinvchol = (RL \ Vyz)'
@@ -2518,8 +2518,8 @@ function ancestralStateReconstruction(V::MatrixTopologicalOrder,
     # Actual computation
     ancestralStateReconstruction(Vz, VzyVyinvchol, RL,
                                  Y, m_y, m_z,
-                                 V.internalNodeNumbers,
-                                 V.tipNumbers,
+                                 V.internalnodenumbers,
+                                 V.tipnumbers,
                                  params.sigma2)
 end
 
@@ -2531,8 +2531,8 @@ function ancestralStateReconstruction(
     Y::Vector,
     m_y::Vector,
     m_z::Vector,
-    NodeNumbers::Vector,
-    TipNumbers::Vector,
+    nodenumbers::Vector,
+    tipnumbers::Vector,
     sigma2::Real,
     add_var::Matrix=zeros(size(Vz)), # Additional variance for BLUP
     model::Union{PhyloNetworkLinearModel,Missing}=missing
@@ -2543,7 +2543,7 @@ function ancestralStateReconstruction(
     if !ismissing(model) && !isnothing(model.model_within) # y = last part of z
         Y = similar(Y, 0) # empty vector of similar type as Y
     end
-    ReconstructedStates(m_z_cond_y, V_z_cond_y + add_var, NodeNumbers, Y, TipNumbers, model)
+    ReconstructedStates(m_z_cond_y, V_z_cond_y + add_var, nodenumbers, Y, tipnumbers, model)
 end
 
 #= from a fitted object: see high-level docstring below
@@ -2557,7 +2557,7 @@ function ancestralStateReconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix)
         error("""The number of predictors for the ancestral states (number of columns of X_n)
               does not match the number of predictors at the tips.""")
     end
-    if size(X_n)[1] != length(obj.V.internalNodeNumbers) + length(obj.V.tipNumbers)-length(obj.ind) + sum(.!obj.nonmissing)
+    if size(X_n)[1] != length(obj.V.internalnodenumbers) + length(obj.V.tipnumbers)-length(obj.ind) + sum(.!obj.nonmissing)
         error("""The number of lines of the predictors does not match
               the number of nodes plus the number of missing tips.""")
     end
@@ -2574,18 +2574,18 @@ function ancestralStateReconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix)
         @warn """There were no indication for the position of the tips on the network.
              I am assuming that they are given in the same order.
              Please check that this is what you intended."""
-        ind = collect(1:length(obj.V.tipNumbers))
+        ind = collect(1:length(obj.V.tipnumbers))
     else
         ind = obj.ind
     end
     # Vyz: sharedpath. rows y: tips w/ data. cols z: internal nodes & tips w/o data
-    Vyz = obj.V[:TipsNodes, ind, obj.nonmissing]
-    Vzz = obj.V[:InternalNodes, ind, obj.nonmissing]
-    nmTipNumbers = obj.V.tipNumbers[ind][obj.nonmissing] # tips w/ data
+    Vyz = obj.V[:tipsnodes, ind, obj.nonmissing]
+    Vzz = obj.V[:internalnodes, ind, obj.nonmissing]
+    nmTipNumbers = obj.V.tipnumbers[ind][obj.nonmissing] # tips w/ data
     # no-data node numbers: for nodes (internal or tips) with no data
-    ndNodeNumbers = [obj.V.internalNodeNumbers; setdiff(obj.V.tipNumbers, nmTipNumbers)]
+    ndNodeNumbers = [obj.V.internalnodenumbers; setdiff(obj.V.tipnumbers, nmTipNumbers)]
     if !isnothing(obj.model_within) # add tips with data to z
-        Vtips = obj.V[:Tips, ind, obj.nonmissing]
+        Vtips = obj.V[:tips, ind, obj.nonmissing]
         Vzz = [Vzz Vyz'; Vyz Vtips]
         Vyz = [Vyz Vtips]
         append!(m_z, m_y)
@@ -2843,7 +2843,7 @@ function ancestralStateReconstruction(obj::PhyloNetworkLinearModel)
     are known, please provide them as a matrix argument to the function.
     Otherwise, you might consider doing a multivariate linear regression (not implemented yet).""")
     end
-    X_n = ones((length(obj.V.nodeNumbersTopOrder) - sum(obj.nonmissing), 1))
+    X_n = ones((length(obj.V.nodenumbers_toporder) - sum(obj.nonmissing), 1))
     ancestralStateReconstruction(obj, X_n)
 end
 
@@ -2861,7 +2861,7 @@ Returns an object of type [`ReconstructedStates`](@ref).
 """
 function ancestralStateReconstruction(fr::AbstractDataFrame,
                                       net::HybridNetwork;
-                                      tipnames::Symbol=:tipNames,
+                                      tipnames::Symbol=:tipnames,
                                       kwargs...)
     nn = DataFrames.propertynames(fr)
     datpos = nn .!= tipnames

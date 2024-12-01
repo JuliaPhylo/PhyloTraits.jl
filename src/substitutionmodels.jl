@@ -487,15 +487,15 @@ function Q(obj::ERSM)
 end
 
 """
-    randomTrait([rng::AbstractRNG,]
-                model::TraitSubstitutionModel,
-                t::Float64,
-                start::AbstractVector{Int})
-    randomTrait!(rng::AbstractRNG,
-                 end::AbstractVector{Int},
-                 model::TraitSubstitutionModel,
-                 t::Float64,
-                 start::AbstractVector{Int})
+    rand([rng::AbstractRNG,]
+          model::TraitSubstitutionModel,
+          t::Float64,
+          start::AbstractVector{Int})
+    rand!(rng::AbstractRNG,
+          end::AbstractVector{Int},
+          model::TraitSubstitutionModel,
+          t::Float64,
+          start::AbstractVector{Int})
 
 Simulate traits along one edge of length t.
 `start` must be a vector of integers, each representing the starting value of one trait.
@@ -510,7 +510,7 @@ rate 1→0 β=2.0
 
 julia> using Random; Random.seed!(13);
 
-julia> randomTrait(m1, 0.2, [1,2,1,2,2])
+julia> rand(m1, 0.2, [1,2,1,2,2])
 5-element Vector{Int64}:
  1
  2
@@ -519,21 +519,21 @@ julia> randomTrait(m1, 0.2, [1,2,1,2,2])
  2
 ```
 """
-function randomTrait(obj::TSM, t::Float64, start::AbstractVector{Int})
-    randomTrait(default_rng(), obj, t, start)
+function rand(obj::TSM, t::Float64, start::AbstractVector{Int})
+    rand(default_rng(), obj, t, start)
 end
-function randomTrait(
+function rand(
     rng::AbstractRNG,
     obj::TSM,
     t::Float64,
     start::AbstractVector{Int}
 )
     res = Vector{Int}(undef, length(start))
-    randomTrait!(rng, res, obj, t, start)
+    rand!(rng, res, obj, t, start)
 end
 
-@doc (@doc randomTrait) randomTrait!
-function randomTrait!(
+@doc (@doc rand) rand!
+function rand!(
     rng::AbstractRNG,
     endTrait::AbstractVector{Int},
     obj::TSM,
@@ -550,12 +550,12 @@ function randomTrait!(
 end
 
 """
-    randomTrait([rng::AbstractRNG,]
-                model::TraitSubstitutionModel,
-                net::HybridNetwork;
-                ntraits=1,
-                keepInternal=true,
-                checkpreorder=true)
+    rand([rng::AbstractRNG,]
+          model::TraitSubstitutionModel,
+          net::HybridNetwork;
+          ntraits=1,
+          keepinternal=true,
+          checkpreorder=true)
 
 Simulate evolution of discrete traits on a rooted evolutionary network based on
 the supplied evolutionary model. Trait sampling is uniform at the root.
@@ -563,7 +563,7 @@ the supplied evolutionary model. Trait sampling is uniform at the root.
 optional arguments:
 
 - `ntraits`: number of traits to be simulated (default: 1 trait).
-- `keepInternal`: if true, export character states at all nodes, including
+- `keepinternal`: if true, export character states at all nodes, including
   internal nodes. if false, export character states at tips only.
 
 output:
@@ -582,7 +582,7 @@ julia> net = readnewick("(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0::0.1):
 
 julia> using Random; Random.seed!(95);
 
-julia> trait, lab = randomTrait(m1, net)
+julia> trait, lab = rand(m1, net)
 ([1 2 … 1 1], ["-2", "D", "-3", "-6", "C", "-4", "H1", "B", "A"])
 
 julia> trait
@@ -602,23 +602,23 @@ julia> lab
  "A"  
 ```
 """
-function randomTrait(obj::TSM, net::HybridNetwork; kwargs...)
-    randomTrait(default_rng(), obj, net; kwargs...)
+function rand(obj::TSM, net::HybridNetwork; kwargs...)
+    rand(default_rng(), obj, net; kwargs...)
 end
-function randomTrait(
+function rand(
     rng::AbstractRNG,
     obj::TSM,
     net::HybridNetwork;
     ntraits::Int=1,
-    keepInternal::Bool=true,
+    keepinternal::Bool=true,
     checkpreorder::Bool=true
 )
     net.isrooted || error("net needs to be rooted for preorder recursion")
     checkpreorder && preorder!(net)
     nnodes = net.numnodes
     M = Matrix{Int}(undef, ntraits, nnodes) # M[i,j]= trait i for node j
-    randomTrait!(rng, M, obj, net)
-    if !keepInternal
+    rand!(rng, M, obj, net)
+    if !keepinternal
         M = PN.getTipSubmatrix(M, net, indexation=:cols) # subset columns only. rows=traits
         nodeLabels = [n.name for n in net.vec_node if n.leaf]
     else
@@ -627,7 +627,7 @@ function randomTrait(
     return M, nodeLabels
 end
 
-function randomTrait!(
+function rand!(
     rng::AbstractRNG,
     M::Matrix,
     obj::TSM,
@@ -656,7 +656,7 @@ function updateTreeRandomTrait!(
     obj,
     rng,
 )
-    randomTrait!(rng, view(V, :, i), obj, edge.length, view(V, :, parentIndex))
+    rand!(rng, view(V, :, i), obj, edge.length, view(V, :, parentIndex))
     return true
 end
 
@@ -669,8 +669,8 @@ function updateHybridRandomTrait!(
     rng,
 )
     nump = length(parindx) # 2 parents if bicombining
-    randomTrait!(rng, view(V, :, i), obj, paredge[1].length, view(V, :, parindx[1]))
-    tmp = [randomTrait(rng, obj, paredge[p].length, view(V, :, parindx[p])) for p in 2:nump]
+    rand!(rng, view(V, :, i), obj, paredge[1].length, view(V, :, parindx[1]))
+    tmp = [rand(rng, obj, paredge[p].length, view(V, :, parindx[p])) for p in 2:nump]
     cs = cumsum(e.gamma for e in paredge) # last value should be 1 = sum of γs
     for j in 1:size(V,1) # loop over traits
         u = rand(rng) # next: find index p such that cs[p-1] < u < cs[p]

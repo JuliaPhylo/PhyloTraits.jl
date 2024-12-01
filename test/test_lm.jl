@@ -15,8 +15,8 @@ preorder!(net)
 # Ancestral state reconstruction with ready-made matrices
 params = ParamsBM(10, 1)
 Random.seed!(2468); # simulates the Y values below under julia v1.6
-sim = simulate(net, params) # tests that the simulation runs, but results not used
-Y = [11.239539657364706,8.600423079191044,10.559841251147608,9.965748423156297] # sim[:Tips]
+sim = rand(net, params) # tests that the simulation runs, but results not used
+Y = [11.239539657364706,8.600423079191044,10.559841251147608,9.965748423156297] # sim[:tips]
 X = ones(4, 1)
 phynetlm = phylolm(X, Y, net; reml=false)
 @test_logs show(devnull, phynetlm)
@@ -64,7 +64,7 @@ nullloglik = - 1 / 2 * (ntaxa + ntaxa * log(2 * pi) + ntaxa * log(nullsigma2hat)
 @test hasintercept(phynetlm)
 
 # with data frames
-dfr = DataFrame(trait = Y, tipNames = ["A","B","C","D"]) # sim.M.tipNames
+dfr = DataFrame(trait = Y, tipnames = ["A","B","C","D"]) # sim.M.tipnames
 fitbis = phylolm(@formula(trait ~ 1), dfr, net; reml=false)
 #@show fitbis
 
@@ -151,14 +151,14 @@ preorder!(net)
 ## Simulate
 params = ParamsBM(10, 0.1, shiftHybrid([3.0, -3.0],  net))
 Random.seed!(2468); # sets the seed for reproducibility, to debug potential error
-sim = simulate(net, params) # checks for no error, but not used.
+sim = rand(net, params) # checks for no error, but not used.
 # values simulated using julia v1.6.4's RNG hardcoded below.
-# Y = sim[:Tips]
+# Y = sim[:tips]
 Y = [11.640085037749985, 9.498284887480622, 9.568813792749083, 13.036916724865296, 6.873936265709946, 6.536647349405742, 5.95771939864956, 10.517318306450647, 9.34927049737206, 10.176238483133424, 10.760099940744308, 8.955543827353837]
 
 ## Construct regression matrix
 dfr_shift = regressorShift(net.edge[[8,17]], net)
-dfr_shift[!,:sum] = vec(sum(Matrix(dfr_shift[:,findall(DataFrames.propertynames(dfr_shift) .!= :tipNames)]), dims=2))
+dfr_shift[!,:sum] = vec(sum(Matrix(dfr_shift[:,findall(DataFrames.propertynames(dfr_shift) .!= :tipnames)]), dims=2))
 dfr_hybrid = regressorHybrid(net)
 
 @test dfr_shift[!,:shift_8] ≈ dfr_hybrid[!,:shift_8]
@@ -166,8 +166,8 @@ dfr_hybrid = regressorHybrid(net)
 @test dfr_shift[!,:sum] ≈ dfr_hybrid[!,:sum]
 
 ## Data
-dfr = DataFrame(trait = Y, tipNames = ["Ag","Ak","E","M","Az","Ag2","As","Ap","Ar","P","20","165"]) # sim.M.tipNames
-dfr = innerjoin(dfr, dfr_hybrid, on=:tipNames)
+dfr = DataFrame(trait = Y, tipnames = ["Ag","Ak","E","M","Az","Ag2","As","Ap","Ar","P","20","165"]) # sim.M.tipnames
+dfr = innerjoin(dfr, dfr_hybrid, on=:tipnames)
 
 ## Simple BM
 fitShift = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net; reml=false)
@@ -258,7 +258,7 @@ preorder!(net)
 ## data
 Y = [11.640085037749985, 9.498284887480622, 9.568813792749083, 13.036916724865296, 6.873936265709946, 6.536647349405742, 5.95771939864956, 10.517318306450647, 9.34927049737206, 10.176238483133424, 10.760099940744308, 8.955543827353837]
 X = [9.199418112245104, 8.641506886650749, 8.827105915999073, 11.198420342332025, 5.8212242346434655, 6.130520100788492, 5.846098148463377, 9.125593652542882, 10.575371612483897, 9.198463833849347, 9.090317561636194, 9.603570747653789]
-dfr = DataFrame(trait = Y, reg = X, tipNames = ["Ag","Ak","E","M","Az","Ag2","As","Ap","Ar","P","20","165"]) # sim.M.tipNames
+dfr = DataFrame(trait = Y, reg = X, tipnames = ["Ag","Ak","E","M","Az","Ag2","As","Ap","Ar","P","20","165"]) # sim.M.tipnames
 phynetlm = phylolm(@formula(trait ~ -1 + reg), dfr, net; reml=false)
 # Naive version (GLS): most of it hard-coded, but code shown below
 ntaxa = length(Y)
@@ -309,10 +309,10 @@ net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:
 b0 = 1
 b1 = 10
 Random.seed!(5678)
-sim = simulate(net, ParamsBM(1, 1))
-A = sim[:Tips]
-B = b0 .+ b1 * A .+ simulate(net,  ParamsBM(0, 0.1))[:Tips]
-tipnam = sim.M.tipNames
+sim = rand(net, ParamsBM(1, 1))
+A = sim[:tips]
+B = b0 .+ b1 * A .+ rand(net,  ParamsBM(0, 0.1))[:tips]
+tipnam = sim.M.tipnames
 =#
 A = [2.626609842049044,0.6334773804400937,3.0577676668430476,0.8570052897626761,3.3415290038076875,2.7038939422417467,1.8694860778492748,3.354373836136418,7.436775409527188,2.6659127435884318,3.2298992674067417,-2.2323810599565013]
 B = [27.60133970558981,8.228820310098914,32.42043423853238,10.249417359958978,33.52061781961048,27.008691929589997,19.11541648307886,35.38758567184537,75.04861071222199,27.68624399802581,33.03778377357321,-20.4001107607967]
@@ -362,7 +362,7 @@ nullloglik = - 1 / 2 * (ntaxa + ntaxa * log(2 * pi) + ntaxa * log(nullsigma2hat)
 @test bic(fit_mat) ≈ -2*loglik+(length(betahat)+1)*log(ntaxa)
 
 ## perfect user using right format and formula
-dfr = DataFrame(trait=B, pred=A, tipNames=tipnam)
+dfr = DataFrame(trait=B, pred=A, tipnames=tipnam)
 phynetlm = phylolm(@formula(trait ~ pred), dfr, net; reml=false)
 #@show phynetlm
 
@@ -443,7 +443,7 @@ dfr = dfr[[9,6,5,10,1,11,12,7,2,3,8,4], :]
 @test_throws ErrorException phylolm(@formula(trait ~ pred), dfr, net) # Wrong pred
 
 ### Add NAs
-dfr = DataFrame(trait=B, pred=A, tipNames=tipnam)
+dfr = DataFrame(trait=B, pred=A, tipnames=tipnam)
 allowmissing!(dfr, :pred)
 dfr[[2, 8, 11], :pred] .= missing
 fitna = phylolm(@formula(trait ~ pred), dfr, net)
@@ -517,13 +517,13 @@ fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalingHybrid", reml=fa
 
 ### Ancestral State Reconstruction
 params = ParamsBM(3, 1)
-# sim = simulate(net, params); Y = sim[:Tips]; tipnam=tiplabels(sim)
+# sim = rand(net, params); Y = sim[:tips]; tipnam=tiplabels(sim)
 Y = [7.49814057852738,7.713232061975018,7.4314117011628795,0.9850885689559203,4.970152778471174,5.384066549416034,4.326644522544125,0.6079385242666691,4.084254785718834,5.501648315448596,3.8732700346136597,4.790127215808698]
 tipnam = ["Ag","Ak","E","M","Az","Ag2","As","Ap","Ar","P","20","165"]
 # From known parameters
 ancestral_traits = ancestralStateReconstruction(net, Y, params)
 # BLUP
-dfr = DataFrame(trait=Y, tipNames=tipnam)
+dfr = DataFrame(trait=Y, tipnames=tipnam)
 phynetlm = phylolm(@formula(trait~1), dfr, net)
 # prediction intervals larger with reml=true than with reml=false
 blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralStateReconstruction(phynetlm));
@@ -536,13 +536,13 @@ blup_bis = (@test_logs (:warn, r"^These prediction intervals show uncertainty in
 @test expectations(blup)[!,:condExpectation] ≈ expectations(blup_bis)[!,:condExpectation]
 @test expectations(blup)[!,:nodeNumber] ≈ expectations(blup_bis)[!,:nodeNumber]
 @test blup.traits_tips ≈ blup_bis.traits_tips
-@test blup.TipNumbers ≈ blup_bis.TipNumbers
+@test blup.tipnumbers ≈ blup_bis.tipnumbers
 @test predint(blup) ≈ predint(blup_bis)
 @test predintPlot(blup)[!,:PredInt] == predintPlot(blup_bis)[!,:PredInt]
 @test predintPlot(blup, withExp=true)[!,:PredInt] == predintPlot(blup_bis, withExp=true)[!,:PredInt]
 @test expectationsPlot(blup)[!,:PredInt] == expectationsPlot(blup_bis)[!,:PredInt]
 
-dfr = DataFrame(trait=Y, tipNames=tipnam, reg=Y)
+dfr = DataFrame(trait=Y, tipnames=tipnam, reg=Y)
 @test_throws ErrorException ancestralStateReconstruction(dfr, net) # cannot handle a predictor
 
 # Unordered
@@ -550,10 +550,10 @@ dfr2 = dfr[[5,4,9,2,6,12,8,11,7,1,3,10], :]
 phynetlm = phylolm(@formula(trait~1), dfr2, net)
 blup2 = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralStateReconstruction(phynetlm))
 
-@test expectations(blup)[1:length(blup.NodeNumbers),:condExpectation] ≈ expectations(blup2)[1:length(blup.NodeNumbers),:condExpectation]
+@test expectations(blup)[1:length(blup.nodenumbers),:condExpectation] ≈ expectations(blup2)[1:length(blup.nodenumbers),:condExpectation]
 @test blup.traits_tips[phynetlm.ind] ≈ blup2.traits_tips
-@test blup.TipNumbers[phynetlm.ind] ≈ blup2.TipNumbers
-@test predint(blup)[1:length(blup.NodeNumbers), :] ≈ predint(blup2)[1:length(blup.NodeNumbers), :]
+@test blup.tipnumbers[phynetlm.ind] ≈ blup2.tipnumbers
+@test predint(blup)[1:length(blup.nodenumbers), :] ≈ predint(blup2)[1:length(blup.nodenumbers), :]
 
 # With unknown tips
 allowmissing!(dfr, :trait)
@@ -596,7 +596,7 @@ B = b0 .+ (b1 .* A + randn(size(tiplabels(net), 1)))
 =#
 A = [-1.2217252038914663, 0.8431411538631137, 0.3847679754817904, 0.10277471357263539, 1.0944221266744778, 2.053347250198844, 1.4708882134841876, 1.1056475371071361, -0.94952153892202, -0.3477162381565148, -0.2742415177451819, 0.25034046948064764]
 B = [-9.849415384443805, 10.765309004952346, 4.8269904926118565, 1.7279441642635127, 11.535570136728504, 20.16670120778599, 13.971404727143286, 13.019084912634444, -8.278125099304921, -4.784290010378141, -2.537139017477904, 2.9460706727827755]
-dfr = DataFrame(trait = B, pred = A, tipNames = tiplabels(net))
+dfr = DataFrame(trait = B, pred = A, tipnames = tiplabels(net))
 
 ## Network
 phynetlm = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(
@@ -636,7 +636,7 @@ end
 @testset "Undefined branch length" begin
     ## No branch length
     net = readnewick("(A:2.5,((B,#H1:1::0.1):1,(C:1,(D:1)#H1:1::0.9):1):0.5);");
-    dfr = DataFrame(trait = [11.6,8.1,10.3,9.1], tipNames = ["A","B","C","D"]);
+    dfr = DataFrame(trait = [11.6,8.1,10.3,9.1], tipnames = ["A","B","C","D"]);
     @test_throws ErrorException("""Branch(es) number 2 have no length.
         The variance-covariance matrix of the network is not defined.
         A phylogenetic regression cannot be done.""") phylolm(@formula(trait ~ 1), dfr, net);
@@ -667,8 +667,8 @@ net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:
 
 params = ParamsBM(10, 1)
 Random.seed!(2468) # sets the seed for reproducibility, to debug potential error
-sim = simulate(net, params)
-Y = sim[:Tips]
+sim = rand(net, params)
+Y = sim[:tips]
 phynetlm = phylolm(zeros(length(Y),0), Y, net)
 #@show phynetlm
 # Naive version (GLS)
@@ -705,7 +705,7 @@ nullloglik = - 1 / 2 * (ntaxa + ntaxa * log(2 * pi) + ntaxa * log(nullsigma2hat)
 @test bic(phynetlm) ≈ -2*loglik+(1)*log(ntaxa)
 
 # with data frames
-dfr = DataFrame(trait = Y, tipNames = sim.M.tipNames)
+dfr = DataFrame(trait = Y, tipnames = sim.M.tipnames)
 fitbis = phylolm(@formula(trait ~ -1), dfr, net)
 @test_logs show(devnull, fitbis)
 #@test coef(phynetlm) ≈ coef(fitbis)

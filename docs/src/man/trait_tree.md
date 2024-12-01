@@ -69,20 +69,20 @@ params_trait2 = ParamsBM(-2, 1)   # BM with mean -2 and variance 1.0
 nothing # hide
 ```
 We then simulate the independent traits according to these parameters, using
-function [`simulate`](@ref) (fixing the seed, for reproducibility).
+function [`rand`](@ref) (fixing the seed, for reproducibility).
 ```@example tree_trait
 using Random
 Random.seed!(18480224);
-sim1 = simulate(truenet, params_trait1) # simulate a BM on truenet
-sim2 = simulate(truenet, params_trait2)
+sim1 = rand(truenet, params_trait1) # simulate a BM on truenet
+sim2 = rand(truenet, params_trait2)
 nothing # hide
 ```
 This creates objects of class [`TraitSimulation`](@ref), from which we can
 extract the data at the tips, thanks to the method
 [`getindex(::TraitSimulation, ::Symbol)`](@ref).
 ```@example tree_trait
-trait1 = sim1[:Tips] # trait 1 at the tips (data)
-trait2 = sim2[:Tips]
+trait1 = sim1[:tips] # trait 1 at the tips (data)
+trait2 = sim2[:tips]
 nothing # hide
 ```
 This extractor creates an `Array` with one column, and as many lines as the
@@ -91,7 +91,7 @@ the tips of the phylogeny used to simulate it.
 If needed, we could also extract the simulated values at the internal nodes
 in the network:
 ```@example tree_trait
-sim1[:InternalNodes]
+sim1[:internalnodes]
 nothing # hide
 ```
 
@@ -99,8 +99,8 @@ Finally, we generate the last trait correlated with trait 1
 (but not trait 2), with phylogenetic noise.
 ```@example tree_trait
 Random.seed!(18700904);
-noise = simulate(truenet, ParamsBM(0, 0.1)) # phylogenetic residuals
-trait3 = 10 .+ 2 * trait1 .+ noise[:Tips] # trait to study. independent of trait2
+noise = rand(truenet, ParamsBM(0, 0.1)) # phylogenetic residuals
+trait3 = 10 .+ 2 * trait1 .+ noise[:tips] # trait to study. independent of trait2
 nothing # hide
 ```
 
@@ -111,7 +111,7 @@ impact of traits 1 and 2 on trait 3. To do that, we can perform a phylogenetic
 regression.
 
 In order to avoid confusion, the function takes in a `DataFrame`, that has an
-extra column with the names of the tips of the network, labeled `tipNames`.
+extra column with the names of the tips of the network, labeled `tipnames`.
 Here, we generated the traits ourselves, so they are all in the same order.
 ```@repl tree_trait
 using DataFrames
@@ -166,7 +166,7 @@ Function [`ancestralStateReconstruction`](@ref) creates an object with type
 [`ReconstructedStates`](@ref). Several extractors can be applied to it:
 ```@repl tree_trait
 expectations(ancTrait1) # predictions
-using StatsBase # for stderror(), aic(), likelihood() etc.
+using StatsBase     # for stderror(), aic(), likelihood() etc.
 stderror(ancTrait1) # associated standard errors
 predint(ancTrait1, level=0.9) # prediction interval (with level 90%)
 ```
@@ -210,7 +210,7 @@ As we know the true ancestral states here, we can compare them to our
 estimation.
 ```@repl tree_trait
 predictions = DataFrame(infPred=predint(ancTrait1)[1:7, 1],
-                        trueValue=sim1[:InternalNodes],
+                        trueValue=sim1[:internalnodes],
                         supPred=predint(ancTrait1)[1:7, 2])
 ```
 
@@ -248,7 +248,7 @@ intercept, and then do ancestral state reconstruction) can be done all at once
 with a single call of the function [`ancestralStateReconstruction`](@ref) on a
 DataFrame with the trait to reconstruct, and the tip labels:
 ```@example tree_trait
-datTrait1 = DataFrame(trait1 = trait1, tipNames = tiplabels(sim1))
+datTrait1 = DataFrame(trait1 = trait1, tipnames = tiplabels(sim1))
 ancTrait1Approx = ancestralStateReconstruction(datTrait1, truenet)
 nothing # hide
 ```
@@ -308,7 +308,7 @@ toy example that we generated ourselves, so we can reconstruct our trait
 doing the following:
 ```@example tree_trait
 ancTrait3 = ancestralStateReconstruction(fitTrait3,
-              [ones(7, 1) sim1[:InternalNodes] sim2[:InternalNodes]])
+              [ones(7, 1) sim1[:internalnodes] sim2[:internalnodes]])
 nothing # hide
 ```
 ```@example tree_trait
@@ -365,7 +365,7 @@ then transform the column `underHyb` to be `categorical` (shown in commments).
 ```@example tree_trait
 dat = DataFrame(trait1 = trait1, trait2 = trait2, trait3 = trait3,
                 underHyb = string.(underHyb),
-                tipNames = tiplabels(sim1))
+                tipnames = tiplabels(sim1))
 # using CategoricalArrays
 # transform!(dat, :underHyb => categorical, renamecols=false)
 nothing # hide
@@ -475,12 +475,12 @@ the `ShiftNet` object as a parameter.
 params_sh = ParamsBM(2, 0.5, shift) # BM with mean 2, variance 0.5, and shifts.
 nothing # hide
 ```
-The traits are simulated using the same function [`simulate`](@ref), and
+The traits are simulated using the same function [`rand`](@ref), and
 extracted at the tips as before.
 ```@example tree_trait
 Random.seed!(18700904)
-sim_sh = simulate(truenet, params_sh) # simulate a shifted BM on truenet
-trait_sh = sim_sh[:Tips]              # trait at the tips (data)
+sim_sh = rand(truenet, params_sh) # simulate a shifted BM on truenet
+trait_sh = sim_sh[:tips]          # trait at the tips (data)
 nothing # hide
 ```
 
@@ -500,8 +500,8 @@ hybrid.
 We can use this dataframe as regressors in the `phylolm` function.
 
 ```@example tree_trait
-dat = DataFrame(trait = trait_sh, tipNames = tiplabels(sim_sh))  # Data
-dat = innerjoin(dat, df_shift, on=:tipNames)                     # join the two
+dat = DataFrame(trait = trait_sh, tipnames = tiplabels(sim_sh))  # Data
+dat = innerjoin(dat, df_shift, on=:tipnames)                     # join the two
 fit_sh = phylolm(@formula(trait ~ shift_6), dat, truenet) # fit
 ```
 Here, because there is only one hybrid in the network, we can directly

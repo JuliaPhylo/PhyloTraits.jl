@@ -6,8 +6,8 @@
 # simulate traits at the species-level, then
 # repeat identical trait values across m individuals
 function simTraits(net, m, paramsprocess)
-    sim = simulate(net, paramsprocess)
-    trait = sim[:Tips] # simple vector now
+    sim = rand(net, paramsprocess)
+    trait = sim[:tips] # simple vector now
     return repeat(trait, inner=m)
 end
 
@@ -23,7 +23,7 @@ meas_noise = randn(n*m) * sqrt(meas_noise_var)
 trait3 = 10 .+ 2*trait1 + phylo_noise + meas_noise
 print(round.(trait1, digits=4)) # etc
 labels = repeat(starnet.names, inner=m)
-df = DataFrame(trait1=trait1, trait2=trait2, trait3=trait3,tipNames=labels)
+df = DataFrame(trait1=trait1, trait2=trait2, trait3=trait3,tipnames=labels)
 =#
 
 n = 4; m = 3
@@ -382,8 +382,8 @@ end
 #= Simulation of data used below:
 (1) Individual-level data
 function simTraits(net, m, paramsprocess)
-      sim = simulate(net, paramsprocess)
-      trait = sim[:Tips]
+      sim = rand(net, paramsprocess)
+      trait = sim[:tips]
       return repeat(trait, inner=m)
 end
 n = 6; m = 3 # 6 species, 3 individuals per species
@@ -397,7 +397,7 @@ phylo_noise = simTraits(net, m, ParamsBM(0, phylo_noise_var))
 meas_noise = randn(n*m)*sqrt(meas_noise_var)
 trait3 = 10 .+ 2 * trait1 + phylo_noise + meas_noise
 labels = repeat(names(vcv(net)), inner=m)
-df = DataFrame(trait1=trait1, trait2=trait2, trait3=trait3, tipNames=labels)
+df = DataFrame(trait1=trait1, trait2=trait2, trait3=trait3, tipnames=labels)
 
 (2) Species-level data (extra columns for SD and n of trait3)
 gdf = groupby(df, :species)
@@ -573,7 +573,7 @@ allowmissing!(df_r,[:trait3]); df_r[2,:trait3] = missing  # to check imputation
 @testset "ancestral state prediction, intercept only" begin
 m1 = phylolm(@formula(trait3 ~ 1), df_r, net; tipnames=:species, withinspecies_var=true, y_mean_std=true)
 ar1 = (@test_logs (:warn, r"^T") ancestralStateReconstruction(m1))
-# ar.NodeNumbers[8] == 2 (looking at node #2), m1.V.tipNames[indexin([2],m1.V.tipNumbers)[1]] == "C" (looking at tip "C")
+# ar.nodenumbers[8] == 2 (looking at node #2), m1.V.tipnames[indexin([2],m1.V.tipnumbers)[1]] == "C" (looking at tip "C")
 @test ar1.traits_nodes[8] ≈ 18.74416393519304 rtol=1e-5 # masked sampled C_bar was 17.0686
 @test predint(ar1)[8,:] ≈ [15.24005506417728,22.2482728062088] rtol=1e-5
 # on dataframe with model passed as keyword args. must be individual data.
@@ -596,7 +596,7 @@ X_n = [m3.X;m3.X[1:3,:]] # 8x3 Array
 ar3 = (@test_logs (:warn, r"^T") ancestralStateReconstruction(m3, X_n))
 m4 = phylolm(@formula(trait3 ~ trait1 + trait2), df_r[[1,4,6,3,2,5],:], net; tipnames=:species, withinspecies_var=true, y_mean_std=true)
 ar4 = (@test_logs (:warn, r"^T") ancestralStateReconstruction(m4, X_n))
-@test ar3.NodeNumbers == ar4.NodeNumbers
+@test ar3.nodenumbers == ar4.nodenumbers
 @test ar3.traits_nodes ≈ ar4.traits_nodes rtol=1e-5
 @test ar3.variances_nodes ≈ ar4.variances_nodes rtol=1e-5
 @test size(expectations(ar4)) == (13, 2)

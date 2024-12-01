@@ -4,8 +4,8 @@ using Documenter
 # NOTE: this installs the dev versions of PhyloNetworks and PhyloPlots for compatibility.
 # To be edited when update to non dev versions.
 using Pkg
-Pkg.add(PackageSpec(name="PhyloNetworks", rev="dev"))
-Pkg.add(PackageSpec(name="PhyloPlots", rev="dev11"))
+Pkg.add(PackageSpec(name="PhyloNetworks", rev="quartet"))
+Pkg.add(PackageSpec(name="PhyloPlots",    rev="master"))
 
 # Interlink with PhyloNetworks
 using DocumenterInterLinks

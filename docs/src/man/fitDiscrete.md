@@ -196,7 +196,7 @@ and that the data set is very small.
 
 ## Trait simulation
 
-[`randomTrait`](@ref) can simulate traits along a known network.
+[`rand`](@ref) can simulate traits along a known network.
 For example, we can define a binary trait model with states
 "carnivory" (state 1) and "non-carnivory" (state 2), then ask for
 a trait to be simulated along our network. We can ask for
@@ -205,7 +205,7 @@ a trait to be simulated along our network. We can ask for
 ```@repl fitdiscrete_trait
 m1 = BinaryTraitSubstitutionModel(1.0,2.0, ["carnivory", "non-carnivory"])
 using Random; Random.seed!(1234); # for reproducibility of this example
-traitmatrix, nodecolumn = randomTrait(m1, net; ntraits=3);
+traitmatrix, nodecolumn = rand(m1, net; ntraits=3);
 traitmatrix
 ```
 

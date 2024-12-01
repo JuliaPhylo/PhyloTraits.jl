@@ -7,8 +7,8 @@ net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:
 
 # one single trait
 pars = ParamsMultiBM([5.0], ones(1,1))
-sim = simulate(net, pars)
-@test sim[:Tips, :Exp] == [5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0]
+sim = rand(net, pars)
+@test sim[:tips, :exp] == [5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0 5.0]
 
 trait_dim = 3
 
@@ -24,20 +24,20 @@ Random.seed!(17920921); # fix the seed
 pars = ParamsMultiBM(μ, Σ); # params of a MBD
 @test_logs show(devnull, pars)
 
-sim = simulate(net, pars); # simulate according to a BM
+sim = rand(net, pars); # simulate according to a BM
 @test_logs show(devnull, sim)
-@test_throws ErrorException sim[:Tips, :Broken]
+@test_throws ErrorException sim[:tips, :Broken]
 
 # Extract simulated values
-traitsTips = sim[:Tips];
-traitsNodes = sim[:InternalNodes];
+traitsTips = sim[:tips];
+traitsNodes = sim[:internalnodes];
 
 # Check dimensions
 @test size(traitsTips) == (trait_dim, net.numtaxa)
 @test size(traitsNodes) == (trait_dim, net.numnodes - net.numtaxa)
 
 # Check means (no shifts)
-@test sim[:All, :Exp] ≈ μ * ones(net.numnodes)'
+@test sim[:all, :exp] ≈ μ * ones(net.numnodes)'
 
 end
 
@@ -59,7 +59,7 @@ S = length(tiplabels(net));
 μ_sim = zeros(trait_dim, S)
 Σ_sim = zeros(trait_dim * S, trait_dim * S)
 for i = 1:N
-    tips = simulate(net, pars)[:Tips]
+    tips = rand(net, pars)[:tips]
     μ_sim .+= tips
     v_sim = vec(tips)
     Σ_sim .+= v_sim * v_sim'
@@ -105,7 +105,7 @@ S = length(tiplabels(net));
 μ_sim = zeros(trait_dim, S)
 Σ_sim = zeros(trait_dim * S, trait_dim * S)
 for i = 1:N
-    tips = simulate(rng, net, pars)[:Tips]
+    tips = rand(rng, net, pars)[:tips]
     μ_sim .+= tips
     v_sim = vec(tips)
     Σ_sim .+= v_sim * v_sim'
@@ -171,7 +171,7 @@ sh1 = ShiftNet(net.node[7], [1.0, 2.0],  net)*ShiftNet(net.node[9], [3.0, -1.5],
 # Shift at root causes an error.
 sh = ShiftNet(net.node[7], [1.0, 2.0, -1.0],  net)*ShiftNet(net.node[9], [3.0, -1.5, 4.2],  net)
 pars = ParamsMultiBM(μ, Σ, sh)
-@test_throws ErrorException simulate(net, pars)
+@test_throws ErrorException rand(net, pars)
 
 # One shift, not at the root
 sh = ShiftNet(net.node[7], [1.0, 2.0, -1.0],  net)
@@ -185,7 +185,7 @@ S = length(tiplabels(net));
 μ_sim = zeros(trait_dim, S)
 Σ_sim = zeros(trait_dim * S, trait_dim * S)
 for i = 1:N
-    tips = simulate(net, pars)[:Tips]
+    tips = rand(net, pars)[:tips]
     μ_sim .+= tips
     v_sim = vec(tips)
     Σ_sim .+= v_sim * v_sim'
@@ -195,8 +195,8 @@ end
 Σ_sim = Σ_sim - vec(μ_sim) * vec(μ_sim)'
 
 ## Check means
-sim = simulate(net, pars)
-μ_true = sim[:Tips, :Exp]
+sim = rand(net, pars)
+μ_true = sim[:tips, :exp]
 @test μ_true ≈ μ .+ [0 0 1 0.6; 0 0 2 1.2; 0 0 -1 -.6] # from shift on edge 8 only
 @test isapprox(μ_sim, μ_true, atol=0.2)
 
