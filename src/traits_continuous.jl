@@ -793,7 +793,7 @@ using [`sigma2_within`](@ref).
 The optimized λ parameter for Pagel's λ model (see [`PagelLambda`](@ref)) can
 be retrieved using [`lambda_estim`](@ref).
 
-An ancestral state reconstruction can be performed using [`ancestralStateReconstruction`](@ref).
+An ancestral state reconstruction can be performed using [`ancestralreconstruction`](@ref).
 
 ## Within-species variation
 
@@ -1359,7 +1359,7 @@ species standard deviation / sample sizes (if used) will throw an error.
 
 ## See also
 
-[`rand`](@ref), [`ancestralStateReconstruction`](@ref), [`vcv`](@ref)
+[`rand`](@ref), [`ancestralreconstruction`](@ref), [`vcv`](@ref)
 
 ## Examples: Without within-species variation
 
@@ -2442,22 +2442,22 @@ function predintPlot(obj::ReconstructedStates; level::Real=0.95, withExp::Bool=f
     return DataFrame(nodeNumber = [obj.nodenumbers; obj.tipnumbers], PredInt = pritxt)
 end
 
-#= ----- roadmap of ancestralStateReconstruction, continuous traits ------
+#= ----- roadmap of ancestralreconstruction, continuous traits ------
 
 all methods return a ReconstructedStates object.
 core method called by every other method:
 
-1. ancestralStateReconstruction(Vzz, VzyVyinvchol, RL, Y, m_y, m_z,
+1. ancestralreconstruction(Vzz, VzyVyinvchol, RL, Y, m_y, m_z,
                                 nodenumbers, tipnumbers, sigma2, add_var, model)
 
 higher-level methods, for real data:
 
-2. ancestralStateReconstruction(dataframe, net; tipnames=:tipnames, kwargs...)
+2. ancestralreconstruction(dataframe, net; tipnames=:tipnames, kwargs...)
    - dataframe: 2 columns only, species names & tip response values
    - fits an intercept-only model, then calls #3
    - by default without kwargs: model = BM w/o within-species variation
 
-3. ancestralStateReconstruction(PhyloNetworkLinearModel[, Matrix])
+3. ancestralreconstruction(PhyloNetworkLinearModel[, Matrix])
    - takes a model already fitted
    - if no matrix given: the model must be intercept-only. An expanded intercept
      column is created with length = # nodes with *no* data
@@ -2476,14 +2476,14 @@ higher-level methods, for real data:
 
 methods based on simulations with a ParamsProcess "params":
 
-4. ancestralStateReconstruction(net, Y, params) which calls:
-   ancestralStateReconstruction(V::MatrixTopologicalOrder, Y, params)
+4. ancestralreconstruction(net, Y, params) which calls:
+   ancestralreconstruction(V::MatrixTopologicalOrder, Y, params)
    - intercept-only: known β and known variance: "simple" kriging is correct
    - BM only: params must be of type ParamsBM
 =#
 
 """
-    ancestralStateReconstruction(net::HybridNetwork, Y::Vector, params::ParamsBM)
+    ancestralreconstruction(net::HybridNetwork, Y::Vector, params::ParamsBM)
 
 Compute the conditional expectations and variances of the ancestral (un-observed)
 traits values at the internal nodes of the phylogenetic network (`net`),
@@ -2492,17 +2492,17 @@ known parameters of the process used for trait evolution (`params`, only BM with
 works for now).
 
 This function assumes that the parameters of the process are known. For a more general
-function, see `ancestralStateReconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`.
+function, see `ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`.
 
 """
-function ancestralStateReconstruction(net::HybridNetwork,
+function ancestralreconstruction(net::HybridNetwork,
                                       Y::Vector,
                                       params::ParamsBM)
     V = sharedpathmatrix(net)
-    ancestralStateReconstruction(V, Y, params)
+    ancestralreconstruction(V, Y, params)
 end
 
-function ancestralStateReconstruction(V::MatrixTopologicalOrder,
+function ancestralreconstruction(V::MatrixTopologicalOrder,
                                       Y::Vector,
                                       params::ParamsBM)
     # Variances matrices
@@ -2516,7 +2516,7 @@ function ancestralStateReconstruction(V::MatrixTopologicalOrder,
     m_y = ones(size(Vy)[1]) .* params.mu # !! correct only if no predictor.
     m_z = ones(size(Vz)[1]) .* params.mu # !! works if BM no shift.
     # Actual computation
-    ancestralStateReconstruction(Vz, VzyVyinvchol, RL,
+    ancestralreconstruction(Vz, VzyVyinvchol, RL,
                                  Y, m_y, m_z,
                                  V.internalnodenumbers,
                                  V.tipnumbers,
@@ -2524,7 +2524,7 @@ function ancestralStateReconstruction(V::MatrixTopologicalOrder,
 end
 
 # Reconstruction from all the needed quantities
-function ancestralStateReconstruction(
+function ancestralreconstruction(
     Vz::Matrix,
     VzyVyinvchol::AbstractMatrix,
     RL::LowerTriangular,
@@ -2552,7 +2552,7 @@ X_n: matrix with as many columns as the number of predictors used,
 
 TO DO: Handle the order of internal nodes and no-data tips for matrix X_n
 =#
-function ancestralStateReconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix)
+function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix)
     if (size(X_n)[2] != length(coef(obj)))
         error("""The number of predictors for the ancestral states (number of columns of X_n)
               does not match the number of predictors at the tips.""")
@@ -2603,7 +2603,7 @@ function ancestralStateReconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix)
          Additional uncertainty in the estimation of this variance rate is
          ignored, so prediction intervals should be larger."""
     # Actual reconstruction
-    ancestralStateReconstruction(Vzz,
+    ancestralreconstruction(Vzz,
                                  VzyVyinvchol,
                                  obj.RL,
                                  obj.Y,
@@ -2617,7 +2617,7 @@ function ancestralStateReconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix)
 end
 
 @doc raw"""
-    ancestralStateReconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])
+    ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])
 
 Function to find the ancestral traits reconstruction on a network, given an
 object fitted by function [`phylolm`](@ref). By default, the function assumes
@@ -2641,7 +2641,7 @@ julia> using StatsModels # for statistical model formulas
 
 julia> fitBM = phylolm(@formula(trait ~ 1), dat, phy);
 
-julia> ancStates = ancestralStateReconstruction(fitBM) # Should produce a warning, as variance is unknown.
+julia> ancStates = ancestralreconstruction(fitBM) # Should produce a warning, as variance is unknown.
 ┌ Warning: These prediction intervals show uncertainty in ancestral values,
 │ assuming that the estimated variance rate of evolution is correct.
 │ Additional uncertainty in the estimation of this variance rate is
@@ -2788,7 +2788,7 @@ julia> dat[[2, 5], :trait] .= missing; # missing values allowed to fit model
 
 julia> fitBM = phylolm(@formula(trait ~ 1), dat, phy);
 
-julia> ancStates = ancestralStateReconstruction(fitBM);
+julia> ancStates = ancestralreconstruction(fitBM);
 ┌ Warning: These prediction intervals show uncertainty in ancestral values,
 │ assuming that the estimated variance rate of evolution is correct.
 │ Additional uncertainty in the estimation of this variance rate is
@@ -2834,7 +2834,7 @@ julia> first(predintPlot(ancStates),3) # prediction intervals, useful to plot
 julia> plot(phy, nodelabel = predintPlot(ancStates));
 ```
 """
-function ancestralStateReconstruction(obj::PhyloNetworkLinearModel)
+function ancestralreconstruction(obj::PhyloNetworkLinearModel)
     # default reconstruction for known predictors
     if ((size(obj.X)[2] != 1) || !any(obj.X .== 1)) # Test if the regressor is just an intercept.
         error("""Predictor(s) other than a plain intercept are used in this `PhyloNetworkLinearModel` object.
@@ -2844,22 +2844,22 @@ function ancestralStateReconstruction(obj::PhyloNetworkLinearModel)
     Otherwise, you might consider doing a multivariate linear regression (not implemented yet).""")
     end
     X_n = ones((length(obj.V.nodenumbers_toporder) - sum(obj.nonmissing), 1))
-    ancestralStateReconstruction(obj, X_n)
+    ancestralreconstruction(obj, X_n)
 end
 
 """
-    ancestralStateReconstruction(fr::AbstractDataFrame, net::HybridNetwork; kwargs...)
+    ancestralreconstruction(fr::AbstractDataFrame, net::HybridNetwork; kwargs...)
 
 Estimate the ancestral traits on a network, given some data at the tips.
 Uses function [`phylolm`](@ref) to perform a phylogenetic regression of the data against an
 intercept (amounts to fitting an evolutionary model on the network).
 
-See documentation on [`phylolm`](@ref) and `ancestralStateReconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`
+See documentation on [`phylolm`](@ref) and `ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`
 for further details.
 
 Returns an object of type [`ReconstructedStates`](@ref).
 """
-function ancestralStateReconstruction(fr::AbstractDataFrame,
+function ancestralreconstruction(fr::AbstractDataFrame,
                                       net::HybridNetwork;
                                       tipnames::Symbol=:tipnames,
                                       kwargs...)
@@ -2871,7 +2871,7 @@ function ancestralStateReconstruction(fr::AbstractDataFrame,
     end
     f = @eval(@formula($(nn[datpos][1]) ~ 1))
     reg = phylolm(f, fr, net; tipnames=tipnames, kwargs...)
-    return ancestralStateReconstruction(reg)
+    return ancestralreconstruction(reg)
 end
 
 

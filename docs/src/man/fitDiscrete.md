@@ -132,8 +132,8 @@ We make predictions for (past of present-day) values,
 hopefully with some measure to quantify our uncertainty.
 
 ```@repl fitdiscrete_trait
-# show(ancestralStateReconstruction(s3), allrows=true)
-ancestralStateReconstruction(s3)
+# show(ancestralreconstruction(s3), allrows=true)
+ancestralreconstruction(s3)
 ```
 Rows 1-6 correspond to the tips, with known values.
 We see much prediction uncertainty at most of the internal nodes.

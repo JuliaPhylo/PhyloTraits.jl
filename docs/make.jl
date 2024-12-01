@@ -4,7 +4,7 @@ using Documenter
 # NOTE: this installs the dev versions of PhyloNetworks and PhyloPlots for compatibility.
 # To be edited when update to non dev versions.
 using Pkg
-Pkg.add(PackageSpec(name="PhyloNetworks", rev="quartet"))
+Pkg.add(PackageSpec(name="PhyloNetworks", rev="quartet")) # has v0.17.1
 Pkg.add(PackageSpec(name="PhyloPlots",    rev="master"))
 
 # Interlink with PhyloNetworks
@@ -32,8 +32,9 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "Manual" => [
-            "Continuous Trait Evolution" => "man/trait_tree.md",
-            "Discrete Trait Evolution" => "man/fitDiscrete.md",
+            "Continuous trait analysis" => "man/phyloregression.md",
+            "Continuous trait simulation" => "man/simulate_continuous.md",
+            "Discrete trait evolution" => "man/fitDiscrete.md",
             "DNA evolution" => "man/fitdiscreteDNA.md",
         ]
     ],

@@ -57,7 +57,7 @@ fitBM = phylolm(@formula(trait ~ 1), dat, phy; reml=false)
 @test predict(fitBM) ≈ [4.6789989001 for i in 1:197] atol=1e-8
 
 ### Ancestral state reconstruction (with Rphylopars)
-anc = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralStateReconstruction(fitBM));
+anc = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(fitBM));
 ancR = CSV.read(joinpath(@__DIR__,"..","examples","caudata_Rphylopars.txt"), DataFrame)
 
 ## Expectations

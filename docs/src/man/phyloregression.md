@@ -3,17 +3,21 @@ using PhyloNetworks
 using PhyloTraits
 mkpath("../assets/figures")
 ```
-# Continuous Trait Evolution
 
-Once the network is inferred, we can take
-these species relationships into account when studying the distribution of quantitative
-traits measured for extant species.
+# Continuous trait analysis
+
+After inferring the phylogeny for our taxa, we can take
+these phylogenetic relationships into account when studying the distribution of
+quantitative traits measured for extant species.
 This is the goal of phylogenetic comparative methods (PCM).
+With PhyloTraits, we can do so if the phylogeny is a tree, or more generally
+if the phylogeny is a network with reticulations.
 More details can be found on the developments below in Bastide et al. 2018 [^B18]
 
-We assume a fixed network, correctly rooted, with branch lengths
-proportional to calendar time. Here, we consider the true network that was
-used in the previous sections, and which is ultrametric (all the tips are contemporary).
+We assume a fixed network (which may be a tree), correctly rooted, with branch
+lengths proportional to calendar time.
+Here, we consider a network that is time-consistent (all paths from the root to any given node have the same length) and ultrametric (all the tips are contemporary).
+
 ```@example tree_trait
 truenet = readnewick("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
 ```
@@ -36,7 +40,7 @@ nothing # hide
 ```
 ![truenet](../assets/figures/truenet.svg)
 
-## Model and Variance Matrix
+## Model and variance matrix
 
 Assuming that the network is known and that the continuous traits evolve like a
 Brownian Motion (BM) in time, it is possible to compute the expected variance
@@ -55,68 +59,22 @@ The computation of this matrix is based on the more general function
 [`sharedpathmatrix`](@ref). It is at the core of all the Phylogenetic
 Comparative Methods described below.
 
-
-## Trait simulation
-
-We start by generating continuous traits to study. We simulate three
-traits on the network (two independent, one dependent),
-using a Brownian Motion (BM) model of trait evolution on the network. We start
-by choosing the parameters of the BM (ancestral mean and variance), by creating
-objects of class [`ParamsBM`](@ref)`<:ParamsProcess`.
-```@example tree_trait
-params_trait1 = ParamsBM( 2, 0.5) # BM with mean  2 and variance 0.5
-params_trait2 = ParamsBM(-2, 1)   # BM with mean -2 and variance 1.0
-nothing # hide
-```
-We then simulate the independent traits according to these parameters, using
-function [`rand`](@ref) (fixing the seed, for reproducibility).
-```@example tree_trait
-using Random
-Random.seed!(18480224);
-sim1 = rand(truenet, params_trait1) # simulate a BM on truenet
-sim2 = rand(truenet, params_trait2)
-nothing # hide
-```
-This creates objects of class [`TraitSimulation`](@ref), from which we can
-extract the data at the tips, thanks to the method
-[`getindex(::TraitSimulation, ::Symbol)`](@ref).
-```@example tree_trait
-trait1 = sim1[:tips] # trait 1 at the tips (data)
-trait2 = sim2[:tips]
-nothing # hide
-```
-This extractor creates an `Array` with one column, and as many lines as the
-number of tips there are in the phylogeny.  It is sorted in the same order as
-the tips of the phylogeny used to simulate it.  
-If needed, we could also extract the simulated values at the internal nodes
-in the network:
-```@example tree_trait
-sim1[:internalnodes]
-nothing # hide
-```
-
-Finally, we generate the last trait correlated with trait 1
-(but not trait 2), with phylogenetic noise.
-```@example tree_trait
-Random.seed!(18700904);
-noise = rand(truenet, ParamsBM(0, 0.1)) # phylogenetic residuals
-trait3 = 10 .+ 2 * trait1 .+ noise[:tips] # trait to study. independent of trait2
-nothing # hide
-```
-
 ## Phylogenetic regression
 
-Assume that we measured the three traits above, and that we wanted to study the
-impact of traits 1 and 2 on trait 3. To do that, we can perform a phylogenetic
-regression.
+Assume that we measured three traits in the data frame below.
+We want to study the impact of traits 1 and 2 on trait 3.
+To do that, we can perform a phylogenetic regression.
 
 In order to avoid confusion, the function takes in a `DataFrame`, that has an
 extra column with the names of the tips of the network, labeled `tipnames`.
-Here, we generated the traits ourselves, so they are all in the same order.
 ```@repl tree_trait
 using DataFrames
-dat = DataFrame(trait1 = trait1, trait2 = trait2, trait3 = trait3,
-                tipNames = tiplabels(sim1))
+dat = DataFrame(
+  trait1 = [ 2.668,  3.696,  4.541, 4.846,  2.268, -0.331],
+  trait2 = [-3.008, -4.146, -2.338, 0.655, -3.339, -4.566],
+  trait3 = [15.424, 17.333, 18.115, 18.81, 13.337, 10.012],
+  tipnames = ["D", "C", "A", "B", "E", "O"]
+)
 ```
 
 Phylogenetic regression / ANOVA is based on the
@@ -149,7 +107,6 @@ mu_phylo(fitTrait3) # estimated root value of the BM
 
 ## Ancestral State Reconstruction
 
-
 ### From known parameters
 
 If we assume that we know the exact model of evolution that generated the
@@ -159,10 +116,10 @@ In other words, we can reconstruct the state at the internal nodes,
 given the values at the tips, the known value at the root
 and the known BM variance.
 ```@example tree_trait
-ancTrait1 = ancestralStateReconstruction(truenet, trait1, params_trait1)
+ancTrait1 = ancestralreconstruction(truenet, trait1, params_trait1)
 nothing # hide
 ```
-Function [`ancestralStateReconstruction`](@ref) creates an object with type
+Function [`ancestralreconstruction`](@ref) creates an object with type
 [`ReconstructedStates`](@ref). Several extractors can be applied to it:
 ```@repl tree_trait
 expectations(ancTrait1) # predictions
@@ -173,10 +130,10 @@ predint(ancTrait1, level=0.9) # prediction interval (with level 90%)
 We can plot the ancestral states or prediction intervals on the tree, using the
 `nodelabel` argument of the `plot` function.
 ```@example tree_trait
-ancExpe = expectationsPlot(ancTrait1); # format expected ancestral states for the plot
+ancExpe = expectationsPlot(ancTrait1) # data frame, suitable as input for the plot
 R"svg(name('ancestral_expe.svg'), width=8, height=4)" # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = ancExpe);
+plot(truenet, nodelabel=ancExpe, tipoffset=0.1);
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -186,7 +143,7 @@ nothing # hide
 ancInt = predintPlot(ancTrait1) # format the prediction intervals for the plot
 R"svg(name('ancestral_predint.svg'), width=8, height=4)" # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = ancInt);
+plot(truenet, nodelabel=ancInt, tipoffset=0.1);
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -201,33 +158,36 @@ on the same plot, using the optional keyword argument `withExp`.
 As shown below, we could also use the `RCall` method from the
 [`plot`](https://juliaphylo.github.io/PhyloPlots.jl/stable/lib/public/) function.
 ```@example tree_trait
-plot(truenet, nodelabel = predintPlot(ancTrait1, withExp=true));
+plot(truenet, nodelabel = predintPlot(ancTrait1, withExp=true), tipoffset=0.1);
 nothing # hide
 ```
 These plots tend to be quite busy, even for small networks.
 
 As we know the true ancestral states here, we can compare them to our
-estimation.
+estimation. In this example, we see that the 95% prediction (ancestral state
+reconstruction) intervals contain the true simulated value, at all ancestral nodes.
+
 ```@repl tree_trait
-predictions = DataFrame(infPred=predint(ancTrait1)[1:7, 1],
-                        trueValue=sim1[:internalnodes],
-                        supPred=predint(ancTrait1)[1:7, 2])
+DataFrame(infPred=predint(ancTrait1)[1:7, 1], # lower bound of 95% prediction interval
+          trueValue=[3.312,4.438,3.922,3.342,2.564,1.315,2.0], # from sim1[:internalnodes] in next section
+          supPred=predint(ancTrait1)[1:7, 2]) # upper bound
 ```
 
 ### From estimated parameters
 
 In real applications though, we do not have access to the true parameters of the
-process that generated the data. We can estimate it using the previous function.
+process that generated the data. We can estimate them using the previous function.
 To fit a regular BM, we just need to do a regression of trait 1 against a simple
 intercept:
 ```@example tree_trait
 fitTrait1 = phylolm(@formula(trait1 ~ 1), dat, truenet)
 nothing # hide
 ```
-We can then apply the [`ancestralStateReconstruction`](@ref) function directly
+
+We can then apply the [`ancestralreconstruction`](@ref) function directly
 to the fitted object:
 ```@example tree_trait
-ancTrait1Approx = ancestralStateReconstruction(fitTrait1)
+ancTrait1Approx = ancestralreconstruction(fitTrait1)
 nothing # hide
 ```
 The prediction intervals ignore the fact that we estimated the process
@@ -245,11 +205,11 @@ nothing # hide
 
 For convenience, the two steps described above (fitting against the
 intercept, and then do ancestral state reconstruction) can be done all at once
-with a single call of the function [`ancestralStateReconstruction`](@ref) on a
+with a single call of the function [`ancestralreconstruction`](@ref) on a
 DataFrame with the trait to reconstruct, and the tip labels:
 ```@example tree_trait
-datTrait1 = DataFrame(trait1 = trait1, tipnames = tiplabels(sim1))
-ancTrait1Approx = ancestralStateReconstruction(datTrait1, truenet)
+datTrait1 = DataFrame(trait1 = dat[:,:trait1], tipnames = dat[:,:tipnames])
+ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
 ```
 ```@example tree_trait
@@ -268,13 +228,13 @@ plotted prediction intervals.
 
 Note that there is no theoretical difference between an internal node, for which
 we could not measure the value of the trait, and a missing value at a tip of the
-network. Consequently, the previous [`ancestralStateReconstruction`](@ref)
+network. Consequently, the previous [`ancestralreconstruction`](@ref)
 function can be used to do data imputation. To see this, let's add some missing
 values in trait 1.
 ```@example tree_trait
 allowmissing!(datTrait1, :trait1)
 datTrait1[2, :trait1] = missing; # second row: for taxon C
-ancTrait1Approx = ancestralStateReconstruction(datTrait1, truenet)
+ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
 ```
 ```@example tree_trait
@@ -294,7 +254,7 @@ At this point, it might be tempting to apply this function to trait 3 we
 simulated earlier as a linear combination of trait 1 and a phylogenetic
 noise. However, this cannot be done directly:
 ```julia
-ancTrait3 = ancestralStateReconstruction(fitTrait3) # Throws an error !
+ancTrait3 = ancestralreconstruction(fitTrait3) # Throws an error !
 ```
 This is because the model we used to fit the trait (a regression with one
 predictor and an intercept) is not compatible with the simple model of Brownian
@@ -304,11 +264,14 @@ reconstruct the trait for this particular model.
 
 The only option we have is to provide the function with the predictor's
 ancestral states, if they are known. They are known indeed in this
-toy example that we generated ourselves, so we can reconstruct our trait
-doing the following:
+toy example that we generated ourselves (see next section),
+so we can reconstruct our trait doing the following:
 ```@example tree_trait
-ancTrait3 = ancestralStateReconstruction(fitTrait3,
-              [ones(7, 1) sim1[:internalnodes] sim2[:internalnodes]])
+ancTrait3 = ancestralreconstruction(fitTrait3,
+  hcat(ones(7,1),
+  [ 3.312, 4.438,  3.922,  3.342,  2.564,  1.315,  2.0], # from sim1[:internalnodes]
+  [-3.62, -0.746, -2.217, -3.612, -2.052, -2.871, -2.0]) # from sim2[:internalnodes]
+)
 nothing # hide
 ```
 ```@example tree_trait
@@ -325,7 +288,6 @@ intercept, and the known predictor at the nodes. The user must be very careful
 with this function, as no check is done for the order of the predictors, that
 must be in the same order as the internal nodes of the phylogeny. As ancestral
 predictors are often unknown, the use of this functionality is discouraged.
-
 
 ## Phylogenetic ANOVA
 
@@ -347,15 +309,15 @@ compared to the others
 (see [^B18] for transgressive evolution after a reticulation event).
 ```@example tree_trait
 delta = 5.0; # value of heterosis
-underHyb = [(n == "A" || n == "B") for n in tiplabels(sim1)] # tips under hybrid
+underHyb = [n == "A" || n == "B" for n in dat[:,"tipnames"]] # tips under hybrid
 underHyb
 for i in 1:length(trait3)
-    underHyb[i] && (trait3[i]+=delta) # add delta to tips A and B
+    underHyb[i] && (dat[i,:trait3]+=delta) # add delta to tips A and B
 end
 nothing # hide
 ```
 ```@repl tree_trait
-trait3 # changed: +5 was added by the previous loop to A and B
+dat.trait3 # changed: +5 was added by the previous loop to A and B
 ```
 The categorical variable `underHyb` separates tips "A" and "B" from the others.
 We need to consider it as a factor, not a numerical variable.
@@ -363,9 +325,7 @@ One way is to make it a vector of strings, as done below.
 An alternative way would be to add and use the `CategoricalArrays` package,
 then transform the column `underHyb` to be `categorical` (shown in commments).
 ```@example tree_trait
-dat = DataFrame(trait1 = trait1, trait2 = trait2, trait3 = trait3,
-                underHyb = string.(underHyb),
-                tipnames = tiplabels(sim1))
+dat.underHyb = underHyb; # adds a new column
 # using CategoricalArrays
 # transform!(dat, :underHyb => categorical, renamecols=false)
 nothing # hide

@@ -37,7 +37,8 @@ Quick links for methods about trait evolution on networks:
 
 ```@contents
 Pages = [
-    "man/trait_tree.md",
+    "man/phyloregression.md",
+    "man/simulate_continuous.md",
     "man/fitDiscrete.md",
     "man/fitdiscreteDNA.md",
 ]

@@ -56,7 +56,7 @@ export rand, TraitSimulation
 export ParamsBM, ParamsMultiBM
 export ShiftNet, shiftHybrid, getShiftEdgeNumber, getShiftValue
 export regressorShift, regressorHybrid
-export ancestralStateReconstruction, ReconstructedStates
+export ancestralreconstruction, ReconstructedStates
 export sigma2_phylo, sigma2_within
 export mu_phylo
 export lambda_estim

@@ -300,7 +300,7 @@ end
 ###############################################################################
 #### Other Network
 ###############################################################################
-@testset "phylolm and ancestralStateReconstruction" begin
+@testset "phylolm and ancestralreconstruction" begin
 # originally: "(((Ag,(#H1:7.159::0.056,((Ak,(E:0.08,#H2:0.0::0.004):0.023):0.078,(M:0.0)#H2:::0.996):2.49):2.214):0.026,(((((Az:0.002,Ag2:0.023):2.11,As:2.027):1.697)#H1:0.0::0.944,Ap):0.187,Ar):0.723):5.943,(P,20):1.863,165);"
 # followed by changes in net.edge[?].length values to make the network ultrametric
 net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:1::0.996):1):1):1,(((((Az:1,Ag2:1):1,As:2):1)#H1:1::0.944,Ap:4):1,Ar:5):1):1,(P:4,20:4):3,165:7);");
@@ -521,17 +521,17 @@ params = ParamsBM(3, 1)
 Y = [7.49814057852738,7.713232061975018,7.4314117011628795,0.9850885689559203,4.970152778471174,5.384066549416034,4.326644522544125,0.6079385242666691,4.084254785718834,5.501648315448596,3.8732700346136597,4.790127215808698]
 tipnam = ["Ag","Ak","E","M","Az","Ag2","As","Ap","Ar","P","20","165"]
 # From known parameters
-ancestral_traits = ancestralStateReconstruction(net, Y, params)
+ancestral_traits = ancestralreconstruction(net, Y, params)
 # BLUP
 dfr = DataFrame(trait=Y, tipnames=tipnam)
 phynetlm = phylolm(@formula(trait~1), dfr, net)
 # prediction intervals larger with reml=true than with reml=false
-blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralStateReconstruction(phynetlm));
+blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(phynetlm));
 # plot(net, blup)
 @test_logs show(devnull, blup)
 
 # BLUP same, using the function directly
-blup_bis = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") match_mode=:any ancestralStateReconstruction(dfr, net));
+blup_bis = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") match_mode=:any ancestralreconstruction(dfr, net));
 
 @test expectations(blup)[!,:condExpectation] ≈ expectations(blup_bis)[!,:condExpectation]
 @test expectations(blup)[!,:nodeNumber] ≈ expectations(blup_bis)[!,:nodeNumber]
@@ -543,12 +543,12 @@ blup_bis = (@test_logs (:warn, r"^These prediction intervals show uncertainty in
 @test expectationsPlot(blup)[!,:PredInt] == expectationsPlot(blup_bis)[!,:PredInt]
 
 dfr = DataFrame(trait=Y, tipnames=tipnam, reg=Y)
-@test_throws ErrorException ancestralStateReconstruction(dfr, net) # cannot handle a predictor
+@test_throws ErrorException ancestralreconstruction(dfr, net) # cannot handle a predictor
 
 # Unordered
 dfr2 = dfr[[5,4,9,2,6,12,8,11,7,1,3,10], :]
 phynetlm = phylolm(@formula(trait~1), dfr2, net)
-blup2 = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralStateReconstruction(phynetlm))
+blup2 = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(phynetlm))
 
 @test expectations(blup)[1:length(blup.nodenumbers),:condExpectation] ≈ expectations(blup2)[1:length(blup.nodenumbers),:condExpectation]
 @test blup.traits_tips[phynetlm.ind] ≈ blup2.traits_tips
@@ -559,13 +559,13 @@ blup2 = (@test_logs (:warn, r"^These prediction intervals show uncertainty in an
 allowmissing!(dfr, :trait)
 dfr[[2, 4], :trait] .= missing
 phynetlm = phylolm(@formula(trait~1), dfr, net)
-blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralStateReconstruction(phynetlm))
+blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(phynetlm))
 # plot(net, blup)
 
 # Unordered
 dfr2 = dfr[[1, 2, 5, 3, 4, 6, 7, 8, 9, 10, 11, 12], :]
 phynetlm = phylolm(@formula(trait~1), dfr, net)
-blup2 = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralStateReconstruction(phynetlm))
+blup2 = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(phynetlm))
 
 @test expectations(blup)[!,:condExpectation] ≈ expectations(blup2)[!,:condExpectation]
 @test predint(blup) ≈ predint(blup2)

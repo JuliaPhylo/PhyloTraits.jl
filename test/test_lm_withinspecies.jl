@@ -572,12 +572,12 @@ allowmissing!(df_r,[:trait3]); df_r[2,:trait3] = missing  # to check imputation
 
 @testset "ancestral state prediction, intercept only" begin
 m1 = phylolm(@formula(trait3 ~ 1), df_r, net; tipnames=:species, withinspecies_var=true, y_mean_std=true)
-ar1 = (@test_logs (:warn, r"^T") ancestralStateReconstruction(m1))
+ar1 = (@test_logs (:warn, r"^T") ancestralreconstruction(m1))
 # ar.nodenumbers[8] == 2 (looking at node #2), m1.V.tipnames[indexin([2],m1.V.tipnumbers)[1]] == "C" (looking at tip "C")
 @test ar1.traits_nodes[8] ≈ 18.74416393519304 rtol=1e-5 # masked sampled C_bar was 17.0686
 @test predint(ar1)[8,:] ≈ [15.24005506417728,22.2482728062088] rtol=1e-5
 # on dataframe with model passed as keyword args. must be individual data.
-ar2 = (@test_logs (:warn, r"^T") ancestralStateReconstruction(df[!,[:species,:trait3]], net; tipnames=:species, withinspecies_var=true))
+ar2 = (@test_logs (:warn, r"^T") ancestralreconstruction(df[!,[:species,:trait3]], net; tipnames=:species, withinspecies_var=true))
 @test ar2.traits_nodes ≈ ar1.traits_nodes rtol=1e-5
 @test predint(ar2) ≈ predint(ar1) rtol=1e-5
 # When withinspecies_var=true, predicted values at the tips are part of
@@ -593,9 +593,9 @@ end
 @testset "ancestral state prediction, more than intercept" begin
 m3 = phylolm(@formula(trait3 ~ trait1 + trait2), df[[1,6,11,17,16,18,8,5,9,3,12,7,13,10,2,14,4,15],:], net; tipnames=:species, withinspecies_var=true)
 X_n = [m3.X;m3.X[1:3,:]] # 8x3 Array
-ar3 = (@test_logs (:warn, r"^T") ancestralStateReconstruction(m3, X_n))
+ar3 = (@test_logs (:warn, r"^T") ancestralreconstruction(m3, X_n))
 m4 = phylolm(@formula(trait3 ~ trait1 + trait2), df_r[[1,4,6,3,2,5],:], net; tipnames=:species, withinspecies_var=true, y_mean_std=true)
-ar4 = (@test_logs (:warn, r"^T") ancestralStateReconstruction(m4, X_n))
+ar4 = (@test_logs (:warn, r"^T") ancestralreconstruction(m4, X_n))
 @test ar3.nodenumbers == ar4.nodenumbers
 @test ar3.traits_nodes ≈ ar4.traits_nodes rtol=1e-5
 @test ar3.variances_nodes ≈ ar4.variances_nodes rtol=1e-5

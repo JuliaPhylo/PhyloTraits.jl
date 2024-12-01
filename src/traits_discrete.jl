@@ -1041,7 +1041,7 @@ function check_matchtaxonnames!(species::AbstractVector, dat::AbstractVector, ne
 end
 
 """
-    ancestralStateReconstruction(obj::SSM, trait::Integer = 1)
+    ancestralreconstruction(obj::SSM, trait::Integer = 1)
 
 Estimate the marginal probability of ancestral states for discrete character
 number `trait` (first trait by default).
@@ -1086,7 +1086,7 @@ julia> dat = DataFrame(species=["C","A","B","D"], trait=["hi","lo","lo","hi"]);
 
 julia> fit1 = fitdiscrete(net, m1, dat);
 
-julia> asr = ancestralStateReconstruction(fit1)
+julia> asr = ancestralreconstruction(fit1)
 9×4 DataFrame
  Row │ nodenumber  nodelabel  lo        hi
      │ Int64       String     Float64   Float64
@@ -1106,7 +1106,7 @@ julia> using PhyloPlots
 julia> plot(fit1.net, nodelabel = asr[!,[:nodenumber, :lo]], tipoffset=0.2); # pp for "lo" state
 ```
 """
-function ancestralStateReconstruction(obj::SSM, trait::Integer = 1)
+function ancestralreconstruction(obj::SSM, trait::Integer = 1)
     # posterior probability of state i at node n: proportional to
     # sum_{tree t, rate r} exp( ltw[t] + backwardll[i,n] given t,r + forwardll[i,n] given t,r ) / nr
     trait <= obj.nsites || error("trait $trait is larger than the number of traits in the data")
@@ -1152,7 +1152,7 @@ assuming rate category `ri` and tree index `tree`,
 using current forward and backwards likelihoods in `obj`:
 these depend on the trait (or site) given to the last call to
 `discrete_corelikelihood_trait!`.
-Used by `ancestralStateReconstruction`.
+Used by `ancestralreconstruction`.
 
 **warning**: assume correct transition probabilities.
 """

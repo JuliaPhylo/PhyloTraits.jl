@@ -74,7 +74,7 @@ julia> # using Pkg; Pkg.add("StableRNGs") # to install StableRNGs if not done ea
 
 julia> using StableRNGs; rng = StableRNG(791); # for reproducibility
 
-julia> sim = rand(rng, phy, par) # re-simulate
+julia> sim = rand(rng, phy, par); # re-simulate
 
 julia> traits = sim[:tips] # extract simulated values at the tips.
 4-element Vector{Float64}:
@@ -83,7 +83,7 @@ julia> traits = sim[:tips] # extract simulated values at the tips.
  1.367634062992289
  1.6439310845929571
 
-julia> sim.M.tipnames # name of tips, in the same order as values above
+julia> tiplabels(sim) # name of tips, in the same order as values above
 4-element Vector{String}:
  "A"
  "U"
@@ -98,23 +98,23 @@ nodes, or at all nodes at once:
 ```jldoctest rand
 julia> traits = sim[:internalnodes] # extract simulated values at internal nodes. Order: as in sim.M.internalnodenumbers
 5-element Vector{Float64}:
- 0.5200361297500204
- 0.8088890626285765
- 0.9187604100796469
- 0.711921371091375
+ 1.0716684901027937
+ 1.6007823049044083
+ 1.6756374575490327
+ 1.2194286026283034
  1.0
 
 julia> traits = sim[:all] # simulated values at all nodes, ordered as in sim.M.nodenumbers_toporder
 9-element Vector{Float64}:
  1.0
- 0.711921371091375
- 0.9187604100796469
- 0.2796524923704289
- 0.5200361297500204
- 0.8088890626285765
- 0.7306692819731366
- 0.4104321932336118
- 0.9664650558470932
+ 1.2194286026283034
+ 1.6756374575490327
+ 1.367634062992289
+ 1.0716684901027937
+ 1.6007823049044083
+ 1.6439310845929571
+ 0.861066346792992
+ 0.5991561486238962
 ```
 
 We might also want to extract the expected mean values (without noise).
@@ -123,7 +123,7 @@ interesting under more complex models (e.g. with shifts).
 We can do so with an extra `:exp` index:
 
 ```jldoctest rand
-julia> traits = sim[:tips, :exp] # Extract expected values at the tips (also works for sim[:all, :exp] and sim[:internalnodes, :exp]).
+julia> traits = sim[:tips, :exp] # expected values at the tips (also works for sim[:all, :exp] and sim[:internalnodes, :exp]).
 4-element Vector{Float64}:
  1.0
  1.0
@@ -133,7 +133,7 @@ julia> traits = sim[:tips, :exp] # Extract expected values at the tips (also wor
 
 ## Multivariate
 
-```jldoctest
+```jldoctest rand
 julia> phy = readnewick("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(V:0.5)#H1:0.5::0.6):1):0.5);");
 
 julia> par = ParamsMultiBM([1.0, 2.0], [1.0 0.5; 0.5 1.0]) # BM with expectation [1.0, 2.0] and variance [1.0 0.5; 0.5 1.0].
@@ -142,9 +142,9 @@ Parameters of a MBD with fixed root:
 mu: [1.0, 2.0]
 Sigma: [1.0 0.5; 0.5 1.0]
 
-julia> using Random; Random.seed!(17920921); # for reproducibility
+julia> using StableRNGs; rng = StableRNG(9851); # for reproducibility
 
-julia> sim = rand(phy, par) # simulate on the phylogeny
+julia> sim = rand(rng, phy, par) # simulate on the phylogeny
 TraitSimulation:
 Trait simulation results on a network with 4 tips, using a MBD model, with parameters:
 mu: [1.0, 2.0]
@@ -153,17 +153,32 @@ Sigma: [1.0 0.5; 0.5 1.0]
 
 julia> traits = sim[:tips] # extract simulated values at the tips (each column contains the simulated traits for one node).
 2×4 Matrix{Float64}:
- 2.99232  -0.548734  -1.79191  -0.773613
- 4.09575   0.712958   0.71848   2.00343
+ 3.8013    0.839485  0.346092  1.91131
+ 5.91725  -0.59143   0.458569  0.629048
+```
 
-julia> traits = sim[:internalnodes] # simulated values at internal nodes. order: same as in sim.M.internalnodenumbers
+The 2 rows to the 2 correlated traits and the columns correspond to the 4 taxa
+(tips). The order in which taxa are listed is obtained with `tiplabels`:
+```jldoctest rand
+julia> tiplabels(sim)
+4-element Vector{String}:
+ "A"
+ "B"
+ "C"
+ "V"
+```
+
+As in the univariate case, we can also extract the values simulated at
+internal nodes, or all nodes (but listed in preorder), or expected mean values.
+```jldoctest rand
+julia> sim[:internalnodes] # simulated values at internal nodes. order: same as in sim.M.internalnodenumbers
 2×5 Matrix{Float64}:
- -0.260794  -1.61135  -1.93202   0.0890154  1.0
-  1.46998    1.28614   0.409032  1.94505    2.0
+ -0.604224  0.755722  2.14755  0.484292  1.0
+ -0.338922  0.373921  1.15174  0.695561  2.0
 
 julia> traits = sim[:all]; # 2×9 Matrix: values at all nodes, ordered as in sim.M.nodenumbers_toporder
 
-julia> sim[:tips, :exp] # Extract expected values (also works for sim[:all, :exp] and sim[:internalnodes, :exp])
+julia> sim[:tips, :exp] # expected values (also works for sim[:all, :exp] and sim[:internalnodes, :exp])
 2×4 Matrix{Float64}:
  1.0  1.0  1.0  1.0
  2.0  2.0  2.0  2.0
