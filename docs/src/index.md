@@ -41,6 +41,7 @@ Pages = [
     "man/simulate_continuous.md",
     "man/fitDiscrete.md",
     "man/fitdiscreteDNA.md",
+    "man/simulate_discrete.md",
 ]
 Depth = 3
 ```

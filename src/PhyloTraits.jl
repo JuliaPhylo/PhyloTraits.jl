@@ -54,7 +54,7 @@ export ftest # from GLM
 export phylolm, PhyloNetworkLinearModel
 export rand, TraitSimulation
 export ParamsBM, ParamsMultiBM
-export ShiftNet, shiftHybrid, getShiftEdgeNumber, getShiftValue
+export ShiftNet, shiftHybrid, getshiftedgenumber, getshiftvalue
 export regressorShift, regressorHybrid
 export ancestralreconstruction, ReconstructedStates
 export sigma2_phylo, sigma2_within

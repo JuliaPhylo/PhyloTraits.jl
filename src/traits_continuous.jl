@@ -269,7 +269,7 @@ allowed.
 Constructor from a vector of edges and associated values.
 Warning, shifts on hybrid edges are not allowed.
 
-Extractors: [`getShiftEdgeNumber`](@ref), [`getShiftValue`](@ref)
+Extractors: [`getshiftedgenumber`](@ref), [`getshiftvalue`](@ref)
 """
 struct ShiftNet
     shift::Matrix{Float64}
@@ -369,14 +369,14 @@ end
 shiftHybrid(value::Real, net::HybridNetwork; checkpreorder::Bool=true) = shiftHybrid([value], net; checkpreorder=checkpreorder)
 
 """
-    getShiftEdgeNumber(shift::ShiftNet)
+    getshiftedgenumber(shift::ShiftNet)
 
 Get the edge numbers where the shifts are located, for an object [`ShiftNet`](@ref).
 If a shift is placed at the root node with no parent edge, the edge number
 of a shift is set to -1 (as if missing).
 """
-function getShiftEdgeNumber(shift::ShiftNet)
-    nodInd = getShiftRowInds(shift)
+function getshiftedgenumber(shift::ShiftNet)
+    nodInd = getshiftrowinds(shift)
     [getMajorParentEdgeNumber(n) for n in shift.net.vec_node[nodInd]]
 end
 
@@ -388,7 +388,7 @@ function getMajorParentEdgeNumber(n::Node)
     end
 end
 
-function getShiftRowInds(shift::ShiftNet)
+function getshiftrowinds(shift::ShiftNet)
     n, p = size(shift.shift)
     inds = zeros(Int, n)
     counter = 0
@@ -403,23 +403,23 @@ function getShiftRowInds(shift::ShiftNet)
     return inds[1:counter]
 end
 """
-    getShiftValue(shift::ShiftNet)
+    getshiftvalue(shift::ShiftNet)
 
 Get the values of the shifts, for an object [`ShiftNet`](@ref).
 """
-function getShiftValue(shift::ShiftNet)
-    rowInds = getShiftRowInds(shift)
+function getshiftvalue(shift::ShiftNet)
+    rowInds = getshiftrowinds(shift)
     shift.shift[rowInds, :]
 end
 
 function shiftTable(shift::ShiftNet)
-    sv = getShiftValue(shift)
+    sv = getshiftvalue(shift)
     if size(sv, 2) == 1
         shift_labels = ["Shift Value"]
     else
         shift_labels = ["Shift Value $i" for i = 1:size(sv, 2)]
     end
-    CoefTable(hcat(getShiftEdgeNumber(shift), sv),
+    CoefTable(hcat(getshiftedgenumber(shift), sv),
               ["Edge Number"; shift_labels],
               fill("", size(sv, 1)))
 end
@@ -520,7 +520,7 @@ function paramstable(obj::ParamsBM)
         disp = disp * "\nvarRoot: $(obj.varRoot)"
     end
     if anyShift(obj)
-        disp = disp * "\n\nThere are $(length(getShiftValue(obj.shift))) shifts on the network:\n"
+        disp = disp * "\n\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:\n"
         disp = disp * "$(shiftTable(obj.shift))"
     end
     return(disp)
@@ -628,7 +628,7 @@ function paramstable(obj::ParamsMultiBM)
         disp = disp * "\nvarRoot: $(obj.varRoot)"
     end
     if anyShift(obj)
-        disp = disp * "\n\nThere are $(length(getShiftValue(obj.shift))) shifts on the network:\n"
+        disp = disp * "\n\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:\n"
         disp = disp * "$(shiftTable(obj.shift))"
     end
     return(disp)

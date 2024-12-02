@@ -229,7 +229,7 @@ end
 
 
 function anyShiftOnRootEdge(shift::ShiftNet)
-    nodInd = getShiftRowInds(shift)
+    nodInd = getshiftrowinds(shift)
     for n in shift.net.vec_node[nodInd]
         !(getMajorParentEdgeNumber(n) == -1) || return(true)
     end

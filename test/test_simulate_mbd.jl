@@ -153,8 +153,8 @@ sh1 = ShiftNet(net.node[7], [1.0, 2.0],  net)*ShiftNet(net.node[9], [3.0, -1.5],
 @test_throws ErrorException sh1*ShiftNet(net.edge[8], [4.0, 3.5, 5.0],  net) # can't concatenate if the two affect the same edges
 
 ## Values and edge numbers functions
-@test getShiftEdgeNumber(sh1) == [-1, 8]
-@test getShiftValue(sh1) == [3.0 -1.5; 1.0 2.0]
+@test getshiftedgenumber(sh1) == [-1, 8]
+@test getshiftvalue(sh1) == [3.0 -1.5; 1.0 2.0]
 
 ## Hybrid shifts
 @test shiftHybrid([4.5 2.0], net).shift ≈ ShiftNet(net.edge[6], [4.5, 2.0], net).shift

@@ -6,17 +6,18 @@ mkpath("../assets/figures")
 
 # Continuous trait analysis
 
-After inferring the phylogeny for our taxa, we can take
+After inferring a phylogeny, we can take
 these phylogenetic relationships into account when studying the distribution of
 quantitative traits measured for extant species.
 This is the goal of phylogenetic comparative methods (PCM).
-With PhyloTraits, we can do so if the phylogeny is a tree, or more generally
-if the phylogeny is a network with reticulations.
+With PhyloTraits, we can do so for a phylogeny that is either a tree,
+or a network with reticulations.
 More details can be found on the developments below in Bastide et al. 2018 [^B18]
 
 We assume a fixed network (which may be a tree), correctly rooted, with branch
 lengths proportional to calendar time.
-Here, we consider a network that is time-consistent (all paths from the root to any given node have the same length) and ultrametric (all the tips are contemporary).
+Below, we use a network that is time-consistent (all paths from the root to any
+given node have the same length) and ultrametric (all the tips are contemporary).
 
 ```@example tree_trait
 truenet = readnewick("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
@@ -42,8 +43,8 @@ nothing # hide
 
 ## Model and variance matrix
 
-Assuming that the network is known and that the continuous traits evolve like a
-Brownian Motion (BM) in time, it is possible to compute the expected variance
+Assuming that the network is known and that the continuous traits evolve under a
+Brownian Motion (BM) over time, it is possible to compute the expected variance
 covariance matrix between tip measurements. This can be done using function
 [`vcv`](@ref), whose syntax is inspired from the well known corresponding
 [`ape`](https://CRAN.R-project.org/package=ape) function.
@@ -61,12 +62,16 @@ Comparative Methods described below.
 
 ## Phylogenetic regression
 
-Assume that we measured three traits in the data frame below.
+Assume that we measured three continuous traits in the data frame below.
 We want to study the impact of traits 1 and 2 on trait 3.
 To do that, we can perform a phylogenetic regression.
 
-In order to avoid confusion, the function takes in a `DataFrame`, that has an
-extra column with the names of the tips of the network, labeled `tipnames`.
+To make sure that data are mapped to the correct tip in the phylogeny,
+even though the tips might be ordered differently in the data frame compared
+to the phylogeny, our data needs to have a column with the names of the tips in
+the network.
+If this column is labeled `tipnames`, fitting the data will not require an
+extra option.
 ```@repl tree_trait
 using DataFrames
 dat = DataFrame(
@@ -80,6 +85,7 @@ dat = DataFrame(
 Phylogenetic regression / ANOVA is based on the
 [GLM](https://github.com/JuliaStats/GLM.jl) package, with the network as an
 extra argument, using function [`phylolm`](@ref).
+
 ```@repl tree_trait
 using StatsModels # for statistical model formulas
 fitTrait3 = phylolm(@formula(trait3 ~ trait1 + trait2), dat, truenet)
@@ -109,14 +115,14 @@ mu_phylo(fitTrait3) # estimated root value of the BM
 
 ### From known parameters
 
-If we assume that we know the exact model of evolution that generated the
-traits, we can do ancestral trait reconstruction. Here, we simulated trait 1
-ourselves, so we can use the true process, with the true parameters.
+If we assume that we know the exact model of evolution that generated the traits,
+we can do ancestral trait reconstruction. Here, we simulated trait 1 ourselves
+(see next section), so we can use the true process with the true parameters.
 In other words, we can reconstruct the state at the internal nodes,
-given the values at the tips, the known value at the root
-and the known BM variance.
+given the values at the tips, the known value at the root (2)
+and the known BM variance (0.5).
 ```@example tree_trait
-ancTrait1 = ancestralreconstruction(truenet, trait1, params_trait1)
+ancTrait1 = ancestralreconstruction(truenet, dat.trait1, ParamsBM(2, 0.5))
 nothing # hide
 ```
 Function [`ancestralreconstruction`](@ref) creates an object with type
@@ -250,24 +256,23 @@ A prediction interval is shown for the missing values.
 
 ### With known predictors
 
-At this point, it might be tempting to apply this function to trait 3 we
-simulated earlier as a linear combination of trait 1 and a phylogenetic
-noise. However, this cannot be done directly:
+At this point, it might be tempting to apply this function to trait 3 as a
+linear combination of trait 1 and a phylogenetic noise, to get a better
+ancestral state reconstruction via using its correlation with trait 1.
+However, this cannot be done directly:
 ```julia
 ancTrait3 = ancestralreconstruction(fitTrait3) # Throws an error !
 ```
-This is because the model we used to fit the trait (a regression with one
-predictor and an intercept) is not compatible with the simple model of Brownian
-evolution that we assumed for the ancestral state reconstruction. As the
-predictor used is not known for ancestral states, it is not possible to
-reconstruct the trait for this particular model.
+This is because the model to fit the trait (a regression with one
+predictor and an intercept) used a predictor for which we don't know the
+ancestral states. The regression model accounted for that.
 
 The only option we have is to provide the function with the predictor's
-ancestral states, if they are known. They are known indeed in this
-toy example that we generated ourselves (see next section),
+ancestral states, if they are known. They are actually known in this
+toy example because we generated the data ourselves (see next section),
 so we can reconstruct our trait doing the following:
 ```@example tree_trait
-ancTrait3 = ancestralreconstruction(fitTrait3,
+ancTrait3 = ancestralreconstruction(fitTrait3, # model with estimated coefs etc.
   hcat(ones(7,1),
   [ 3.312, 4.438,  3.922,  3.342,  2.564,  1.315,  2.0], # from sim1[:internalnodes]
   [-3.62, -0.746, -2.217, -3.612, -2.052, -2.871, -2.0]) # from sim2[:internalnodes]
@@ -284,35 +289,35 @@ nothing # hide
 ![ancestral4](../assets/figures/ancestral4.svg)
 
 where we provided the ancestral predictors as a matrix, containing the
-intercept, and the known predictor at the nodes. The user must be very careful
-with this function, as no check is done for the order of the predictors, that
-must be in the same order as the internal nodes of the phylogeny. As ancestral
-predictors are often unknown, the use of this functionality is discouraged.
+intercept, and the known predictor at internal nodes. We must be very careful
+with this function, as no check is done for the order of the predictors, or
+the order of their values that must be the same as the internal nodes of the
+phylogeny. As ancestral predictors are often unknown, the use of this
+functionality is discouraged.
 
 ## Phylogenetic ANOVA
 
 The [`phylolm`](@ref) function is based on the `lm` function
 from [GLM](https://github.com/JuliaStats/GLM.jl). This means that it
 inherits from most of its features, and in particular, it can handle formulas
-with factors or interactions.
-For example, in lizards, we might want to do a regression of toe length against
+with factors (discrete predictors) and interactions.
+For example, in lizards, we might want to do a regression of toe length on
 body length and the region where each species is found, where this region is coded
 into 4 categories (say). We might also want to include an interaction effect
 between body length and region.
-(This model has no biological basis. It is just meant to show the possibilities
-of the function).
+(This model is just meant to show the possibilities of the function).
 
-To illustrate the use of categorical predictors of particular interest
-in a network with reticulations, let's assume that some transgressive evolution took place
-after the hybridization event, so that tips "A" and "B" have larger mean
-compared to the others
+To illustrate the use of categorical predictors of particular interest in a
+network with reticulations, let's assume that some transgressive evolution took
+place after the hybridization event, so that species "A" and "B" have a larger
+mean compared to the others
 (see [^B18] for transgressive evolution after a reticulation event).
 ```@example tree_trait
-delta = 5.0; # value of heterosis
+δ = 5.0; # value of heterosis
 underHyb = [n == "A" || n == "B" for n in dat[:,"tipnames"]] # tips under hybrid
 underHyb
-for i in 1:length(trait3)
-    underHyb[i] && (dat[i,:trait3]+=delta) # add delta to tips A and B
+for i in 1:nrow(dat)
+    underHyb[i] && (dat[i,:trait3] += δ) # add delta to tips A and B
 end
 nothing # hide
 ```
@@ -325,7 +330,7 @@ One way is to make it a vector of strings, as done below.
 An alternative way would be to add and use the `CategoricalArrays` package,
 then transform the column `underHyb` to be `categorical` (shown in commments).
 ```@example tree_trait
-dat.underHyb = underHyb; # adds a new column
+dat.underHyb = string.(underHyb); # adds a new column
 # using CategoricalArrays
 # transform!(dat, :underHyb => categorical, renamecols=false)
 nothing # hide
@@ -343,16 +348,16 @@ is recovered.
 
 This is a very simple example of how to include transgressive evolution,
 but some general
-functions to test for it, on networks with more than on hybrid, are also
+functions to test for it, on networks with more than one hybrid, are also
 available.
-
 
 ## Pagel's Lambda
 
 One classical question about trait evolution is the amount of
-"phylogenetic signal" in a dataset, that is, the importance of the tree
-structure to explain variation in the observed traits.
-One way of doing measuring that is to use
+"phylogenetic signal" in a trait or in the residuals of a linear relationship,
+that is, the importance of the tree
+structure to explain variation in the observed traits (or in the residuals).
+One way of measuring that is to use
 Pagel's lambda transformation of the branch lengths [^P99].
 This model assumes a
 BM on a tree where the internal branches are multiplied by a factor λ,
@@ -362,13 +367,18 @@ the data) and 1 (the tree is unchanged).
 Using the same branch length transformations, this model can
 be straightforwardly extended to phylogenetic networks.
 
+This transformation assumes a time-consistent and ultrametric phylogeny,
+in which all paths from the root to any tip has the same length: the "height"
+of the phylogeny referred to above.
+
 We can illustrate this with the predictor trait we used earlier. We use the
 same function as before, only indicating the model we want to use:
 ```@example tree_trait
 fitPagel = phylolm(@formula(trait1 ~ 1), dat, truenet, model="lambda")
 ```
-As it is indeed generated according to a plain BM on the phylogeny, the
-estimated λ should be close to 1. It can be extracted with function
+As this trait 1 was indeed generated according to a plain BM on the phylogeny
+(see next section),
+the estimated λ should be close to 1. It can be extracted with function
 `lambda_estim`:
 ```@repl tree_trait
 lambda_estim(fitPagel)
@@ -382,22 +392,19 @@ If the models being compared have different predictors, then models
 should be fit with maximum likelihood instead of the default REML criterion
 in order to do a likelihood ratio test: use option `reml=false` for this.
 
-## Shifts and transgressive evolution
+## Test of transgressive evolution
 
 In the ANOVA section above, we showed how to include transgressive evolution
-in a simple case.
+in a simple case, and we did so manually.
 In general, transgressive evolution can be seen as a particular example
-of a *shifted BM* on the phylogenetic network.
+of a *shifted BM* on the phylogenetic network, in which the trait evolves
+as a BM on the network, but *shifts* at a reticulation. The value of the shift
+may be the same across all reticulations, or may differ between reticulations.
 
-### Simulation of a Shifted BM
+For identifiability reasons, each transgressive shift is applied to the
+edge below a reticulation. In our network above, there is a single reticulation
+and the edge below it is edge 6:
 
-In a shifted BM, the trait evolves as a BM on the network most of
-the time, but *shifts* on some of the branches.
-The positions and values of the shifts can be stored in a [`ShiftNet`](@ref)
-object. For identifiability reasons, shifts are only allowed on tree-like
-branches. The position of the shifts can be given using vector of edges.
-To see this, let's first plot the network with its associated edges and node
-numbers.
 ```@example tree_trait
 R"svg(name('truenet_with_numbers.svg'), width=8, height=4)" # hide
 R"par"(mar=[0,0,0,0]) # hide
@@ -407,70 +414,40 @@ nothing # hide
 ```
 ![truenet_with_numbers](../assets/figures/truenet_with_numbers.svg)
 
-Let's say that we want to add a shift with value 5.0 on the branch directly
-following the hybridization event, in order to model transgressive evolution.
-We can see on the
-plot above that this branch is number 6, so we define the following object:
-```@example tree_trait
-shift = ShiftNet(truenet.edge[6], 5.0,  truenet)
-nothing # hide
-```
-Note that the edge numbers and values of a `ShiftNet` object can be retrieved
-thanks to functions [`getShiftEdgeNumber`](@ref) and [`getShiftValue`](@ref).
-The constructor can take a single edge and associated value, like here,
-or two vectors of edges and matching values.
-
-Because we often need to put shifts only on edges right after hybrids,
-there is a special function [`shiftHybrid`](@ref) to do that, so that 
-we do not have to find out their edges number. Here, the `shift` object
-could hence have been defined as:
-```@example tree_trait
-shift = shiftHybrid(5.0,  truenet)
-```
-
-The parameters for the simulation are then defined as above, just adding
-the `ShiftNet` object as a parameter.
-
-```@example tree_trait
-params_sh = ParamsBM(2, 0.5, shift) # BM with mean 2, variance 0.5, and shifts.
-nothing # hide
-```
-The traits are simulated using the same function [`rand`](@ref), and
-extracted at the tips as before.
-```@example tree_trait
-Random.seed!(18700904)
-sim_sh = rand(truenet, params_sh) # simulate a shifted BM on truenet
-trait_sh = sim_sh[:tips]          # trait at the tips (data)
-nothing # hide
-```
-
-### Fit of a Shifted BM
-
-Let's assume that we measured `trait_sh`, and that we want to test whether
-there were some ancestral hybridizations. To do that, we can use the 
+Let's assume we measured a trait that we hypothesized underwent a shift at
+some or all ancestral reticulations. To test this hypothesis, we can use the 
 custom columns of the [`descendencematrix`](@ref), that can be directly
 defined thanks to function [`regressorHybrid`](@ref).
-```@example tree_trait
-df_shift = regressorHybrid(truenet) # Regressors matching Hybrid Shifts
-nothing # hide
+```@repl tree_trait
+df_shift = regressorHybrid(truenet) # regressors matching Hybrid Shifts
 ```
-This creates a dataframe, with as many columns as the number of hybrids
-in the network, each named according to the number of the edge after the
-hybrid.
-We can use this dataframe as regressors in the `phylolm` function.
+This creates a dataframe, with one column for each hybrid node
+in the network, named according to the number of the edge after the
+hybrid. In column `shift_6`, a row has a 0 if the corresponding species
+is *not* a descendant of the reticulation, otherwise has the proportion of
+its genome that was inherited from this reticulation. Here, A and B's ancestry
+if fully inherited from edge 6, below the one reticulation in the network.
 
-```@example tree_trait
-dat = DataFrame(trait = trait_sh, tipnames = tiplabels(sim_sh))  # Data
-dat = innerjoin(dat, df_shift, on=:tipnames)                     # join the two
-fit_sh = phylolm(@formula(trait ~ shift_6), dat, truenet) # fit
+We can use the columns in this dataframe as regressors (predictors) in the
+`phylolm` function. Their coefficients will measure the shift after each
+reticulation.
+In the example below, the species names are listed in a different order than in `df_shift`, and contained in a column called "species", to show how this is
+handled to merge and then fit the data.
+
+```@repl tree_trait
+dat = DataFrame(  # trait data
+  trait = [3.510, 2.195, 1.869, 4.839, 5.027, -0.679],
+  species = ["O", "D", "C", "A", "B", "E"]);
+dat = innerjoin(dat, df_shift, on = [:species => :tipnames]) # trait + shift predictors
+fit_sh = phylolm(@formula(trait ~ shift_6), dat, truenet, tipnames=:species) # fit
 ```
 Here, because there is only one hybrid in the network, we can directly
 see whether the ancestral transgressive evolution is significant or not thanks to the
-Student T test on the coefficient associated with `shift_6`. In more
-complex cases, it is possible to do a Fisher F test, thanks to the `GLM`
+Student T-test on the coefficient associated with `shift_6`. In more
+complex cases, it is possible to do a Fisher F-test, thanks to the `GLM`
 function `ftest`.
 ```@example tree_trait
-fit_null = phylolm(@formula(trait ~ 1), dat, truenet) # fit against the null (no shift)
+fit_null = phylolm(@formula(trait ~ 1), dat, truenet, tipnames=:species) # null (no shift)
 ftest(fit_null, fit_sh)  # nested models
 ```
 Here, this test is equivalent to the Fisher F test, and gives the same p-value.

@@ -12,7 +12,7 @@ For sub types, see [`NucleicAcidSubstitutionModel`](@ref), [`TraitSubstitutionMo
 
 All these models are supposed to have fields `rate` and `eigeninfo`.
 """
-abstract type SubstitutionModel end #ideally, we'd like this to be SubstitutionModels.SubstitionModel
+abstract type SubstitutionModel end #ideally, we'd like this to be SubstitutionModels.SubstitutionModel
 const SM = SubstitutionModel
 const Qmatrix = StaticArrays.SMatrix{4, 4, Float64}
 const Pmatrix = StaticArrays.MMatrix{4, 4, Float64}
@@ -98,7 +98,7 @@ julia> nstates(HKY85([.5], [0.25, 0.25, 0.25, 0.25]))
 4
 ```
 """
-function nstates(obj::NASM)
+function nstates(::NASM)
     return 4::Int
 end
 
@@ -175,7 +175,7 @@ end
 """
     P(obj, t)
 
-Probability transition matrix for a [`TraitSubstitutionModel`](@ref), of the form
+Probability transition matrix for a [`SubstitutionModel`](@ref), of the form
 
     P[1,1] ... P[1,k]
        .          .
@@ -519,12 +519,12 @@ julia> rand(m1, 0.2, [1,2,1,2,2])
  2
 ```
 """
-function rand(obj::TSM, t::Float64, start::AbstractVector{Int})
+function rand(obj::SubstitutionModel, t::Float64, start::AbstractVector{Int})
     rand(default_rng(), obj, t, start)
 end
 function rand(
     rng::AbstractRNG,
-    obj::TSM,
+    obj::SubstitutionModel,
     t::Float64,
     start::AbstractVector{Int}
 )
@@ -536,7 +536,7 @@ end
 function rand!(
     rng::AbstractRNG,
     endTrait::AbstractVector{Int},
-    obj::TSM,
+    obj::SubstitutionModel,
     t::Float64,
     start::AbstractVector{Int}
 )
@@ -602,12 +602,12 @@ julia> lab
  "A"  
 ```
 """
-function rand(obj::TSM, net::HybridNetwork; kwargs...)
+function rand(obj::SubstitutionModel, net::HybridNetwork; kwargs...)
     rand(default_rng(), obj, net; kwargs...)
 end
 function rand(
     rng::AbstractRNG,
-    obj::TSM,
+    obj::SubstitutionModel,
     net::HybridNetwork;
     ntraits::Int=1,
     keepinternal::Bool=true,
@@ -630,7 +630,7 @@ end
 function rand!(
     rng::AbstractRNG,
     M::Matrix,
-    obj::TSM,
+    obj::SubstitutionModel,
     net::HybridNetwork
 )
     return PN.traversal_preorder!(

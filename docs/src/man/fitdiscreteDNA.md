@@ -3,7 +3,7 @@ using PhyloNetworks
 using PhyloTraits
 ```
 
-# fitting DNA substitution parameterson a network
+# fitting DNA substitution parameters on a network
 
 The methods below model each DNA site as a trait, assuming that
 sites are unlinked, that is, they evolve independently of each other.
@@ -73,7 +73,7 @@ d3 = fitdiscrete(dna_net, :JC69, dna_dat, dna_weights, :Gamma; ftolAbs=0.1, xtol
 Lenient tolerance parameters `ftolAbs` etc. have been chosen here to
 make this example faster.
 Note that the fitted object contains a separate version of the input network,
-where any taxon without data has been pruned, and where branch length numbers
+where any taxon without data has been pruned, and where branch numbers
 may have been modified.
 
 ```@repl concatdna

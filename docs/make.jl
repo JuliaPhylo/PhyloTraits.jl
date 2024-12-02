@@ -34,8 +34,9 @@ makedocs(;
         "Manual" => [
             "Continuous trait analysis" => "man/phyloregression.md",
             "Continuous trait simulation" => "man/simulate_continuous.md",
-            "Discrete trait evolution" => "man/fitDiscrete.md",
-            "DNA evolution" => "man/fitdiscreteDNA.md",
+            "Discrete trait analysis" => "man/fitDiscrete.md",
+            "DNA evolutionary models" => "man/fitdiscreteDNA.md",
+            "Discrete trait simulation" => "man/simulate_discrete.md",
         ]
     ],
     plugins=[links],

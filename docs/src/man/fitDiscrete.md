@@ -6,18 +6,18 @@ mkpath("../assets/figures")
 figname(x) = joinpath("..", "assets", "figures", x)
 ```
 
-# Discrete Trait Evolution
+# Discrete trait evolution
 
 With a phylogenetic network structure inferred, we can now estimate how quickly traits
 have evolved over time using a likelihood model. These traits should be discrete
 characteristics of a species such as feather color, diet type,
 or DNA in aligned genetic sequences.
 
-## Discrete trait data
-
 As with continuous trait evolution, we assume a fixed network, correctly rooted,
 with branch lengths proportional to calendar time. We start with a network, then
 add data about the tips of this network.
+
+## Reading trait data
 
 The simplest way is to use a vector of species names with a data frame of traits:
 
@@ -29,10 +29,13 @@ species = ["C","A","D","B","O","E"];
 dat = DataFrame(trait=["hi","lo","lo","hi","lo","lo"])
 ```
 
-If your species names and trait data are in the same data frame,
+If the species names and trait data are in the same data frame,
 read in your data frame then subset the data like this:
 ```@example fitdiscrete_trait
-dat = DataFrame(species=["C","A","D","B","O","E"], trait=["hi","lo","lo","hi","lo","lo"]);
+dat = DataFrame(
+  species=["C","A","D","B","O","E"],
+  trait=["hi","lo","lo","hi","lo","lo"]
+);
 species = dat.species # or: dat[!, :species]
 select!(dat, Not(:species)) # select all columns except for :species; modifies dat in place
 nothing # hide
@@ -63,8 +66,8 @@ nothing # hide
 
 ## Substitution models
 
-After reading in your data, choose a model to describe how evolutionary changes
-(or substitutions, in the case of DNA) happened over time.
+After reading in your data, we need to choose a model to describe how
+evolutionary changes (or substitutions, in the case of DNA) happened over time.
 Available Markov substitution models are described below.
 
 For general trait types, use one of these three models:
@@ -72,7 +75,6 @@ For general trait types, use one of these three models:
 - `:ERSM` Equal Rates Substitution Model
   (`k` states, all transitions possible with equal rates)
 - `:TBTSM` Two Binary Trait Substitution Model (though not fully implemented yet)
-
 
 ## Inference
 
@@ -105,7 +107,7 @@ s2 = fitdiscrete(net, :BTSM, species, dat; optimizeQ=false)
 ```
 The default rates, which act as starting value if rates were to be optimized,
 are chosen equal to the inverse of the total edge lengths
-in the network (or 1/ntax if all branch lengths are missing).
+in the network (or 1/number_of_taxa if all branch lengths are missing).
 
 By default `optimizeQ = true`, such that [`fitdiscrete`](@ref)
 estimates the parameters of the rate matrix Q.
@@ -193,41 +195,3 @@ evidence is very equivocal.
 This may not be surprising given that
 gene flow occurred between fairly closely related species,
 and that the data set is very small.
-
-## Trait simulation
-
-[`rand`](@ref) can simulate traits along a known network.
-For example, we can define a binary trait model with states
-"carnivory" (state 1) and "non-carnivory" (state 2), then ask for
-a trait to be simulated along our network. We can ask for
-3 independent simulations, giving us 3 traits then, arranged in 3 rows.
-
-```@repl fitdiscrete_trait
-m1 = BinaryTraitSubstitutionModel(1.0,2.0, ["carnivory", "non-carnivory"])
-using Random; Random.seed!(1234); # for reproducibility of this example
-traitmatrix, nodecolumn = rand(m1, net; ntraits=3);
-traitmatrix
-```
-
-In this trait matrix, each column corresponds to a node,
-each row is a trait, and each entry gives the state of that trait for that node,
-as an index. To get the state labels:
-
-```@repl fitdiscrete_trait
-m1.label[traitmatrix]
-```
-
-The `nodecolumn` vector says which node corresponds to which column
-in the trait matrix, and we can compare to the node numbers in the network.
-For example, the first column corresponds to node `-2`, which is the root.
-(The root is always in the first column: that's where the simulation starts.)
-Also, as an example, the column for taxon "A" is column 12:
-
-```@repl fitdiscrete_trait
-nodecolumn
-net.node[net.root]
-findfirst(isequal("A"), nodecolumn)
-nodecolumn[12]
-traitmatrix[:,12]
-m1.label[traitmatrix[:,12]]
-```
