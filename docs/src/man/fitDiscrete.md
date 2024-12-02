@@ -76,7 +76,6 @@ For general trait types, use one of these three models:
   (`k` states, all transitions possible with equal rates)
 - `:TBTSM` Two Binary Trait Substitution Model (though not fully implemented yet)
 
-## Inference
 
 To infer evolutionary rates, run [`fitdiscrete`](@ref) on the network and data.
 It will calculate the maximum likelihood score
@@ -93,7 +92,7 @@ on a fixed network.
   states is assumed a priori.
 - The model ignores incomplete lineage sorting (e.g. hemiplasy).
 
-### parameter estimation & model fit
+## parameter estimation & model fit
 
 The example below if for a binary trait, first using a model assuming
 equal rates (from `lo` to `hi` and from `hi` to `lo`);
@@ -126,7 +125,7 @@ aic(s4)
 Here, the equal-rate model is slightly favored (lower AIC),
 so we will use `s3` below.
 
-### ancestral state prediction
+## ancestral state prediction
 
 This is traditionally called "ancestral state reconstruction",
 but we do not actually reconstruct anything.
@@ -161,7 +160,7 @@ less uncertainty near the tips.
 The most recent common ancestor of D and E (node 11),
 in particular, is predicted to be "lo" with fairly high certainty.
 
-### impact of gene flow on the trait
+## impact of gene flow on the trait
 
 An interesting question is whether there is evidence that B obtained
 it's "hi" state via gene flow. The prior probability for this is γ:
