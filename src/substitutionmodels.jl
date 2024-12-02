@@ -491,32 +491,28 @@ end
           model::TraitSubstitutionModel,
           t::Float64,
           start::AbstractVector{Int})
-    rand!(rng::AbstractRNG,
-          end::AbstractVector{Int},
-          model::TraitSubstitutionModel,
-          t::Float64,
-          start::AbstractVector{Int})
 
-Simulate traits along one edge of length t.
-`start` must be a vector of integers, each representing the starting value of one trait.
-The bang version (ending with !) uses the vector `end` to store the simulated values.
+Simulate discrete traits along one edge of length t. A random number generator
+`rng` is optional. `start` must be a vector of integers, each representing the
+starting value of one trait.
 
-# Examples
+# examples
+
 ```jldoctest
 julia> m1 = BinaryTraitSubstitutionModel(1.0, 2.0)
 Binary Trait Substitution Model:
 rate 0→1 α=1.0
 rate 1→0 β=2.0
 
-julia> using Random; Random.seed!(13);
+julia> using StableRNGs; rng = StableRNG(135);
 
-julia> rand(m1, 0.2, [1,2,1,2,2])
+julia> rand(rng, m1, 0.2, [1,2,1,2,1])
 5-element Vector{Int64}:
+ 2
+ 2
  1
  2
  1
- 1
- 2
 ```
 """
 function rand(obj::SubstitutionModel, t::Float64, start::AbstractVector{Int})
@@ -532,7 +528,17 @@ function rand(
     rand!(rng, res, obj, t, start)
 end
 
-@doc (@doc rand) rand!
+"""
+    rand!(rng::AbstractRNG,
+          end::AbstractVector{Int},
+          model::TraitSubstitutionModel,
+          t::Float64,
+          start::AbstractVector{Int})
+
+Simulate discrete traits along one edge of length `t`
+like [`rand`](@ref PhyloTraits.rand),
+but modifying `end` in place to store the simulated values.
+"""
 function rand!(
     rng::AbstractRNG,
     endTrait::AbstractVector{Int},

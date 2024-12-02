@@ -3,6 +3,7 @@ using PhyloNetworks
 using PhyloTraits
 using PhyloPlots, RCall
 mkpath("../assets/figures")
+figname(x) = joinpath("..", "assets", "figures", x)
 truenet = readnewick("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
 ```
 
@@ -44,10 +45,9 @@ This creates objects of class [`TraitSimulation`](@ref), from which we can
 extract the data at the tips, thanks to the method
 [`getindex(::TraitSimulation, ::Symbol)`](@ref).
 
-```@example sim_BM
+```@repl sim_BM
 trait1 = sim1[:tips] # trait 1 at the tips (data)
 trait2 = sim2[:tips]
-nothing # hide
 ```
 
 This extractor creates an `Array` with one column, and as many lines as the
@@ -58,11 +58,11 @@ in the network:
 
 ```@example sim_BM
 sim1[:internalnodes]
-nothing # hide
 ```
-These values are those used in the previous section, when we compared the
-ancestral state reconstruction (or "predictions") of trait 1 (stored in
-`ancTrait1`) to the true simulated value.
+These values (rounded to 3 digits) are those used in section
+[Ancestral state reconstruction](@ref),
+when we compared the ancestral state reconstruction (or "predictions") of
+trait 1 (stored in `ancTrait1`) to the true simulated value.
 
 Finally, we generate the last trait correlated with trait 1
 (but not trait 2), with phylogenetic noise.
@@ -84,7 +84,8 @@ dat = DataFrame(trait1 = trait1, trait2 = trait2, trait3 = trait3,
                 tipnames = tiplabels(sim1))
 ```
 
-These data were rounded to 3 digits and used in the previous section.
+These data were rounded to 3 digits and used in the previous section on
+[Phylogenetic regression](@ref).
 
 ## shifted Brownian motion
 
@@ -95,7 +96,7 @@ object. The position of the shifts can be given using vector of edges.
 To see this, let's first plot the network with its associated edges and node
 numbers.
 ```@example sim_BM
-R"svg(name('truenet_with_numbers.svg'), width=8, height=4)" # hide
+R"svg"(figname("truenet_with_numbers.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(truenet, useedgelength=true, showedgenumber=true);
 R"dev.off()" # hide
@@ -103,8 +104,8 @@ nothing # hide
 ```
 ![truenet_with_numbers](../assets/figures/truenet_with_numbers.svg)
 
-For identifiability reasons, shifts are only allowed on tree-like
-branches. Here, a shift on either hybrid edge 9 or 7 would have the same
+For identifiability reasons, shifts are only allowed on tree (not hybrid) edges.
+Here, a shift on either hybrid edge 9 or 7 would have the same
 effect as a shift on edge 6: by shifting traits of species A and B.
 
 Let's say that we want to add a shift with value 5.0 on the branch directly
@@ -139,12 +140,14 @@ simulation studies (just remove the argument `rng`).
 params_sh = ParamsBM(2, 0.5, shift) # BM with mean 2, variance 0.5, and shifts.
 nothing # hide
 ```
+
 The traits are simulated using the same function [`rand`](@ref), and
 extracted at the tips as before.
 ```@example sim_BM
 rng = StableRNG(18700904)
 sim_sh = rand(rng, truenet, params_sh) # simulate a shifted BM on truenet
 trait_sh = sim_sh[:tips]          # trait at the tips (data)
+```
+```@example sim_BM
 tiplabels(sim_sh)
-nothing # hide
 ```

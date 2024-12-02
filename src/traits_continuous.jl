@@ -4,7 +4,8 @@
     regressorShift(edge::Vector{Edge}, net::HybridNetwork; checkpreorder=true)
 
 Compute the regressor vectors associated with shifts on edges that are above nodes
-`node`, or on edges `edge`, on a network `net`. It uses function [`descendencematrix`](@ref), so
+`node`, or on edges `edge`, on a network `net`.
+It uses function [`PhyloNetworks.descendencematrix`](@extref), so
 `net` might be modified to sort it in a pre-order.
 Return a `DataFrame` with as many rows as there are tips in net, and a column for
 each shift, each labelled according to the pattern shift_{number_of_edge}. It has
@@ -96,7 +97,8 @@ AIC: 4.2125395947
 ```
 
 # See also
-[`phylolm`](@ref), [`descendencematrix`](@ref), [`regressorHybrid`](@ref).
+[`phylolm`](@ref), [`PhyloNetworks.descendencematrix`](@extref),
+[`regressorHybrid`](@ref).
 """
 function regressorShift(
     node::Vector{Node},
@@ -146,7 +148,8 @@ regressorShift(node::Node, net::HybridNetwork; checkpreorder::Bool=true) = regre
     regressorHybrid(net::HybridNetwork; checkpreorder::Bool=true)
 
 Compute the regressor vectors associated with shifts on edges that imediatly below
-all hybrid nodes of `net`. It uses function [`PhyloNetworks.descendencematrix`](@ref) through
+all hybrid nodes of `net`.
+It uses [`PhyloNetworks.descendencematrix`](@extref) through
 a call to [`regressorShift`](@ref), so `net` might be modified to sort it in a pre-order.
 Return a `DataFrame` with as many rows as there are tips in net, and a column for
 each hybrid, each labelled according to the pattern shift_{number_of_edge}. It has
@@ -238,7 +241,8 @@ AIC: 7.4012043891
 ```
 
 # See also
-[`phylolm`](@ref), [`PhyloNetworks.descendencematrix`](@ref), [`regressorShift`](@ref).
+[`phylolm`](@ref), [`PhyloNetworks.descendencematrix`](@extref),
+[`regressorShift`](@ref).
 """
 function regressorHybrid(net::HybridNetwork; checkpreorder::Bool=true)
     childs = [getchild(nn) for nn in net.hybrid] # checks that each hybrid node has a single child
@@ -251,7 +255,8 @@ end
 """
     ShiftNet
 
-Shifts associated to a [`HybridNetwork`](@ref) sorted in topological order.
+Shifts mapped to tree nodes and their (unique) parent edge on a
+[`PhyloNetworks.HybridNetwork`](@extref) sorted in topological order.
 Its `shift` field is a vector of shift values, one for each node,
 corresponding to the shift on the parent edge of the node
 (which makes sense for tree nodes only: they have a single parent edge).
@@ -697,7 +702,7 @@ of a trait (or of the residuals from a linear model). Under the BM model,
 the population (or species) means have a multivariate normal distribution with
 covariance matrix = σ²λV, where σ² is the between-species
 variance-rate (to be estimated), and the matrix V is obtained from
-[`sharedpathmatrix`](@ref)(net)[:tips].
+[`PhyloNetworks.sharedpathmatrix`](@extref)`(net)[:tips]`.
 
 λ is set to 1 by default, and is immutable.
 In future versions, λ may be used to control the scale for σ².
@@ -877,7 +882,7 @@ with or without within-species variation:
 1. no measurement error in species means:
    - phylolm(model, X,Y,net, reml; kwargs...) dispatches based on model type
    - phylolm_lambda(X,Y,V,reml, gammas,times; ...)
-   - phylolm_scalingHybrid(X,Y,net,reml, gammas; ...)
+   - phylolm_scalinghybrid(X,Y,net,reml, gammas; ...)
 
    helpers:
    - pgls(X,Y,V; ...) for vanilla BM, but called by others with fixed V_theta
@@ -986,8 +991,8 @@ Set inheritance γ's of hybrid edges, using input vector for *major* edges.
 Assume pre-order calculated already, with up-to-date field `vec_node`.
 See [`getGammas`](@ref).
 
-**Warning**: very different from [`setgamma!`](@ref), which focuses on a
-single hybrid event,
+**Warning**: very different from [`PhyloNetworks.setgamma!`](@extref),
+which focuses on a single hybrid event,
 updates the field `ismajor` according to the new γ, and is not used here.
 
 **Assumption**: each hybrid node has only 2 parents, a major and a minor parent
@@ -1048,7 +1053,7 @@ function phylolm(
 )
     preorder!(net)
     gammas = getGammas(net)
-    phylolm_scalingHybrid(X, Y, net, reml, gammas;
+    phylolm_scalinghybrid(X, Y, net, reml, gammas;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
             startingValue=startingValue, fixedValue=fixedValue)
@@ -1180,7 +1185,7 @@ end
 ###############################################################################
 ## Fit scaling hybrid
 
-function matrix_scalingHybrid(net::HybridNetwork, lam::AbstractFloat,
+function matrix_scalinghybrid(net::HybridNetwork, lam::AbstractFloat,
                               gammas::Vector)
     setGammas!(net, 1.0 .- lam .* (1. .- gammas))
     V = sharedpathmatrix(net)
@@ -1199,7 +1204,7 @@ function logLik_lam_hyb(
     ind::Vector{Int}=[0]
 )
     # Transform V according to lambda
-    V = matrix_scalingHybrid(net, lam, gammas)
+    V = matrix_scalinghybrid(net, lam, gammas)
     # Fit and take likelihood
     linmod, Vy, RL, logdetVy = pgls(X,Y,V; nonmissing=nonmissing, ind=ind)
     n = (reml ? dof_residual(linmod) : nobs(linmod))
@@ -1208,7 +1213,7 @@ function logLik_lam_hyb(
     return res
 end
 
-function phylolm_scalingHybrid(
+function phylolm_scalinghybrid(
     X::Matrix,
     Y::Vector,
     net::HybridNetwork,
@@ -1248,7 +1253,7 @@ function phylolm_scalingHybrid(
     else
         res_lam = fixedValue
     end
-    V = matrix_scalingHybrid(net, res_lam, gammas)
+    V = matrix_scalinghybrid(net, res_lam, gammas)
     linmod, Vy, RL, logdetVy = pgls(X,Y,V; nonmissing=nonmissing, ind=ind)
     res = PhyloNetworkLinearModel(linmod, V, Vy, RL, Y, X,
                 logdetVy, reml, ind, nonmissing, ScalingHybrid(res_lam))
@@ -1273,7 +1278,7 @@ It contains a linear model from the GLM package, in `object.lm`, of type
 Keyword arguments
 
 * `model="BM"`: model for trait evolution (as a string)
-  "lambda" (Pagel's lambda), "scalingHybrid" are other possible values
+  "lambda" (Pagel's lambda), "scalinghybrid" are other possible values
   (see [`ContinuousTraitEM`](@ref))
 * `tipnames=:tipnames`: column name for species/tip-labels, represented
   as a symbol. For example, if the column containing the species/tip labels in
@@ -1285,16 +1290,16 @@ Keyword arguments
   for estimating variance components, else use ML criterion.
 
 The following tolerance parameters control the optimization of lambda if
-`model="lambda"` or `model="scalingHybrid"`, and control the optimization of the
+`model="lambda"` or `model="scalinghybrid"`, and control the optimization of the
 variance components if `model="BM"` and `withinspecies_var=true`.
 * `fTolRel=1e-10`: relative tolerance on the likelihood value
 * `fTolAbs=1e-10`: absolute tolerance on the likelihood value
 * `xTolRel=1e-10`: relative tolerance on the parameter value
 * `xTolAbs=1e-10`: absolute tolerance on the parameter value
 
-* `startingValue=0.5`: If `model`="lambda" or "scalingHybrid", this
+* `startingValue=0.5`: If `model`="lambda" or "scalinghybrid", this
   provides the starting value for the optimization in lambda.
-* `fixedValue=missing`: If `model`="lambda" or "scalingHybrid", and
+* `fixedValue=missing`: If `model`="lambda" or "scalinghybrid", and
   `fixedValue` is a number, then lambda is set to this number and is not optimized.
 * `withinspecies_var=false`: If `true`, fits a within-species variation model.
   Currently only implemented for `model`="BM".
@@ -1359,11 +1364,13 @@ species standard deviation / sample sizes (if used) will throw an error.
 
 ## See also
 
-[`rand`](@ref), [`ancestralreconstruction`](@ref), [`vcv`](@ref)
+[`rand`](@ref), [`ancestralreconstruction`](@ref), [`PhyloNetworks.vcv`](@extref)
 
 ## Examples: Without within-species variation
 
-```jldoctest
+We first load data from the package and fit the default BM model.
+
+```jldoctest phylolmdoc
 julia> phy = readnewick(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "caudata_tree.txt"));
 
 julia> using DataFrames, CSV # to read data file, next
@@ -1392,7 +1399,10 @@ Coefficients:
 ─────────────────────────────────────────────────────────────────────
 Log Likelihood: -78.9611507833
 AIC: 161.9223015666
+```
 
+We can extra parameters, likelihood, AIC etc.
+```jldoctest phylolmdoc
 julia> round(sigma2_phylo(fitBM), digits=6) # rounding for jldoctest convenience
 0.002945
 
@@ -1417,7 +1427,7 @@ julia> round.(coef(fitBM), digits=4)
 1-element Vector{Float64}:
  4.679
 
-julia> confint(fitBM)
+julia> confint(fitBM) # 95% (default) confidence interval for the coefficient(s)
 1×2 Matrix{Float64}:
  4.02696  5.33104
 
@@ -1427,10 +1437,17 @@ julia> abs(round(r2(fitBM), digits=10)) # absolute value for jldoctest convenien
 julia> abs(round(adjr2(fitBM), digits=10))
 0.0
 
-julia> round.(vcov(fitBM), digits=6)
+julia> round.(vcov(fitBM), digits=6) # variance-covariance of estimated parameters: squared standard error
 1×1 Matrix{Float64}:
  0.109314
+```
 
+The residuals are the variance not explained by predictors.
+The phylogenetic correlation modelled by the BM is about them.
+The trait may have 2 sources of phylogenetic signal: from the predictor with
+which it the response may be associated, and from the residuals.
+
+```jldoctest phylolmdoc
 julia> round.(residuals(fitBM), digits=6)
 197-element Vector{Float64}:
  -0.237648
@@ -1503,9 +1520,10 @@ julia> round.(predict(fitBM), digits=5)
 
 ## Examples: With within-species variation (two different input formats shown)
 
-```jldoctest
-julia> using DataFrames, StatsModels # for statistical model formulas
+We use a smaller network here.
+We can input data as 1 row per individual, multiple rows per species:
 
+```jldoctest phylolmdoc
 julia> net = readnewick("((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);");
 
 julia> df = DataFrame( # individual-level observations
@@ -1538,7 +1556,14 @@ trait1       2.30358    0.276163  8.34    0.0011    1.53683    3.07033
 ──────────────────────────────────────────────────────────────────────
 Log Likelihood: 1.9446255188
 AIC: 4.1107489623
+```
 
+Alternatively, we can input the data as 1 row per species and 2 extra columns:
+standard deviation of the response trait among individuals in the same species,
+and number of individuals per species for which we calculated this SD.
+The result is the same.
+
+```jldoctest phylolmdoc
 julia> df_r = DataFrame( # species-level statistics (sample means, standard deviations)
            species = ["D","C","A","B","E","O"],
            trait1 = [4.08298,3.10782,2.17078,1.87333,2.8445,5.88204],
@@ -1658,7 +1683,7 @@ function phylolm(f::StatsModels.FormulaTerm,
         error("within-species variation is not implemented for non-BM models")
     modeldic = Dict("BM" => BM(),
                     "lambda" => PagelLambda(),
-                    "scalingHybrid" => ScalingHybrid())
+                    "scalinghybrid" => ScalingHybrid())
     haskey(modeldic, model) || error("phylolm is not defined for model $model.")
     modelobj = modeldic[model]
 

@@ -1,7 +1,8 @@
 """
     TraitSimulation
 
-Result of a trait simulation on an [`HybridNetwork`](@ref) with [`rand`](@ref).
+Result of a trait simulation on an `PhyloNetworks.HybridNetwork`
+with [`rand`](@ref).
 
 The following functions and extractors can be applied to it:
 [`tiplabels`](@ref), `obj[:tips]`, `obj[:internalnodes]`
@@ -36,11 +37,11 @@ parameters of type [`ParamsBM`](@ref) (univariate Brownian Motion) and
 
 The simulation using a recursion from the root to the tips of the network,
 therefore, a pre-ordering of nodes is needed. If `checkpreorder=true` (default),
-[`preorder!`](@ref) is called on the network beforehand. Otherwise, it is assumed
-that the preordering has already been calculated.
+[`PhyloNetworks.preorder!`](@extref) is called on the network beforehand.
+Otherwise, it is assumed that the preordering has already been calculated.
 
 Returns an object of type [`TraitSimulation`](@ref),
-which has a matrix with the trait expecations and simulated trait values at
+which has a matrix with the trait expectations and simulated trait values at
 all the nodes.
 
 See examples below for accessing expectations and simulated trait values.
@@ -49,7 +50,7 @@ See examples below for accessing expectations and simulated trait values.
 
 ## Univariate
 
-```jldoctest rand
+```jldoctest randdoc
 julia> phy = readnewick("(A:2.5,((U:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
 
 julia> par = ParamsBM(1, 0.1) # BM with expectation 1 and variance 0.1.
@@ -69,7 +70,7 @@ Sigma2: 0.1
 Below, we re-run the same simulation but with our own fixed
 random number generator for reproducibility.
 
-```jldoctest rand
+```jldoctest randdoc
 julia> # using Pkg; Pkg.add("StableRNGs") # to install StableRNGs if not done earlier
 
 julia> using StableRNGs; rng = StableRNG(791); # for reproducibility
@@ -95,7 +96,7 @@ So, for example, the simulated trait value for taxon U (listed second) is ~0.86.
 For some purposes, we might want to access the values simulated at internal
 nodes, or at all nodes at once:
 
-```jldoctest rand
+```jldoctest randdoc
 julia> traits = sim[:internalnodes] # extract simulated values at internal nodes. Order: as in sim.M.internalnodenumbers
 5-element Vector{Float64}:
  1.0716684901027937
@@ -122,7 +123,7 @@ This is not very interesting under a standard BM model, but may become
 interesting under more complex models (e.g. with shifts).
 We can do so with an extra `:exp` index:
 
-```jldoctest rand
+```jldoctest randdoc
 julia> traits = sim[:tips, :exp] # expected values at the tips (also works for sim[:all, :exp] and sim[:internalnodes, :exp]).
 4-element Vector{Float64}:
  1.0
@@ -133,7 +134,7 @@ julia> traits = sim[:tips, :exp] # expected values at the tips (also works for s
 
 ## Multivariate
 
-```jldoctest rand
+```jldoctest randdoc
 julia> phy = readnewick("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(V:0.5)#H1:0.5::0.6):1):0.5);");
 
 julia> par = ParamsMultiBM([1.0, 2.0], [1.0 0.5; 0.5 1.0]) # BM with expectation [1.0, 2.0] and variance [1.0 0.5; 0.5 1.0].
@@ -159,7 +160,7 @@ julia> traits = sim[:tips] # extract simulated values at the tips (each column c
 
 The 2 rows to the 2 correlated traits and the columns correspond to the 4 taxa
 (tips). The order in which taxa are listed is obtained with `tiplabels`:
-```jldoctest rand
+```jldoctest randdoc
 julia> tiplabels(sim)
 4-element Vector{String}:
  "A"
@@ -170,7 +171,7 @@ julia> tiplabels(sim)
 
 As in the univariate case, we can also extract the values simulated at
 internal nodes, or all nodes (but listed in preorder), or expected mean values.
-```jldoctest rand
+```jldoctest randdoc
 julia> sim[:internalnodes] # simulated values at internal nodes. order: same as in sim.M.internalnodenumbers
 2×5 Matrix{Float64}:
  -0.604224  0.755722  2.14755  0.484292  1.0

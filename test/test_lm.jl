@@ -120,7 +120,7 @@ fitlam = phylolm(@formula(trait ~ 1), dfr, net, model = "lambda", fixedValue=1.0
 @test mu_phylo(fitlam) ≈ mu_phylo(fitbis)
 @test hasintercept(fitlam)
 
-fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalingHybrid", fixedValue=1.0, reml=false)
+fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalinghybrid", fixedValue=1.0, reml=false)
 @test loglikelihood(fitlam) ≈ loglikelihood(fitSH)
 @test aic(fitlam) ≈ aic(fitSH)
 
@@ -135,7 +135,7 @@ fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(@
 @test lambda_estim(fitlam) ≈ 1.24875
 
 ## Scaling Hybrid
-fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalingHybrid", reml=false)
+fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalinghybrid", reml=false)
 @test lambda_estim(fitSH) ≈ 4.057891910001937 atol=1e-5
 
 end
@@ -202,7 +202,7 @@ fitlam = (@test_logs (:warn,
 @test mu_phylo(fitlam)  ≈ mu_phylo(fitShift)
 @test hasintercept(fitlam)
 
-fitSH = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net, model="scalingHybrid", fixedValue=1.0, reml=false)
+fitSH = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net, model="scalinghybrid", fixedValue=1.0, reml=false)
 @test loglikelihood(fitlam) ≈ loglikelihood(fitSH)
 @test aic(fitlam) ≈ aic(fitSH)
 
@@ -500,7 +500,7 @@ fitlam = (@test_logs (:warn,
 @test bic(fitlam) ≈ bic(fitnabis) + log(nobs(fitnabis))
 @test mu_phylo(fitlam) ≈ mu_phylo(fitnabis)
 
-fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalingHybrid", fixedValue=1.0)
+fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid", fixedValue=1.0)
 @test loglikelihood(fitlam) ≈ loglikelihood(fitSH)
 @test aic(fitlam) ≈ aic(fitSH)
 
@@ -511,7 +511,7 @@ fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(
 @test lambda_estim(fitlam) ≈ 1.1135518305 atol=1e-6
 
 ## scaling Hybrid
-fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalingHybrid", reml=false)
+fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid", reml=false)
 @test_logs show(devnull, fitSH)
 @test lambda_estim(fitSH) ≈ -52.81305448333567 atol=1e-6
 
@@ -617,15 +617,15 @@ phynetlm = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm
 ## scaling Hybrid
 lmtree = phylolm(@formula(trait ~ pred), dfr, tree, model = "BM")
 lmnet = phylolm(@formula(trait ~ pred), dfr, net, model = "BM")
-lmSHzero = phylolm(@formula(trait ~ pred), dfr, net, model = "scalingHybrid", fixedValue = 0.0)
-lmSHone = phylolm(@formula(trait ~ pred), dfr, net, model = "scalingHybrid", fixedValue = 1.0)
+lmSHzero = phylolm(@formula(trait ~ pred), dfr, net, model = "scalinghybrid", fixedValue = 0.0)
+lmSHone = phylolm(@formula(trait ~ pred), dfr, net, model = "scalinghybrid", fixedValue = 1.0)
 
 @test loglikelihood(lmtree) ≈ loglikelihood(lmSHzero)
 @test loglikelihood(lmnet) ≈ loglikelihood(lmSHone)
 
-lmSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalingHybrid", reml=false)
+lmSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid", reml=false)
 @test lambda_estim(lmSH) ≈ 23.46668204551696 atol=1e-5
-lmSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalingHybrid")
+lmSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid")
 @test lambda_estim(lmSH) ≈ 24.61373831478016 atol=1e-5
 # λ so large?? largest γ = 0.056, so λγ = 1.34 is > 1...
 end

@@ -6,9 +6,11 @@ mkpath("../assets/figures")
 figname(x) = joinpath("..", "assets", "figures", x)
 ```
 
-## Discrete trait simulation
+# Discrete trait simulation
 
 [`rand`](@ref) can simulate discrete traits along a known network.
+
+## binary trait example
 
 For example, we can define a binary trait model with states
 "carnivory" (state 1) and "non-carnivory" (state 2), then ask for
@@ -62,7 +64,7 @@ traitmatrix[:,12] # data for species A, as category indices
 labs[traitmatrix[:,12]] # same data, as category names
 ```
 
-## Example of DNA simulation
+## example of DNA simulation
 
 Below we simulate 4 sites of a DNA alignment, independent from an HKY model
 with transition/transversion ratio κ=0.5 and stationary base frequencies of
@@ -80,7 +82,7 @@ labs = getlabels(m2)
 To get the data at the tips only, and in a specific order, we can do this.
 ```@repl sim_discrete
 taxa = tiplabels(net)
-taxoncol = indexin(taxa, nodecolumn)
+taxoncol = indexin(taxa, nodecolumn) # column indices to get taxa in order
 labs[traitmatrix[:,taxoncol]] # trait at the tips only, ordered as in 'taxa'
 ```
 

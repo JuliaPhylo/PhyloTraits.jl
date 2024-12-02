@@ -32,8 +32,8 @@ the interested reader, but we will hide those in the rest of the chapter, for
 the sake of clarity.
 ```@example tree_trait
 using PhyloPlots, RCall
-R"name <- function(x) file.path('..', 'assets', 'figures', x)"
-R"svg(name('truenet.svg'), width=8, height=4)"
+name(x) = joinpath("..", "assets", "figures", x)
+R"svg"(name("truenet.svg"), width=8, height=4)
 R"par"(mar=[0,0,0,0])
 plot(truenet, useedgelength=true, showgamma=true);
 R"dev.off()"
@@ -46,8 +46,8 @@ nothing # hide
 Assuming that the network is known and that the continuous traits evolve under a
 Brownian Motion (BM) over time, it is possible to compute the expected variance
 covariance matrix between tip measurements. This can be done using function
-[`vcv`](@ref), whose syntax is inspired from the well known corresponding
-[`ape`](https://CRAN.R-project.org/package=ape) function.
+[`PhyloNetworks.vcv`](@extref), whose syntax is inspired from the well known
+corresponding [`ape`](https://CRAN.R-project.org/package=ape) function.
 ```@repl tree_trait
 C = vcv(truenet)
 ```
@@ -57,8 +57,8 @@ Each row also corresponds to a tip in the network, and rows are
 ordered in the same way as columns.
 
 The computation of this matrix is based on the more general function
-[`sharedpathmatrix`](@ref). It is at the core of all the Phylogenetic
-Comparative Methods described below.
+[` PhyloNetworks.sharedpathmatrix`](@extref).
+It is at the core of all the Phylogenetic Comparative Methods described below.
 
 ## Phylogenetic regression
 
@@ -72,7 +72,7 @@ to the phylogeny, our data needs to have a column with the names of the tips in
 the network.
 If this column is labeled `tipnames`, fitting the data will not require an
 extra option.
-```@repl tree_trait
+```@example tree_trait
 using DataFrames
 dat = DataFrame(
   trait1 = [ 2.668,  3.696,  4.541, 4.846,  2.268, -0.331],
@@ -80,13 +80,14 @@ dat = DataFrame(
   trait3 = [15.424, 17.333, 18.115, 18.81, 13.337, 10.012],
   tipnames = ["D", "C", "A", "B", "E", "O"]
 )
+nothing # hide
 ```
 
 Phylogenetic regression / ANOVA is based on the
 [GLM](https://github.com/JuliaStats/GLM.jl) package, with the network as an
 extra argument, using function [`phylolm`](@ref).
 
-```@repl tree_trait
+```@example tree_trait
 using StatsModels # for statistical model formulas
 fitTrait3 = phylolm(@formula(trait3 ~ trait1 + trait2), dat, truenet)
 ```
@@ -111,7 +112,7 @@ sigma2_phylo(fitTrait3) # estimated variance of the BM
 mu_phylo(fitTrait3) # estimated root value of the BM
 ```
 
-## Ancestral State Reconstruction
+## Ancestral state reconstruction
 
 ### From known parameters
 
@@ -131,13 +132,13 @@ Function [`ancestralreconstruction`](@ref) creates an object with type
 expectations(ancTrait1) # predictions
 using StatsBase     # for stderror(), aic(), likelihood() etc.
 stderror(ancTrait1) # associated standard errors
-predint(ancTrait1, level=0.9) # prediction interval (with level 90%)
+predint(ancTrait1, level=0.90) # prediction interval (at level 90%)
 ```
 We can plot the ancestral states or prediction intervals on the tree, using the
 `nodelabel` argument of the `plot` function.
 ```@example tree_trait
 ancExpe = expectationsPlot(ancTrait1) # data frame, suitable as input for the plot
-R"svg(name('ancestral_expe.svg'), width=8, height=4)" # hide
+R"svg"(name("ancestral_expe.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(truenet, nodelabel=ancExpe, tipoffset=0.1);
 R"dev.off()" # hide
@@ -147,7 +148,7 @@ nothing # hide
 
 ```@example tree_trait
 ancInt = predintPlot(ancTrait1) # format the prediction intervals for the plot
-R"svg(name('ancestral_predint.svg'), width=8, height=4)" # hide
+R"svg"(name("ancestral_predint.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(truenet, nodelabel=ancInt, tipoffset=0.1);
 R"dev.off()" # hide
@@ -201,7 +202,7 @@ parameters, so they are less accurate and the function throws a warning.
 The output is an object of the same [`ReconstructedStates`](@ref) type as earlier,
 and the same extractors can be applied to it:
 ```@example tree_trait
-R"svg(name('ancestral1.svg'), width=8, height=4)" # hide
+R"svg"(name("ancestral1.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(truenet, nodelabel = expectationsPlot(ancTrait1Approx));
 R"dev.off()" # hide
@@ -219,7 +220,7 @@ ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
 ```
 ```@example tree_trait
-R"svg(name('ancestral2.svg'), width=8, height=4)" # hide
+R"svg"(name("ancestral2.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(truenet, nodelabel = predintPlot(ancTrait1Approx, level=0.9));
 R"dev.off()" # hide
@@ -244,7 +245,7 @@ ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
 ```
 ```@example tree_trait
-R"svg(name('ancestral3.svg'), width=8, height=4)" # hide
+R"svg"(name("ancestral3.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(truenet, nodelabel = predintPlot(ancTrait1Approx));
 R"dev.off()" # hide
@@ -261,7 +262,7 @@ linear combination of trait 1 and a phylogenetic noise, to get a better
 ancestral state reconstruction via using its correlation with trait 1.
 However, this cannot be done directly:
 ```julia
-ancTrait3 = ancestralreconstruction(fitTrait3) # Throws an error !
+ancTrait3 = ancestralreconstruction(fitTrait3) # throws an error
 ```
 This is because the model to fit the trait (a regression with one
 predictor and an intercept) used a predictor for which we don't know the
@@ -280,7 +281,7 @@ ancTrait3 = ancestralreconstruction(fitTrait3, # model with estimated coefs etc.
 nothing # hide
 ```
 ```@example tree_trait
-R"svg(name('ancestral4.svg'), width=8, height=4)" # hide
+R"svg"(name("ancestral4.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(truenet, nodelabel = predintPlot(ancTrait3));
 R"dev.off()" # hide
@@ -322,7 +323,7 @@ end
 nothing # hide
 ```
 ```@repl tree_trait
-dat.trait3 # changed: +5 was added by the previous loop to A and B
+select(dat, [:trait3, :tipnames]) # trait3 changed: +5 added to A and B by previous loop
 ```
 The categorical variable `underHyb` separates tips "A" and "B" from the others.
 We need to consider it as a factor, not a numerical variable.
@@ -406,7 +407,7 @@ edge below a reticulation. In our network above, there is a single reticulation
 and the edge below it is edge 6:
 
 ```@example tree_trait
-R"svg(name('truenet_with_numbers.svg'), width=8, height=4)" # hide
+R"svg"(name("truenet_with_numbers.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(truenet, useedgelength=true, showedgenumber=true);
 R"dev.off()" # hide
@@ -416,8 +417,8 @@ nothing # hide
 
 Let's assume we measured a trait that we hypothesized underwent a shift at
 some or all ancestral reticulations. To test this hypothesis, we can use the 
-custom columns of the [`descendencematrix`](@ref), that can be directly
-defined thanks to function [`regressorHybrid`](@ref).
+custom columns of the [`PhyloNetworks.descendencematrix`](@extref), that can be
+directly defined thanks to function [`regressorHybrid`](@ref).
 ```@repl tree_trait
 df_shift = regressorHybrid(truenet) # regressors matching Hybrid Shifts
 ```

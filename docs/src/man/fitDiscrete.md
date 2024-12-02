@@ -21,12 +21,13 @@ add data about the tips of this network.
 
 The simplest way is to use a vector of species names with a data frame of traits:
 
-```@repl fitdiscrete_trait
+```@example fitdiscrete_trait
 # read in network
 net = readnewick("(O:4,(A:3,((B:0.4)#H1:1.6::0.92,((#H1:0::0.08,C:0.4):0.6,(D:.2,E:.2):0.8):1):1):1);");
 # read in trait data
 species = ["C","A","D","B","O","E"];
 dat = DataFrame(trait=["hi","lo","lo","hi","lo","lo"])
+nothing # hide
 ```
 
 If the species names and trait data are in the same data frame,
@@ -178,10 +179,10 @@ to compare the two hypotheses: gene flow vs. vertical inheritance.
 ```@repl fitdiscrete_trait
 exp(s3.priorltw[1]) # prior: for vertical inheritance. "ltw" = log tree weight
 exp(s3.priorltw[2]) # prior: for gene flow inheritance, same as γ above
-postltw = PhyloNetworks.posterior_logtreeweight(s3)
+postltw = PhyloTraits.posterior_logtreeweight(s3)
 exp(postltw[2])     # posterior: for gene flow inheritance
 function geneflowBF(fit)
-    postltw = PhyloNetworks.posterior_logtreeweight(fit)
+    postltw = PhyloTraits.posterior_logtreeweight(fit)
     exp(postltw[2] - postltw[1] + fit.priorltw[1] - fit.priorltw[2])
 end
 geneflowBF(s3)
