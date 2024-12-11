@@ -539,7 +539,7 @@ blup_bis = (@test_logs (:warn, r"^These prediction intervals show uncertainty in
 @test blup.tipnumbers ≈ blup_bis.tipnumbers
 @test predint(blup) ≈ predint(blup_bis)
 @test predintPlot(blup)[!,:PredInt] == predintPlot(blup_bis)[!,:PredInt]
-@test predintPlot(blup, withExp=true)[!,:PredInt] == predintPlot(blup_bis, withExp=true)[!,:PredInt]
+@test predintPlot(blup, withexpectation=true)[!,:PredInt] == predintPlot(blup_bis, withexpectation=true)[!,:PredInt]
 @test expectationsPlot(blup)[!,:PredInt] == expectationsPlot(blup_bis)[!,:PredInt]
 
 dfr = DataFrame(trait=Y, tipnames=tipnam, reg=Y)
@@ -570,7 +570,7 @@ blup2 = (@test_logs (:warn, r"^These prediction intervals show uncertainty in an
 @test expectations(blup)[!,:condExpectation] ≈ expectations(blup2)[!,:condExpectation]
 @test predint(blup) ≈ predint(blup2)
 @test predintPlot(blup)[!,:PredInt] == predintPlot(blup2)[!,:PredInt]
-@test predintPlot(blup, withExp=true)[!,:PredInt] == predintPlot(blup2, withExp=true)[!,:PredInt]
+@test predintPlot(blup, withexpectation=true)[!,:PredInt] == predintPlot(blup2, withexpectation=true)[!,:PredInt]
 
 # Test mark on missing
 ee = expectationsPlot(blup)

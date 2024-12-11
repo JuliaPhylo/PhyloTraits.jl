@@ -161,11 +161,11 @@ the `level` of the prediction interval. If not given, the default value is
 0.95.
 
 It is also possible to plot both the reconstructed state and the predicted value
-on the same plot, using the optional keyword argument `withExp`.
+on the same plot, using the optional keyword argument `withexpectation`.
 As shown below, we could also use the `RCall` method from the
 [`plot`](https://juliaphylo.github.io/PhyloPlots.jl/stable/lib/public/) function.
 ```@example tree_trait
-plot(truenet, nodelabel = predintPlot(ancTrait1, withExp=true), tipoffset=0.1);
+plot(truenet, nodelabel = predintPlot(ancTrait1, withexpectation=true), tipoffset=0.1);
 nothing # hide
 ```
 These plots tend to be quite busy, even for small networks.

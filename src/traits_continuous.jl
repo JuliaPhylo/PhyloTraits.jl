@@ -2395,7 +2395,10 @@ Keyword argument `markMissing` is a string that is appended to predicted
 tip values, so that they can be distinguished from the actual datapoints. Default to
 "*". Set to "" to remove any visual cue.
 """
-function expectationsPlot(obj::ReconstructedStates; markMissing::AbstractString="*")
+function expectationsPlot(
+    obj::ReconstructedStates;
+    markMissing::AbstractString="*"
+)
     # Retrieve values
     expe = expectations(obj)
     # Format values for plot
@@ -2442,26 +2445,28 @@ function Base.show(io::IO, obj::ReconstructedStates)
 end
 
 """
-    predintPlot(obj::ReconstructedStates; level::Real=0.95, withExp::Bool=false)
+    predintPlot(obj::ReconstructedStates; level::Real=0.95, withexpectation::Bool=false)
 
 Compute and format the prediction intervals for the plotting function.
 The resulting dataframe can be readily used as a `nodelabel` argument to
 `plot` from package [`PhyloPlots`](https://github.com/juliaphylo/PhyloPlots.jl).
 Keyworks argument `level` control the confidence level of the
-prediction interval. If `withExp` is set to true, then the best
+prediction interval. If `withexpectation` is set to true, then the best
 predicted value is also shown along with the interval.
 """
-function predintPlot(obj::ReconstructedStates; level::Real=0.95, withExp::Bool=false)
-    # predInt
+function predintPlot(
+    obj::ReconstructedStates;
+    level::Real=0.95,
+    withexpectation::Bool=false
+)
     pri = predint(obj; level=level)
     pritxt = Array{AbstractString}(undef, size(pri, 1))
-    # Exp
-    withExp ? exptxt = expectationsPlot(obj, markMissing="") : exptxt = ""
-    for i=1:length(obj.nodenumbers)
-        !withExp ? sep = ", " : sep = "; " * exptxt[i, 2] * "; "
+    withexpectation ? exptxt = expectationsPlot(obj, markMissing="") : exptxt = ""
+    for i in 1:length(obj.nodenumbers)
+        !withexpectation ? sep = ", " : sep = "; " * exptxt[i, 2] * "; "
         pritxt[i] = "[" * string(round(pri[i, 1], digits=2)) * sep * string(round(pri[i, 2], digits=2)) * "]"
     end
-    for i=(length(obj.nodenumbers)+1):size(pri, 1)
+    for i in (length(obj.nodenumbers)+1):size(pri, 1)
         pritxt[i] = string(round(pri[i, 1], digits=2))
     end
     return DataFrame(nodeNumber = [obj.nodenumbers; obj.tipnumbers], PredInt = pritxt)
@@ -2520,16 +2525,20 @@ This function assumes that the parameters of the process are known. For a more g
 function, see `ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`.
 
 """
-function ancestralreconstruction(net::HybridNetwork,
-                                      Y::Vector,
-                                      params::ParamsBM)
+function ancestralreconstruction(
+    net::HybridNetwork,
+    Y::Vector,
+    params::ParamsBM
+)
     V = sharedpathmatrix(net)
     ancestralreconstruction(V, Y, params)
 end
 
-function ancestralreconstruction(V::MatrixTopologicalOrder,
-                                      Y::Vector,
-                                      params::ParamsBM)
+function ancestralreconstruction(
+    V::MatrixTopologicalOrder,
+    Y::Vector,
+    params::ParamsBM
+)
     # Variances matrices
     Vy = V[:tips]
     Vz = V[:internalnodes]
@@ -2540,12 +2549,11 @@ function ancestralreconstruction(V::MatrixTopologicalOrder,
     # Vectors of means
     m_y = ones(size(Vy)[1]) .* params.mu # !! correct only if no predictor.
     m_z = ones(size(Vz)[1]) .* params.mu # !! works if BM no shift.
-    # Actual computation
-    ancestralreconstruction(Vz, VzyVyinvchol, RL,
-                                 Y, m_y, m_z,
-                                 V.internalnodenumbers,
-                                 V.tipnumbers,
-                                 params.sigma2)
+    return ancestralreconstruction(Vz, VzyVyinvchol, RL,
+        Y, m_y, m_z,
+        V.internalnodenumbers,
+        V.tipnumbers,
+        params.sigma2)
 end
 
 # Reconstruction from all the needed quantities
@@ -2578,7 +2586,7 @@ X_n: matrix with as many columns as the number of predictors used,
 TO DO: Handle the order of internal nodes and no-data tips for matrix X_n
 =#
 function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix)
-    if (size(X_n)[2] != length(coef(obj)))
+    if size(X_n)[2] != length(coef(obj))
         error("""The number of predictors for the ancestral states (number of columns of X_n)
               does not match the number of predictors at the tips.""")
     end
@@ -2627,18 +2635,18 @@ function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix)
          assuming that the estimated variance rate of evolution is correct.
          Additional uncertainty in the estimation of this variance rate is
          ignored, so prediction intervals should be larger."""
-    # Actual reconstruction
-    ancestralreconstruction(Vzz,
-                                 VzyVyinvchol,
-                                 obj.RL,
-                                 obj.Y,
-                                 m_y,
-                                 m_z,
-                                 ndNodeNumbers,
-                                 nmTipNumbers,
-                                 sigma2_phylo(obj),
-                                 add_var,
-                                 obj)
+    return ancestralreconstruction(
+        Vzz,
+        VzyVyinvchol,
+        obj.RL,
+        obj.Y,
+        m_y,
+        m_z,
+        ndNodeNumbers,
+        nmTipNumbers,
+        sigma2_phylo(obj),
+        add_var,
+        obj)
 end
 
 @doc raw"""
@@ -2884,10 +2892,12 @@ for further details.
 
 Returns an object of type [`ReconstructedStates`](@ref).
 """
-function ancestralreconstruction(fr::AbstractDataFrame,
-                                      net::HybridNetwork;
-                                      tipnames::Symbol=:tipnames,
-                                      kwargs...)
+function ancestralreconstruction(
+    fr::AbstractDataFrame,
+    net::HybridNetwork;
+    tipnames::Symbol=:tipnames,
+    kwargs...
+)
     nn = DataFrames.propertynames(fr)
     datpos = nn .!= tipnames
     if sum(datpos) > 1
