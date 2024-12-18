@@ -575,11 +575,11 @@ m1 = phylolm(@formula(trait3 ~ 1), df_r, net; tipnames=:species, withinspecies_v
 ar1 = (@test_logs (:warn, r"^T") ancestralreconstruction(m1))
 # ar.nodenumbers[8] == 2 (looking at node #2), m1.V.tipnames[indexin([2],m1.V.tipnumbers)[1]] == "C" (looking at tip "C")
 @test ar1.traits_nodes[8] ≈ 18.74416393519304 rtol=1e-5 # masked sampled C_bar was 17.0686
-@test predint(ar1)[8,:] ≈ [15.24005506417728,22.2482728062088] rtol=1e-5
+@test collect(predict(ar1, interval=:prediction)[8,[:lower,:upper]]) ≈ [15.24005506417728,22.2482728062088] rtol=1e-5
 # on dataframe with model passed as keyword args. must be individual data.
 ar2 = (@test_logs (:warn, r"^T") ancestralreconstruction(df[!,[:species,:trait3]], net; tipnames=:species, withinspecies_var=true))
 @test ar2.traits_nodes ≈ ar1.traits_nodes rtol=1e-5
-@test predint(ar2) ≈ predint(ar1) rtol=1e-5
+@test predict(ar2, interval=:prediction) ≈predict(ar1, interval=:prediction) rtol=1e-5
 # When withinspecies_var=true, predicted values at the tips are part of
 # "traits_nodes", not "traits_tips", and differ from the observed sample means.
 @test length(ar1.traits_tips) == 0
@@ -587,7 +587,7 @@ ar2 = (@test_logs (:warn, r"^T") ancestralreconstruction(df[!,[:species,:trait3]
 @test length(ar1.traits_nodes) == 13
 @test length(ar2.traits_nodes) == 13
 @test ar1.traits_nodes[9] ≈ 18.895327175656757 # for tip D: observed 18.896
-@test predint(ar1)[9,:] ≈ [18.73255168713768,19.058102664175834] # narrow
+@test collect(predict(ar1,interval=:prediction)[9,[:lower,:upper]]) ≈ [18.73255168713768,19.058102664175834] # narrow
 end
 
 @testset "ancestral state prediction, more than intercept" begin
@@ -599,18 +599,18 @@ ar4 = (@test_logs (:warn, r"^T") ancestralreconstruction(m4, X_n))
 @test ar3.nodenumbers == ar4.nodenumbers
 @test ar3.traits_nodes ≈ ar4.traits_nodes rtol=1e-5
 @test ar3.variances_nodes ≈ ar4.variances_nodes rtol=1e-5
-@test size(expectations(ar4)) == (13, 2)
-@test expectationsPlot(ar4)[8,2] == "24.84*"
-@test expectationsPlot(ar3)[8,2] == "24.84*"
-@test predint(ar3)[13,:] ≈ [15.173280800793783,15.677786825808212] rtol=1e-5 # narrow at tip with data
-@test predint(ar3)[7,:] ≈ [10.668220499837211,15.322037065478693] rtol=1e-5  # wide at a root
-p3 = predintPlot(ar3)
-p4 = predintPlot(ar4)
-@test p3[!,:nodeNumber] == p4[!,:nodeNumber]
-@test p3[13,2] == "[15.17, 15.68]"
-@test p4[13,2] == "[15.17, 15.68]"
-@test p3[7,2] == "[10.67, 15.32]"
-@test p4[7,2] == "[10.67, 15.32]"
+@test size(predict(ar4)) == (13, 2)
+@test predict(ar4,text=true)[8,2] == "24.84*"
+@test predict(ar3,text=true)[8,2] == "24.84*"
+@test collect(predict(ar3,interval=:prediction)[13,[:lower,:upper]]) ≈ [15.173280800793783,15.677786825808212] rtol=1e-5 # narrow at tip with data
+@test collect(predict(ar3,interval=:prediction)[7,[:lower,:upper]]) ≈ [10.668220499837211,15.322037065478693] rtol=1e-5  # wide at a root
+p3 = predict(ar3, interval=:prediction,text=true)
+p4 = predict(ar4, interval=:prediction,text=true)
+@test p3[!,:nodenumber] == p4[!,:nodenumber]
+@test p3[13,:interval] == "[15.17, 15.68]"
+@test p4[13,:interval] == "[15.17, 15.68]"
+@test p3[7,:interval] == "[10.67, 15.32]"
+@test p4[7,:interval] == "[10.67, 15.32]"
 end # test subset
 
 end # test set: withinspecies_var on network h=1

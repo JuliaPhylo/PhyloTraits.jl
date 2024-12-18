@@ -533,14 +533,14 @@ blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in anc
 # BLUP same, using the function directly
 blup_bis = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") match_mode=:any ancestralreconstruction(dfr, net));
 
-@test expectations(blup)[!,:condExpectation] ≈ expectations(blup_bis)[!,:condExpectation]
-@test expectations(blup)[!,:nodeNumber] ≈ expectations(blup_bis)[!,:nodeNumber]
+@test predict(blup)[!,:prediction] ≈ predict(blup_bis)[!,:prediction]
+@test predict(blup)[!,:nodenumber] ≈ predict(blup_bis)[!,:nodenumber]
 @test blup.traits_tips ≈ blup_bis.traits_tips
 @test blup.tipnumbers ≈ blup_bis.tipnumbers
-@test predint(blup) ≈ predint(blup_bis)
-@test predintPlot(blup)[!,:PredInt] == predintPlot(blup_bis)[!,:PredInt]
-@test predintPlot(blup, withexpectation=true)[!,:PredInt] == predintPlot(blup_bis, withexpectation=true)[!,:PredInt]
-@test expectationsPlot(blup)[!,:PredInt] == expectationsPlot(blup_bis)[!,:PredInt]
+@test predict(blup,interval=:prediction) ≈ predict(blup_bis,interval=:prediction)
+@test predict(blup,interval=:prediction,text=true)[!,:interval] == predict(blup_bis,interval=:prediction,text=true)[!,:interval]
+@test predict(blup,interval=:prediction,text=true,combine=true)[!,:interval] == predict(blup_bis,interval=:prediction,text=true,combine=true)[!,:interval]
+@test predict(blup,text=true)[!,:prediction] == predict(blup_bis,text=true)[!,:prediction]
 
 dfr = DataFrame(trait=Y, tipnames=tipnam, reg=Y)
 @test_throws ErrorException ancestralreconstruction(dfr, net) # cannot handle a predictor
@@ -550,10 +550,10 @@ dfr2 = dfr[[5,4,9,2,6,12,8,11,7,1,3,10], :]
 phynetlm = phylolm(@formula(trait~1), dfr2, net)
 blup2 = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(phynetlm))
 
-@test expectations(blup)[1:length(blup.nodenumbers),:condExpectation] ≈ expectations(blup2)[1:length(blup.nodenumbers),:condExpectation]
+@test predict(blup)[1:length(blup.nodenumbers),:prediction] ≈ predict(blup2)[1:length(blup.nodenumbers),:prediction]
 @test blup.traits_tips[phynetlm.ind] ≈ blup2.traits_tips
 @test blup.tipnumbers[phynetlm.ind] ≈ blup2.tipnumbers
-@test predint(blup)[1:length(blup.nodenumbers), :] ≈ predint(blup2)[1:length(blup.nodenumbers), :]
+@test predict(blup,interval=:prediction)[1:length(blup.nodenumbers), :] ≈ predict(blup2,interval=:prediction)[1:length(blup.nodenumbers), :]
 
 # With unknown tips
 allowmissing!(dfr, :trait)
@@ -567,14 +567,14 @@ dfr2 = dfr[[1, 2, 5, 3, 4, 6, 7, 8, 9, 10, 11, 12], :]
 phynetlm = phylolm(@formula(trait~1), dfr, net)
 blup2 = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(phynetlm))
 
-@test expectations(blup)[!,:condExpectation] ≈ expectations(blup2)[!,:condExpectation]
-@test predint(blup) ≈ predint(blup2)
-@test predintPlot(blup)[!,:PredInt] == predintPlot(blup2)[!,:PredInt]
-@test predintPlot(blup, withexpectation=true)[!,:PredInt] == predintPlot(blup2, withexpectation=true)[!,:PredInt]
+@test predict(blup)[!,:prediction] ≈ predict(blup2)[!,:prediction]
+@test predict(blup,interval=:prediction) ≈ predict(blup2,interval=:prediction)
+@test predict(blup,interval=:prediction,text=true)[!,:interval] == predict(blup2,interval=:prediction,text=true)[!,:interval]
+@test predict(blup,interval=:prediction,text=true,combine=true)[!,:interval] == predict(blup2,interval=:prediction,text=true,combine=true)[!,:interval]
 
 # Test mark on missing
-ee = expectationsPlot(blup)
-predMiss = ee[indexin([n.number for n in net.leaf][[2,4]], ee[!,:nodeNumber]),:PredInt]
+ee = predict(blup,text=true)
+predMiss = ee[indexin([n.number for n in net.leaf][[2,4]], ee[!,:nodenumber]),:prediction]
 for pp = predMiss
     @test pp[end] == '*'
 end

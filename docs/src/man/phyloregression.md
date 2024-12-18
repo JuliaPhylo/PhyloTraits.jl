@@ -129,43 +129,43 @@ nothing # hide
 Function [`ancestralreconstruction`](@ref) creates an object with type
 [`ReconstructedStates`](@ref). Several extractors can be applied to it:
 ```@repl tree_trait
-expectations(ancTrait1) # predictions
-using StatsBase     # for stderror(), aic(), likelihood() etc.
+using StatsAPI, StatsBase # for predict and stderror()
+predict(ancTrait1) # predictions
 stderror(ancTrait1) # associated standard errors
-predint(ancTrait1, level=0.90) # prediction interval (at level 90%)
+predict(ancTrait1, interval=:prediction, level=0.90) # prediction interval (at level 90%)
 ```
 We can plot the ancestral states or prediction intervals on the tree, using the
 `nodelabel` argument of the `plot` function.
 ```@example tree_trait
-ancExpe = expectationsPlot(ancTrait1) # data frame, suitable as input for the plot
 R"svg"(name("ancestral_expe.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel=ancExpe, tipoffset=0.1);
+plot(truenet, nodelabel=predict(ancTrait1, text=true), tipoffset=0.1);
 R"dev.off()" # hide
 nothing # hide
 ```
 ![ancestral_expe](../assets/figures/ancestral_expe.svg)
 
 ```@example tree_trait
-ancInt = predintPlot(ancTrait1) # format the prediction intervals for the plot
+ancInt = predict(ancTrait1, interval=:prediction, text=true) # format the prediction intervals for the plot
 R"svg"(name("ancestral_predint.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel=ancInt, tipoffset=0.1);
+plot(truenet, nodelabel=ancInt[!,[:nodenumber,:interval]], tipoffset=0.1);
 R"dev.off()" # hide
 nothing # hide
 ```
 ![ancestral_predint](../assets/figures/ancestral_predint.svg)
 
-The `predint` and `predintPlot` functions have an optional argument to state
+The `predict` function has an optional argument to state
 the `level` of the prediction interval. If not given, the default value is
 0.95.
 
 It is also possible to plot both the reconstructed state and the predicted value
-on the same plot, using the optional keyword argument `withexpectation`.
+on the same plot, using the optional keyword argument `combine`.
 As shown below, we could also use the `RCall` method from the
 [`plot`](https://juliaphylo.github.io/PhyloPlots.jl/stable/lib/public/) function.
 ```@example tree_trait
-plot(truenet, nodelabel = predintPlot(ancTrait1, withexpectation=true), tipoffset=0.1);
+ancInt = predict(ancTrait1, interval=:prediction, text=true, combine=true) 
+plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]], tipoffset=0.1);
 nothing # hide
 ```
 These plots tend to be quite busy, even for small networks.
@@ -175,9 +175,10 @@ estimation. In this example, we see that the 95% prediction (ancestral state
 reconstruction) intervals contain the true simulated value, at all ancestral nodes.
 
 ```@repl tree_trait
-DataFrame(infPred=predint(ancTrait1)[1:7, 1], # lower bound of 95% prediction interval
+pred = predict(ancTrait1, interval=:prediction)[1:7, 1]
+DataFrame(infPred=pred[1:7, :lower], # lower bound of 95% prediction interval
           trueValue=[3.312,4.438,3.922,3.342,2.564,1.315,2.0], # from sim1[:internalnodes] in next section
-          supPred=predint(ancTrait1)[1:7, 2]) # upper bound
+          supPred=pred[1:7, :upper] # upper bound
 ```
 
 ### From estimated parameters
@@ -204,7 +205,7 @@ and the same extractors can be applied to it:
 ```@example tree_trait
 R"svg"(name("ancestral1.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = expectationsPlot(ancTrait1Approx));
+plot(truenet, nodelabel = predict(ancTrait1Approx, text = true));
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -220,9 +221,10 @@ ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
 ```
 ```@example tree_trait
+ancInt = predict(ancTrait1Approx, interval=:prediction, level=0.9, text=true, combine=true) 
 R"svg"(name("ancestral2.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = predintPlot(ancTrait1Approx, level=0.9));
+plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]]);
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -245,9 +247,10 @@ ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
 ```
 ```@example tree_trait
+ancInt = predict(ancTrait1Approx, interval=:prediction, text=true, combine=true) 
 R"svg"(name("ancestral3.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = predintPlot(ancTrait1Approx));
+plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]]);
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -281,9 +284,10 @@ ancTrait3 = ancestralreconstruction(fitTrait3, # model with estimated coefs etc.
 nothing # hide
 ```
 ```@example tree_trait
+ancInt = predict(ancTrait3, interval=:prediction, text=true, combine=true) 
 R"svg"(name("ancestral4.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = predintPlot(ancTrait3));
+plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]]);
 R"dev.off()" # hide
 nothing # hide
 ```

@@ -2354,9 +2354,8 @@ end
 Type containing the inferred information about the law of the ancestral states
 given the observed tips values. The missing tips are considered as ancestral states.
 
-The following functions can be applied to it:
-[`expectations`](@ref) (vector of expectations at all nodes), `stderror` (the standard error),
-`predint` (the prediction interval).
+Reconstructed states and prediction intervals can be recovered with function `predict`,
+and the standard error can be obtained with `stderror`.
 
 The `ReconstructedStates` object has fields: `traits_nodes`, `variances_nodes`, `nodenumbers`, `traits_tips`, `tipnumbers`, `model`.
 Type in "?ReconstructedStates.field" to get help on a specific field.
@@ -2377,56 +2376,78 @@ struct ReconstructedStates
 end
 
 """
-    expectations(obj::ReconstructedStates)
+    predict(obj::ReconstructedStates; interval::Union{Symbol,Nothing}=nothing, level::Real=0.95, text::Bool=false, digits::Int=2, missingmark::AbstractString="*", combine::Bool=false)
 
-Estimated reconstructed states at the nodes and tips.
+Estimated reconstructed states and, if `interval=:prediction`, prediction intervals with level `level` at all internal nodes and missing tips.
+If `text=true`, the prediction and intervals are formated as string for easy plotting with the `nodelabel` argument to
+`plot` from package [`PhyloPlots`](https://github.com/juliaphylo/PhyloPlots.jl).
+In that case,
+`digits` controls the number of digits shown,
+`missingmark` adds a distinctive mark to prediciton of missing tips (set to `missingmark=""` for no mark),
+and if `combine=true`, the prediction and bound of the intervals are combined into a single string.
 """
-function expectations(obj::ReconstructedStates)
-    return DataFrame(nodeNumber = [obj.nodenumbers; obj.tipnumbers], condExpectation = [obj.traits_nodes; obj.traits_tips])
+function StatsAPI.predict(
+    obj::ReconstructedStates;
+    interval::Union{Symbol,Nothing}=nothing,
+    level::Real=0.95,
+    text::Bool=false,
+    digits::Int=2,
+    missingmark::AbstractString="*",
+    combine::Bool=false
+    )
+    res = DataFrame(
+        nodenumber = [obj.nodenumbers; obj.tipnumbers], 
+        prediction = [obj.traits_nodes; obj.traits_tips]
+        )
+    if interval === nothing
+        if text 
+            res[!,:prediction] = string.(round.(res[!,:prediction], digits=digits), getmissingtipmarks(obj, missingmark))
+            return res
+        end
+        return res
+    end
+    if interval === :prediction
+        pp = getpredint(obj; level)
+        res[!,:lower] = pp[:,1]
+        res[!,:upper] = pp[:,2]
+        if text 
+            res[!,:interval] = formatinterval(obj, res, combine, digits)
+            res[!,:prediction] = string.(round.(res[!,:prediction], digits=digits), getmissingtipmarks(obj, missingmark))
+            return res
+        end    
+        return res
+    end
+    throw(ArgumentError("`interval` must be one of `nothing` or `:prediction`."))
 end
 
 """
-    expectationsPlot(obj::ReconstructedStates)
+    getmissingtipmarks(obj::ReconstructedStates, missingmark::AbstractString="*")
 
-Compute and format the expected reconstructed states for the plotting function.
-The resulting dataframe can be readily used as a `nodelabel` argument to
-`plot` from package [`PhyloPlots`](https://github.com/juliaphylo/PhyloPlots.jl).
-Keyword argument `markMissing` is a string that is appended to predicted
-tip values, so that they can be distinguished from the actual datapoints. Default to
-"*". Set to "" to remove any visual cue.
+Create a vector of string, with a `missingmark` for tips that are missing.
 """
-function expectationsPlot(
-    obj::ReconstructedStates;
-    markMissing::AbstractString="*"
-)
-    # Retrieve values
-    expe = expectations(obj)
-    # Format values for plot
-    expetxt = Array{AbstractString}(undef, size(expe, 1))
-    for i=1:size(expe, 1)
-        expetxt[i] = string(round(expe[i, 2], digits=2))
-    end
-    # find tips absent from dataframe or with missing data: add a mark
+function getmissingtipmarks(obj::ReconstructedStates, missingmark::AbstractString="*")
+    nodenumber = [obj.nodenumbers; obj.tipnumbers]
+    ismissingtip = fill("", length(nodenumber))
     if !ismissing(obj.model)
         nonmissing = obj.model.nonmissing
         ind = obj.model.ind
         tipnumbers = obj.model.V.tipnumbers # all tips, even those absent from dataframe
         tipnumbers_data = tipnumbers[ind][nonmissing] # listed and data non-missing
         tipnumbers_imputed = setdiff(tipnumbers, tipnumbers_data)
-        indexMissing = indexin(tipnumbers_imputed, expe[!,:nodeNumber])
-        expetxt[indexMissing] .*= markMissing
+        indexMissing = indexin(tipnumbers_imputed, nodenumber)
+        ismissingtip[indexMissing] .*= missingmark
     end
-    return DataFrame(nodeNumber = [obj.nodenumbers; obj.tipnumbers], PredInt = expetxt)
+    return(ismissingtip)
 end
 
 StatsBase.stderror(obj::ReconstructedStates) = sqrt.(diag(obj.variances_nodes))
 
 """
-    predint(obj::ReconstructedStates; level::Real=0.95)
+    getpredint(obj::ReconstructedStates; level::Real=0.95)
 
 Prediction intervals with level `level` for internal nodes and missing tips.
 """
-function predint(obj::ReconstructedStates; level::Real=0.95)
+function getpredint(obj::ReconstructedStates; level::Real=0.95)
     if ismissing(obj.model)
         qq = quantile(Normal(), (1. - level)/2.)
     else
@@ -2439,37 +2460,28 @@ end
 
 function Base.show(io::IO, obj::ReconstructedStates)
     println(io, "$(typeof(obj)):\n",
-            CoefTable(hcat(vcat(obj.nodenumbers, obj.tipnumbers), vcat(obj.traits_nodes, obj.traits_tips), predint(obj)),
+            CoefTable(hcat(vcat(obj.nodenumbers, obj.tipnumbers), vcat(obj.traits_nodes, obj.traits_tips), getpredint(obj)),
                       ["Node index", "Pred.", "Min.", "Max. (95%)"],
                       fill("", length(obj.nodenumbers)+length(obj.tipnumbers))))
 end
 
 """
-    predintPlot(obj::ReconstructedStates; level::Real=0.95, withexpectation::Bool=false)
+    formatinterval(obj::ReconstructedStates, pred::DataFrame, withexpectation::Bool=false, digits::Int=2)
 
-Compute and format the prediction intervals for the plotting function.
-The resulting dataframe can be readily used as a `nodelabel` argument to
-`plot` from package [`PhyloPlots`](https://github.com/juliaphylo/PhyloPlots.jl).
-Keyworks argument `level` control the confidence level of the
-prediction interval. If `withexpectation` is set to true, then the best
+Format the prediction intervals for the plotting function.
+If `withexpectation` is set to true, then the best
 predicted value is also shown along with the interval.
 """
-function predintPlot(
-    obj::ReconstructedStates;
-    level::Real=0.95,
-    withexpectation::Bool=false
-)
-    pri = predint(obj; level=level)
-    pritxt = Array{AbstractString}(undef, size(pri, 1))
-    withexpectation ? exptxt = expectationsPlot(obj, markMissing="") : exptxt = ""
+function formatinterval(obj::ReconstructedStates, pred::DataFrame, withexpectation::Bool=false, digits::Int=2)
+    pritxt = Array{AbstractString}(undef, size(pred, 1))
     for i in 1:length(obj.nodenumbers)
-        !withexpectation ? sep = ", " : sep = "; " * exptxt[i, 2] * "; "
-        pritxt[i] = "[" * string(round(pri[i, 1], digits=2)) * sep * string(round(pri[i, 2], digits=2)) * "]"
+        !withexpectation ? sep = ", " : sep = "; " * string(round(pred[i,:prediction], digits=digits) )* "; "
+        pritxt[i] = "[" * string(round(pred[i,:lower], digits=digits)) * sep * string(round(pred[i,:upper], digits=digits)) * "]"
     end
-    for i in (length(obj.nodenumbers)+1):size(pri, 1)
-        pritxt[i] = string(round(pri[i, 1], digits=2))
+    for i in (length(obj.nodenumbers)+1):size(pred, 1)
+        pritxt[i] = string(round(pred[i,:prediction], digits=digits))
     end
-    return DataFrame(nodeNumber = [obj.nodenumbers; obj.tipnumbers], PredInt = pritxt)
+    return pritxt
 end
 
 #= ----- roadmap of ancestralreconstruction, continuous traits ------
@@ -2717,103 +2729,61 @@ ReconstructedStates:
          3.0   1.0695     1.0695       1.0695
 ───────────────────────────────────────────────
 
-julia> expectations(ancStates)
-31×2 DataFrame
- Row │ nodeNumber  condExpectation
-     │ Int64       Float64
-─────┼─────────────────────────────
-   1 │         -5         1.32139
-   2 │         -8         1.03258
-   3 │         -7         1.41575
-   4 │         -6         1.39417
-   5 │         -4         1.39961
-   6 │         -3         1.51341
-   7 │        -13         5.3192
-   8 │        -12         4.51176
-  ⋮  │     ⋮              ⋮
-  25 │         10         6.94985
-  26 │         11         4.78323
-  27 │         12         5.33016
-  28 │          1        -0.122604
-  29 │         16         0.73989
-  30 │          9         4.84236
-  31 │          3         1.0695
-                    16 rows omitted
+julia> using StatsBase # for predict function
 
-julia> predint(ancStates)
-31×2 Matrix{Float64}:
- -0.33824     2.98102
- -0.589695    2.65485
- -0.140705    2.97221
- -0.107433    2.89577
- -0.102501    2.90171
- -0.220523    3.24733
-  3.92279     6.71561
-  2.89222     6.13131
- -0.0186118   3.03755
-  0.196069    3.15242
-  ⋮
-  0.542565    0.542565
-  0.773436    0.773436
-  6.94985     6.94985
-  4.78323     4.78323
-  5.33016     5.33016
- -0.122604   -0.122604
-  0.73989     0.73989
-  4.84236     4.84236
-  1.0695      1.0695
-
-julia> expectationsPlot(ancStates) # format the ancestral states
+julia> predict(ancStates)
 31×2 DataFrame
- Row │ nodeNumber  PredInt
-     │ Int64       Abstract… 
-─────┼───────────────────────
-   1 │         -5  1.32
-   2 │         -8  1.03
-   3 │         -7  1.42
-   4 │         -6  1.39
-   5 │         -4  1.4
-   6 │         -3  1.51
-   7 │        -13  5.32
-   8 │        -12  4.51
+ Row │ nodenumber  prediction 
+     │ Int64       Float64    
+─────┼────────────────────────
+   1 │         -5    1.32139
+   2 │         -8    1.03258
+   3 │         -7    1.41575
+   4 │         -6    1.39417
+   5 │         -4    1.39961
+   6 │         -3    1.51341
+   7 │        -13    5.3192
+   8 │        -12    4.51176
   ⋮  │     ⋮           ⋮
-  25 │         10  6.95
-  26 │         11  4.78
-  27 │         12  5.33
-  28 │          1  -0.12
-  29 │         16  0.74
-  30 │          9  4.84
-  31 │          3  1.07
-              16 rows omitted
+  25 │         10    6.94985
+  26 │         11    4.78323
+  27 │         12    5.33016
+  28 │          1   -0.122604
+  29 │         16    0.73989
+  30 │          9    4.84236
+  31 │          3    1.0695
+               16 rows omitted
+
+julia> predict(ancStates, interval = :prediction)
+31×4 DataFrame
+ Row │ nodenumber  prediction  lower       upper     
+     │ Int64       Float64     Float64     Float64   
+─────┼───────────────────────────────────────────────
+   1 │         -5    1.32139   -0.33824     2.98102
+   2 │         -8    1.03258   -0.589695    2.65485
+   3 │         -7    1.41575   -0.140705    2.97221
+   4 │         -6    1.39417   -0.107433    2.89577
+   5 │         -4    1.39961   -0.102501    2.90171
+   6 │         -3    1.51341   -0.220523    3.24733
+   7 │        -13    5.3192     3.92279     6.71561
+   8 │        -12    4.51176    2.89222     6.13131
+  ⋮  │     ⋮           ⋮           ⋮           ⋮
+  25 │         10    6.94985    6.94985     6.94985
+  26 │         11    4.78323    4.78323     4.78323
+  27 │         12    5.33016    5.33016     5.33016
+  28 │          1   -0.122604  -0.122604   -0.122604
+  29 │         16    0.73989    0.73989     0.73989
+  30 │          9    4.84236    4.84236     4.84236
+  31 │          3    1.0695     1.0695      1.0695
+                                      16 rows omitted
 
 julia> using PhyloPlots # next: plot ancestral states on the tree
 
-julia> plot(phy, nodelabel = expectationsPlot(ancStates));
+julia> plot(phy, nodelabel = predict(ancStates));
 
-julia> predintPlot(ancStates) # prediction intervals, in data frame, useful to plot
-31×2 DataFrame
- Row │ nodeNumber  PredInt
-     │ Int64       Abstract…
-─────┼───────────────────────────
-   1 │         -5  [-0.34, 2.98]
-   2 │         -8  [-0.59, 2.65]
-   3 │         -7  [-0.14, 2.97]
-   4 │         -6  [-0.11, 2.9]
-   5 │         -4  [-0.1, 2.9]
-   6 │         -3  [-0.22, 3.25]
-   7 │        -13  [3.92, 6.72]
-   8 │        -12  [2.89, 6.13]
-  ⋮  │     ⋮             ⋮
-  25 │         10  6.95
-  26 │         11  4.78
-  27 │         12  5.33
-  28 │          1  -0.12
-  29 │         16  0.74
-  30 │          9  4.84
-  31 │          3  1.07
-                  16 rows omitted
+julia> pred = predict(ancStates, interval = :prediction, text = true);
 
-julia> plot(phy, nodelabel = predintPlot(ancStates));
+julia> plot(phy, nodelabel = pred[!,[:nodenumber,:interval]]);
 
 julia> allowmissing!(dat, :trait);
 
@@ -2828,43 +2798,29 @@ julia> ancStates = ancestralreconstruction(fitBM);
 │ ignored, so prediction intervals should be larger.
 └ @ PhyloTraits ~/build/JuliaPhylo/PhyloTraits.jl/src/traits_continuous.jl:2601
 
-julia> first(expectations(ancStates), 3) # looking at first 3 nodes only
+julia> first(predict(ancStates), 3) # looking at first 3 nodes only
 3×2 DataFrame
- Row │ nodeNumber  condExpectation 
-     │ Int64       Float64         
-─────┼─────────────────────────────
-   1 │         -5          1.42724
-   2 │         -8          1.35185
-   3 │         -7          1.61993
+ Row │ nodenumber  prediction 
+     │ Int64       Float64    
+─────┼────────────────────────
+   1 │         -5     1.42724
+   2 │         -8     1.35185
+   3 │         -7     1.61993
 
-julia> predint(ancStates)[1:3,:] # just first 3 nodes again
-3×2 Matrix{Float64}:
- -0.373749  3.22824
- -0.698432  3.40214
- -0.17179   3.41165
+julia> first(predict(ancStates, interval=:prediction), 3)
+3×4 DataFrame
+ Row │ nodenumber  prediction  lower      upper   
+     │ Int64       Float64     Float64    Float64 
+─────┼────────────────────────────────────────────
+   1 │         -5     1.42724  -0.373749  3.22824
+   2 │         -8     1.35185  -0.698432  3.40214
+   3 │         -7     1.61993  -0.17179   3.41165
 
-   
-julia> first(expectationsPlot(ancStates),3) # format node <-> ancestral state
-3×2 DataFrame
- Row │ nodeNumber  PredInt   
-     │ Int64       Abstract… 
-─────┼───────────────────────
-   1 │         -5  1.43
-   2 │         -8  1.35
-   3 │         -7  1.62
+julia> plot(phy, nodelabel = predict(ancStates, text=true));
 
-julia> plot(phy, nodelabel = expectationsPlot(ancStates));
+julia> pred = predict(ancStates, interval = :prediction, text = true);
 
-julia> first(predintPlot(ancStates),3) # prediction intervals, useful to plot
-3×2 DataFrame
- Row │ nodeNumber  PredInt       
-     │ Int64       Abstract…     
-─────┼───────────────────────────
-   1 │         -5  [-0.37, 3.23]
-   2 │         -8  [-0.7, 3.4]
-   3 │         -7  [-0.17, 3.41]
-
-julia> plot(phy, nodelabel = predintPlot(ancStates));
+julia> plot(phy, nodelabel = pred[!,[:nodenumber,:interval]]);
 ```
 """
 function ancestralreconstruction(obj::PhyloNetworkLinearModel)

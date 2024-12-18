@@ -61,15 +61,15 @@ anc = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ance
 ancR = CSV.read(joinpath(@__DIR__,"..","examples","caudata_Rphylopars.txt"), DataFrame)
 
 ## Expectations
-expe = expectations(anc)
+expe = predict(anc)
 expeR = ancR[!,:trait]
 # Matching tips ?
-tipsR = expeR[expe[197:393, :nodeNumber]]
-tipsJulia = expe[197:393, :condExpectation]
+tipsR = expeR[expe[197:393, :nodenumber]]
+tipsJulia = expe[197:393, :prediction]
 @test tipsR ≈ tipsJulia
 # Matching nodes ?
-nodesR = expeR[-expe[1:196, :nodeNumber] .+ 196]
-nodesJulia = expe[1:196, :condExpectation]
+nodesR = expeR[-expe[1:196, :nodenumber] .+ 196]
+nodesJulia = expe[1:196, :prediction]
 # below: print for when the test was broken
 #@show nodesR[1:6],    nodesR[190:end]
 #@show nodesJulia[1:6],nodesJulia[190:end]
@@ -80,18 +80,18 @@ vars = diag(anc.variances_nodes)
 # Rphylopars
 varsR = ancR[!,:var]
 # Matching nodes ?
-nodesR = varsR[-expe[1:196, :nodeNumber] .+ 196]
+nodesR = varsR[-expe[1:196, :nodenumber] .+ 196]
 @test nodesR ≈ vars atol=1e-3 ## RK: Small tol !!
 
 ### Ancestral state reconstruction (with Phytools)
 ancRt = CSV.read(joinpath(@__DIR__,"..","examples","caudata_Phytools.txt"), DataFrame)
 
 ## Expectations
-expe = expectations(anc)
+expe = predict(anc)
 expeRt = ancRt[!,:trait]
 # Matching nodes ?
-nodesRt = expeRt[-expe[1:196, :nodeNumber] .+ (196 - 197)]
-nodesJulia = expe[1:196, :condExpectation]
+nodesRt = expeRt[-expe[1:196, :nodenumber] .+ (196 - 197)]
+nodesJulia = expe[1:196, :prediction]
 # below: print for when the test was broken
 #@show nodesRt[1:6],   nodesRt[190:end]
 #@show nodesJulia[1:6],nodesJulia[190:end]
@@ -102,7 +102,7 @@ vars = diag(anc.variances_nodes)
 # Rphylopars
 varsRt = ancRt[!,:var]
 # Matching nodes ?
-nodesRt = varsRt[-expe[1:196, :nodeNumber] .+ (196 - 197)]
+nodesRt = varsRt[-expe[1:196, :nodenumber] .+ (196 - 197)]
 @test nodesRt ≈ vars atol=2e-3 ## RK: Small tol !!
 
 ### Comparison between Rphylopars and Phytools:

@@ -60,8 +60,6 @@ export ancestralreconstruction, ReconstructedStates
 export sigma2_phylo, sigma2_within
 export mu_phylo
 export lambda_estim
-export expectations, expectationsPlot
-export predint, predintPlot
 # discrete traits
 export TraitSubstitutionModel
 export EqualRatesSubstitutionModel, BinaryTraitSubstitutionModel
@@ -83,5 +81,6 @@ include("traits_continuous.jl")
 include("simulate_continuous.jl")
 include("substitutionmodels.jl")
 include("traits_discrete.jl")
+include("deprecated.jl")
 
 end
