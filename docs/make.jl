@@ -1,11 +1,10 @@
 using PhyloTraits
 using Documenter
 
-# NOTE: this installs the dev versions of PhyloNetworks and PhyloPlots for compatibility.
-# To be edited when update to non dev versions.
 using Pkg
-Pkg.add(PackageSpec(name="PhyloNetworks", rev="quartet")) # has v0.17.1
+Pkg.add(PackageSpec(name="PhyloNetworks", rev="master"))
 Pkg.add(PackageSpec(name="PhyloPlots",    rev="master"))
+Pkg.add("CSV")
 
 # Interlink with PhyloNetworks
 using DocumenterInterLinks
