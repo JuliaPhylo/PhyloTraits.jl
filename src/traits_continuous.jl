@@ -1,15 +1,21 @@
 
 """
-    regressorShift(node::Vector{Node}, net::HybridNetwork; checkpreorder=true)
-    regressorShift(edge::Vector{Edge}, net::HybridNetwork; checkpreorder=true)
+    descendencedataframe(node::Vector{Node}, net::HybridNetwork; checkpreorder=true)
+    descendencedataframe(edge::Vector{Edge}, net::HybridNetwork; checkpreorder=true)
+    descendencedataframe(:allhybrids, net::HybridNetwork; checkpreorder=true)
 
 Compute the regressor vectors associated with shifts on edges that are above nodes
 `node`, or on edges `edge`, on a network `net`.
+
+If applied to symbol `:allhybrids`, compute regressor vectors associated with shifts 
+on edges that are immediately below all hybrid nodes of `net`.
+This option can be used to test for heterosis (see examples).
+
 It uses function [`PhyloNetworks.descendencematrix`](@extref), so
 `net` might be modified to sort it in a pre-order.
 Return a `DataFrame` with as many rows as there are tips in net, and a column for
 each shift, each labelled according to the pattern shift_{number_of_edge}. It has
-an aditional column labelled `tipnames` to allow easy fitting afterward (see example).
+an additional column labelled `tipnames` to allow easy fitting afterward (see examples).
 
 # Examples
 ```jldoctest
@@ -59,7 +65,7 @@ julia> dat = DataFrame(trait = [13.391976856737717, 9.55741491696386, 7.17703734
    3 │  7.17704  C
    4 │  7.88906  D
 
-julia> dfr_shift = regressorShift(net.node[nodes_shifts], net) # the regressors matching the shifts.
+julia> dfr_shift = descendencedataframe(net.node[nodes_shifts], net) # the regressors matching the shifts.
 4×3 DataFrame
  Row │ shift_1  shift_8  tipnames 
      │ Float64  Float64  String   
@@ -94,98 +100,11 @@ shift_8      -2.4179     0.422825  -5.72    0.1102   -7.7904     2.95461
 Log Likelihood: 1.8937302027
 AIC: 4.2125395947
 
-```
+julia> ## Simulate data with heterosis
 
-# See also
-[`phylolm`](@ref), [`PhyloNetworks.descendencematrix`](@extref),
-[`regressorHybrid`](@ref).
-"""
-function regressorShift(
-    node::Vector{Node},
-    net::HybridNetwork;
-    checkpreorder::Bool=true
-)
-    T = PN.descendencematrix(net; checkpreorder=checkpreorder)
-    regressorShift(node, net, T)
-end
+julia> nodes_hybrids = indexin([5], [n.number for n in net.node]); # Put a shift on edges below hybrids
 
-function regressorShift(node::Vector{Node},
-                        net::HybridNetwork,
-                        T::MatrixTopologicalOrder)
-    ## Get the descendence matrix for tips
-    T_t = T[:tips]
-    ## Get the indices of the columns to keep
-    ind = zeros(Int, length(node))
-    for (i,nod) in enumerate(node)
-        !nod.hybrid || error("Shifts on hybrid edges are not allowed")
-        ii = findfirst(n -> n===nod, net.vec_node)
-        isnothing(ii) && error("node number $(nod.number) (i=$i) not in preorder list")
-        ind[i] = ii
-    end
-    ## get column names
-    eNum = [getMajorParentEdgeNumber(n) for n in net.vec_node[ind]]
-    function tmp_fun(x::Int)
-        return(Symbol("shift_$(x)"))
-    end
-    df = DataFrame(T_t[:, ind], [tmp_fun(num) for num in eNum])
-    df[!,:tipnames]=T.tipnames
-    return(df)
-end
-
-function regressorShift(
-    edge::Vector{Edge},
-    net::HybridNetwork;
-    checkpreorder::Bool=true
-)
-    childs = [getchild(ee) for ee in edge]
-    return(regressorShift(childs, net; checkpreorder=checkpreorder))
-end
-
-regressorShift(edge::Edge, net::HybridNetwork; checkpreorder::Bool=true) = regressorShift([edge], net; checkpreorder=checkpreorder)
-regressorShift(node::Node, net::HybridNetwork; checkpreorder::Bool=true) = regressorShift([node], net; checkpreorder=checkpreorder)
-
-"""
-    regressorHybrid(net::HybridNetwork; checkpreorder::Bool=true)
-
-Compute the regressor vectors associated with shifts on edges that imediatly below
-all hybrid nodes of `net`.
-It uses [`PhyloNetworks.descendencematrix`](@extref) through
-a call to [`regressorShift`](@ref), so `net` might be modified to sort it in a pre-order.
-Return a `DataFrame` with as many rows as there are tips in net, and a column for
-each hybrid, each labelled according to the pattern shift_{number_of_edge}. It has
-an aditional column labelled `tipnames` to allow easy fitting afterward (see example).
-
-This function can be used to test for heterosis.
-
-# Examples
-```jldoctest
-julia> using DataFrames # Needed to handle data frames.
-
-julia> net = readnewick("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
-
-julia> preorder!(net)
-
-julia> using PhyloPlots
-
-julia> plot(net, shownodenumber=true); # to locate nodes: node 5 is child of hybrid node
-
-julia> nodes_hybrids = indexin([5], [n.number for n in net.node]) # Put a shift on edges below hybrids
-1-element Vector{Union{Nothing, Int64}}:
- 5
-
-julia> params = ParamsBM(10, 0.1, ShiftNet(net.node[nodes_hybrids], [3.0],  net))
-ParamsBM:
-Parameters of a BM with fixed root:
-mu: 10
-Sigma2: 0.1
-
-There are 1 shifts on the network:
-──────────────────────────
-  Edge Number  Shift Value
-──────────────────────────
-          6.0          3.0
-──────────────────────────
-
+julia> params = ParamsBM(10, 0.1, ShiftNet(net.node[nodes_hybrids], [3.0],  net));
 
 julia> using Random; Random.seed!(2468); # sets the seed for reproducibility
 
@@ -204,7 +123,7 @@ julia> dat = DataFrame(trait = [10.391976856737717, 9.55741491696386, 10.1770373
    3 │ 10.177    C
    4 │ 12.6891   D
 
-julia> dfr_hybrid = regressorHybrid(net) # the regressors matching the hybrids.
+julia> dfr_hybrid = descendencedataframe(:allhybrids, net) # the regressors matching the hybrids.
 4×3 DataFrame
  Row │ shift_6  tipnames  sum     
      │ Float64  String    Float64 
@@ -237,18 +156,65 @@ shift_6       2.72526    0.315456   8.64    0.0131    1.36796    4.08256
 ────────────────────────────────────────────────────────────────────────
 Log Likelihood: -0.7006021946
 AIC: 7.4012043891
-
 ```
 
 # See also
-[`phylolm`](@ref), [`PhyloNetworks.descendencematrix`](@extref),
-[`regressorShift`](@ref).
+[`phylolm`](@ref), [`PhyloNetworks.descendencematrix`](@extref).
 """
-function regressorHybrid(net::HybridNetwork; checkpreorder::Bool=true)
-    childs = [getchild(nn) for nn in net.hybrid] # checks that each hybrid node has a single child
-    dfr = regressorShift(childs, net; checkpreorder=checkpreorder)
-    dfr[!,:sum] = sum.(eachrow(select(dfr, Not(:tipnames), copycols=false)))
-    return(dfr)
+function descendencedataframe(
+    node::Vector{Node},
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
+    T = PN.descendencematrix(net; checkpreorder=checkpreorder)
+    descendencedataframe(node, net, T)
+end
+
+function descendencedataframe(
+    node::Vector{Node},
+    net::HybridNetwork,
+    T::MatrixTopologicalOrder
+)
+    ## Get the descendence matrix for tips
+    T_t = T[:tips]
+    ## Get the indices of the columns to keep
+    ind = zeros(Int, length(node))
+    for (i,nod) in enumerate(node)
+        !nod.hybrid || error("Shifts on hybrid edges are not allowed")
+        ii = findfirst(n -> n===nod, net.vec_node)
+        isnothing(ii) && error("node number $(nod.number) (i=$i) not in preorder list")
+        ind[i] = ii
+    end
+    ## get column names
+    eNum = [getMajorParentEdgeNumber(n) for n in net.vec_node[ind]]
+    function tmp_fun(x::Int)
+        return(Symbol("shift_$(x)"))
+    end
+    df = DataFrame(T_t[:, ind], [tmp_fun(num) for num in eNum])
+    df[!,:tipnames]=T.tipnames
+    return(df)
+end
+
+function descendencedataframe(
+    edge::Vector{Edge},
+    net::HybridNetwork;
+    checkpreorder::Bool=true
+)
+    childs = [getchild(ee) for ee in edge]
+    return(descendencedataframe(childs, net; checkpreorder=checkpreorder))
+end
+
+descendencedataframe(edge::Edge, net::HybridNetwork; checkpreorder::Bool=true) = descendencedataframe([edge], net; checkpreorder=checkpreorder)
+descendencedataframe(node::Node, net::HybridNetwork; checkpreorder::Bool=true) = descendencedataframe([node], net; checkpreorder=checkpreorder)
+
+function descendencedataframe(key::Symbol, net::HybridNetwork; checkpreorder::Bool=true)
+    if (key === :allhybrids)
+        childs = [getchild(nn) for nn in net.hybrid] # checks that each hybrid node has a single child
+        dfr = descendencedataframe(childs, net; checkpreorder=checkpreorder)
+        dfr[!,:sum] = sum.(eachrow(select(dfr, Not(:tipnames), copycols=false)))
+        return(dfr)
+    end
+    throw(ArgumentError("`key` must be equal to `:allhybrids`. Otherwise call function with a vector of edges or nodes."))
 end
 
 

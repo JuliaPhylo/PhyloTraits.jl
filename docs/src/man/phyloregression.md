@@ -175,7 +175,7 @@ estimation. In this example, we see that the 95% prediction (ancestral state
 reconstruction) intervals contain the true simulated value, at all ancestral nodes.
 
 ```@repl tree_trait
-pred = predict(ancTrait1, interval=:prediction)[1:7, 1]
+pred = predict(ancTrait1, interval=:prediction);
 DataFrame(
   lower     = pred[1:7, :lower],                         # lower bound of 95% prediction interval
   trueValue = [3.312,4.438,3.922,3.342,2.564,1.315,2.0], # from sim1[:internalnodes] in next section
@@ -424,9 +424,9 @@ nothing # hide
 Let's assume we measured a trait that we hypothesized underwent a shift at
 some or all ancestral reticulations. To test this hypothesis, we can use the 
 custom columns of the [`PhyloNetworks.descendencematrix`](@extref), that can be
-directly defined thanks to function [`regressorHybrid`](@ref).
+directly defined thanks to function [`descendencedataframe`](@ref).
 ```@repl tree_trait
-df_shift = regressorHybrid(truenet) # regressors matching Hybrid Shifts
+df_shift = descendencedataframe(:allhybrids, truenet) # regressors matching Hybrid Shifts
 ```
 This creates a dataframe, with one column for each hybrid node
 in the network, named according to the number of the edge after the

@@ -55,7 +55,7 @@ export phylolm, PhyloNetworkLinearModel
 export rand, TraitSimulation
 export ParamsBM, ParamsMultiBM
 export ShiftNet, shiftHybrid, getshiftedgenumber, getshiftvalue
-export regressorShift, regressorHybrid
+export descendencedataframe
 export ancestralreconstruction, ReconstructedStates
 export sigma2_phylo, sigma2_within
 export mu_phylo
