@@ -2,20 +2,26 @@
 """
     descendencedataframe(node::Vector{Node}, net::HybridNetwork; checkpreorder=true)
     descendencedataframe(edge::Vector{Edge}, net::HybridNetwork; checkpreorder=true)
-    descendencedataframe(:allhybrids, net::HybridNetwork; checkpreorder=true)
+    descendencedataframe(net::HybridNetwork; checkpreorder=true, which=:allhybrids)
 
-Compute the regressor vectors associated with shifts on edges that are above nodes
-`node`, or on edges `edge`, on a network `net`.
+Data frame containing the genomic proportion inherited by each taxon in `net`,
+from each node or edge in the input vector, or from each hybrid node by default
+in the third method. The data frame has 1 row per tip (taxon) in the network
+and the following columns:
+- 1 column per edge or node, with columns named according to the pattern
+  shift_{edge_number}" where `edge_number` is the number of the edge associated
+  with an input edge or node (in which case the parent edge is used)
+- 1 additional column labeled `tipnames`, containing the tip labels.
 
-If applied to symbol `:allhybrids`, compute regressor vectors associated with shifts 
-on edges that are immediately below all hybrid nodes of `net`.
-This option can be used to test for transgressive evolution (see examples).
+The `shift_*` columns in this data frame can be used as regressor vectors
+associated with shifts on input `edge`s or on edges that are above input `node`s.
+With option `which=:allhybrids` in last method, each shift column is associated
+with a hybrid node in `net`, to model a shift on the edge that is immediately
+below the hybrid node. This can be used to test for transgressive evolution:
+see examples below.
 
-It uses function [`PhyloNetworks.descendencematrix`](@extref), so
+These methods use [`PhyloNetworks.descendencematrix`](@extref), so
 `net` might be modified to store a vector of its nodes sorted in a pre-order.
-Return a `DataFrame` with as many rows as there are tips in net, and a column for
-each shift, each labelled according to the pattern shift_{number_of_edge}. It has
-an additional column labelled `tipnames` to allow easy fitting afterward (see examples).
 
 # Examples
 
@@ -133,7 +139,7 @@ julia> dat = DataFrame(trait = [10.391976856737717, 9.55741491696386, 10.1770373
    3 │ 10.177    C
    4 │ 12.6891   D
 
-julia> dfr_hybrid = descendencedataframe(:allhybrids, net) # the regressors matching the hybrids.
+julia> dfr_hybrid = descendencedataframe(net) # the regressors matching the hybrids (all of them)
 4×3 DataFrame
  Row │ shift_6  tipnames  sum     
      │ Float64  String    Float64 
@@ -217,14 +223,19 @@ end
 descendencedataframe(edge::Edge, net::HybridNetwork; checkpreorder::Bool=true) = descendencedataframe([edge], net; checkpreorder=checkpreorder)
 descendencedataframe(node::Node, net::HybridNetwork; checkpreorder::Bool=true) = descendencedataframe([node], net; checkpreorder=checkpreorder)
 
-function descendencedataframe(key::Symbol, net::HybridNetwork; checkpreorder::Bool=true)
-    if (key === :allhybrids)
+function descendencedataframe(
+    net::HybridNetwork;
+    checkpreorder::Bool=true,
+    which=:allhybrids,
+)
+    if which == :allhybrids
         childs = [getchild(nn) for nn in net.hybrid] # checks that each hybrid node has a single child
         dfr = descendencedataframe(childs, net; checkpreorder=checkpreorder)
         dfr[!,:sum] = sum.(eachrow(select(dfr, Not(:tipnames), copycols=false)))
         return(dfr)
     end
-    throw(ArgumentError("`key` must be equal to `:allhybrids`. Otherwise call function with a vector of edges or nodes."))
+    throw(ArgumentError("""`which` must be equal to `:allhybrids` for now.
+    Otherwise call descendencedataframe with a vector of edges or nodes."""))
 end
 
 

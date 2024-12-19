@@ -426,7 +426,7 @@ some or all ancestral reticulations. To test this hypothesis, we can use the
 custom columns of the [`PhyloNetworks.descendencematrix`](@extref), that can be
 directly defined thanks to function [`descendencedataframe`](@ref).
 ```@repl tree_trait
-df_shift = descendencedataframe(:allhybrids, truenet) # regressors matching Hybrid Shifts
+df_shift = descendencedataframe(truenet) # regressors matching Hybrid Shifts
 ```
 This creates a dataframe, with one column for each hybrid node
 in the network, named according to the number of the edge after the

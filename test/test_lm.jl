@@ -159,8 +159,8 @@ Y = [11.640085037749985, 9.498284887480622, 9.568813792749083, 13.03691672486529
 ## Construct regression matrix
 dfr_shift = descendencedataframe(net.edge[[8,17]], net)
 dfr_shift[!,:sum] = vec(sum(Matrix(dfr_shift[:,findall(DataFrames.propertynames(dfr_shift) .!= :tipnames)]), dims=2))
-dfr_hybrid = descendencedataframe(:allhybrids, net)
-@test_throws ArgumentError descendencedataframe(:something, net) # Wrong key
+dfr_hybrid = descendencedataframe(net; which=:allhybrids)
+@test_throws ArgumentError descendencedataframe(net; which=:something) # wrong 'which'
 
 @test dfr_shift[!,:shift_8] ≈ dfr_hybrid[!,:shift_8]
 @test dfr_shift[!,:shift_17] ≈ dfr_hybrid[!,:shift_17]
