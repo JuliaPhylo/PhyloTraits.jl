@@ -84,8 +84,8 @@ sh = ShiftNet(net.node[7], 3.0,  net)
 @test all(getshiftvalue(sh) .== [3.0])
 
 ## Hybrid shifts
-@test shiftHybrid([2.0], net).shift ≈ ShiftNet(net.edge[6], 2.0, net).shift
-@test shiftHybrid(2.0, net).shift ≈ shiftHybrid([2.0], net).shift
+@test shiftathybrids([2.0], net).shift ≈ ShiftNet(net.edge[6], 2.0, net).shift
+@test shiftathybrids(2.0, net).shift ≈ shiftathybrids([2.0], net).shift
 
 ## Test rand(net, ::ParamsProcess)
 

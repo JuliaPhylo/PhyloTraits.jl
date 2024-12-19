@@ -123,11 +123,11 @@ The constructor can take a single edge and associated value, like here,
 or two vectors of edges and matching values.
 
 Because we often need to put shifts only on edges right after hybrids,
-there is a special function [`shiftHybrid`](@ref) to do that, so that
+there is a special function [`shiftathybrids`](@ref) to do that, so that
 we do not have to find out their edges number. Here, the `shift` object
 could hence have been defined as:
 ```@example sim_BM
-shift = shiftHybrid(5.0,  truenet)
+shift = shiftathybrids(5.0,  truenet)
 ```
 
 The parameters for the simulation are then defined as above, just adding

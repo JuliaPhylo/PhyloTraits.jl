@@ -157,8 +157,8 @@ sh1 = ShiftNet(net.node[7], [1.0, 2.0],  net)*ShiftNet(net.node[9], [3.0, -1.5],
 @test getshiftvalue(sh1) == [3.0 -1.5; 1.0 2.0]
 
 ## Hybrid shifts
-@test shiftHybrid([4.5 2.0], net).shift ≈ ShiftNet(net.edge[6], [4.5, 2.0], net).shift
-@test_throws ErrorException shiftHybrid([4.5 2.0; 3.0 5.0], net) # dimension mismatch
+@test shiftathybrids([4.5 2.0], net).shift ≈ ShiftNet(net.edge[6], [4.5, 2.0], net).shift
+@test_throws ErrorException shiftathybrids([4.5 2.0; 3.0 5.0], net) # dimension mismatch
 
 ## Distributions
 μ = randn(trait_dim)

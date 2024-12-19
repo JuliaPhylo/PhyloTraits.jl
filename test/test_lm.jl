@@ -149,7 +149,7 @@ net = readnewick("(((Ag:5,(#H1:1::0.056,((Ak:2,(E:1,#H2:1::0.004):1):1,(M:2)#H2:
 preorder!(net)
 
 ## Simulate
-params = ParamsBM(10, 0.1, shiftHybrid([3.0, -3.0],  net))
+params = ParamsBM(10, 0.1, shiftathybrids([3.0, -3.0],  net))
 Random.seed!(2468); # sets the seed for reproducibility, to debug potential error
 sim = rand(net, params) # checks for no error, but not used.
 # values simulated using julia v1.6.4's RNG hardcoded below.

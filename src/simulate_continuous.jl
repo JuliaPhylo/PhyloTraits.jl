@@ -228,6 +228,12 @@ function preorderFunctions(::ParamsMultiBM, rng::AbstractRNG)
             hybrid = updateHybridSimulateMBD!(rng))
 end
 
+# used to initialize at the root
+function partitionMBDMatrix(M::Matrix{Float64}, dim::Int)
+    means = @view M[1:dim, :]
+    vals = @view M[(dim + 1):(2 * dim), :]
+    return means, vals
+end
 
 function anyShiftOnRootEdge(shift::ShiftNet)
     nodInd = getshiftrowinds(shift)
