@@ -176,9 +176,11 @@ reconstruction) intervals contain the true simulated value, at all ancestral nod
 
 ```@repl tree_trait
 pred = predict(ancTrait1, interval=:prediction)[1:7, 1]
-DataFrame(infPred=pred[1:7, :lower], # lower bound of 95% prediction interval
-          trueValue=[3.312,4.438,3.922,3.342,2.564,1.315,2.0], # from sim1[:internalnodes] in next section
-          supPred=pred[1:7, :upper] # upper bound
+DataFrame(
+  lower     = pred[1:7, :lower],                         # lower bound of 95% prediction interval
+  trueValue = [3.312,4.438,3.922,3.342,2.564,1.315,2.0], # from sim1[:internalnodes] in next section
+  upper     = pred[1:7, :upper]                          # upper bound
+ )
 ```
 
 ### From estimated parameters
