@@ -56,14 +56,14 @@ julia> phy = readnewick("(A:2.5,((U:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):
 julia> par = ParamsBM(1, 0.1) # BM with expectation 1 and variance 0.1.
 ParamsBM:
 Parameters of a BM with fixed root:
-mu: 1
+mu: 1.0
 Sigma2: 0.1
 
 
 julia> sim = rand(phy, par) # simulate along the network
 TraitSimulation:
 Trait simulation results on a network with 4 tips, using a BM model, with parameters:
-mu: 1
+mu: 1.0
 Sigma2: 0.1
 ```
 
