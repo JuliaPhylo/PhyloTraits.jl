@@ -9,16 +9,17 @@ Compute the regressor vectors associated with shifts on edges that are above nod
 
 If applied to symbol `:allhybrids`, compute regressor vectors associated with shifts 
 on edges that are immediately below all hybrid nodes of `net`.
-This option can be used to test for heterosis (see examples).
+This option can be used to test for transgressive evolution (see examples).
 
 It uses function [`PhyloNetworks.descendencematrix`](@extref), so
-`net` might be modified to sort it in a pre-order.
+`net` might be modified to store a vector of its nodes sorted in a pre-order.
 Return a `DataFrame` with as many rows as there are tips in net, and a column for
 each shift, each labelled according to the pattern shift_{number_of_edge}. It has
 an additional column labelled `tipnames` to allow easy fitting afterward (see examples).
 
 # Examples
-```jldoctest
+
+```jldoctest descendence
 julia> net = readnewick("(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);");
 
 julia> preorder!(net)
@@ -99,9 +100,13 @@ shift_8      -2.4179     0.422825  -5.72    0.1102   -7.7904     2.95461
 ────────────────────────────────────────────────────────────────────────
 Log Likelihood: 1.8937302027
 AIC: 4.2125395947
+```
 
-julia> ## Simulate data with heterosis
+Next we illustrate the model with heterosis, aka transgressive evolution: with
+a shift in the trait after successful hybridization.
+First how to simulated according to this model:
 
+```jldoctest descendence
 julia> nodes_hybrids = indexin([5], [n.number for n in net.node]); # Put a shift on edges below hybrids
 
 julia> params = ParamsBM(10, 0.1, ShiftNet(net.node[nodes_hybrids], [3.0],  net));
@@ -111,9 +116,14 @@ julia> using Random; Random.seed!(2468); # sets the seed for reproducibility
 julia> sim = rand(net, params); # simulate a dataset with shifts
 
 julia> dat = DataFrame(trait = sim[:tips], tipnames = sim.M.tipnames);
+```
 
+and next how to analyze data under a transgressive evolution model.
+Below we hard-code data values for more reproducibility.
+
+```jldoctest descendence
 julia> dat = DataFrame(trait = [10.391976856737717, 9.55741491696386, 10.17703734817448, 12.689062527849698],
-          tipnames = ["A","B","C","D"]) # hard-code values for more reproducibility
+          tipnames = ["A","B","C","D"])
 4×2 DataFrame
  Row │ trait     tipnames 
      │ Float64   String   

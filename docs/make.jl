@@ -1,11 +1,6 @@
 using PhyloTraits
 using Documenter
 
-using Pkg
-Pkg.add(PackageSpec(name="PhyloNetworks", rev="master"))
-Pkg.add(PackageSpec(name="PhyloPlots",    rev="master"))
-Pkg.add("CSV")
-
 # Interlink with PhyloNetworks
 using DocumenterInterLinks
 links = InterLinks(
