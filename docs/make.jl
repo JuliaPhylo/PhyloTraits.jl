@@ -10,7 +10,6 @@ links = InterLinks(
 # NOTE: default loading of PhyloNetworks in all docstring examples
 DocMeta.setdocmeta!(PhyloTraits, :DocTestSetup, :(using PhyloNetworks, PhyloTraits); recursive=true)
 
-
 makedocs(;
     modules=[PhyloTraits],
     authors="Cecile Ane <cecileane@users.noreply.github.com>, Paul Bastide <pbastide@users.noreply.github.com>, and contributors",
@@ -31,6 +30,10 @@ makedocs(;
             "Discrete trait analysis" => "man/fitDiscrete.md",
             "DNA evolutionary models" => "man/fitdiscreteDNA.md",
             "Discrete trait simulation" => "man/simulate_discrete.md",
+        ],
+        "Library" => [
+            "public" => "lib/public.md",
+            "internals" => "lib/internal.md",
         ]
     ],
     plugins=[links],

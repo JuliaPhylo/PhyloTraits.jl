@@ -35,6 +35,8 @@ Quick links for methods about trait evolution on networks:
 
 ## Manual
 
+For a tutorial, see this manual.
+
 ```@contents
 Pages = [
     "man/phyloregression.md",
@@ -48,9 +50,12 @@ Depth = 3
 
 ## Library
 
-```@index
-```
+For help on individual functions, see this library.
 
-```@autodocs
-Modules = [PhyloTraits]
+```@contents
+Pages = [
+    "lib/public.md",
+    "lib/internal.md",
+]
+Depth = 3
 ```
