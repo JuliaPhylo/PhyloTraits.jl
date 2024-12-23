@@ -82,6 +82,5 @@ include("traits_continuous.jl")
 include("simulate_continuous.jl")
 include("models_substitutions.jl")
 include("traits_discrete.jl")
-include("deprecated.jl")
 
 end
