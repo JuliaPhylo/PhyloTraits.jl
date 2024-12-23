@@ -78,8 +78,9 @@ export empiricalDNAfrequencies
 
 include("nloptsummary.jl")
 include("models_continuous.jl")
-include("traits_continuous.jl")
+include("fit_phylolm_continuous.jl")
 include("simulate_continuous.jl")
+include("ancestral_continuous.jl")
 include("models_substitutions.jl")
 include("traits_discrete.jl")
 
