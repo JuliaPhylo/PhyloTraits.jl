@@ -82,6 +82,7 @@ include("fit_phylolm_continuous.jl")
 include("simulate_continuous.jl")
 include("ancestral_continuous.jl")
 include("models_substitutions.jl")
-include("traits_discrete.jl")
+include("fit_discrete.jl")
+include("ancestral_posterior_discrete.jl")
 
 end
