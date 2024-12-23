@@ -1,9 +1,9 @@
 runall = false;
-@testset "Testing traits_discrete" begin
+@testset "discrete" begin
 
 net_caudata_47taxa_string = "((((((((((((((Ae_caudata_Tr275,Ae_caudata_Tr276),Ae_caudata_Tr139))#H1,#H2),(((Ae_umbellulata_Tr266,Ae_umbellulata_Tr257),Ae_umbellulata_Tr268),#H1)),((Ae_comosa_Tr271,Ae_comosa_Tr272),(((Ae_uniaristata_Tr403,Ae_uniaristata_Tr357),Ae_uniaristata_Tr402),Ae_uniaristata_Tr404))),(((Ae_tauschii_Tr352,Ae_tauschii_Tr351),(Ae_tauschii_Tr180,Ae_tauschii_Tr125)),(((((((Ae_longissima_Tr241,Ae_longissima_Tr242),Ae_longissima_Tr355),(Ae_sharonensis_Tr265,Ae_sharonensis_Tr264)),((Ae_bicornis_Tr408,Ae_bicornis_Tr407),Ae_bicornis_Tr406)),((Ae_searsii_Tr164,Ae_searsii_Tr165),Ae_searsii_Tr161)))#H2,#H4))),(((T_boeoticum_TS8,(T_boeoticum_TS10,T_boeoticum_TS3)),T_boeoticum_TS4),((T_urartu_Tr315,T_urartu_Tr232),(T_urartu_Tr317,T_urartu_Tr309)))),(((((Ae_speltoides_Tr320,Ae_speltoides_Tr323),Ae_speltoides_Tr223),Ae_speltoides_Tr251))H3,((((Ae_mutica_Tr237,Ae_mutica_Tr329),Ae_mutica_Tr244),Ae_mutica_Tr332))#H4))),Ta_caputMedusae_TB2),S_vavilovii_Tr279),Er_bonaepartis_TB1),H_vulgare_HVens23);"
 
-@testset "Testing Substitution Models, P and Q matrices" begin
+@testset "substitution Models, P and Q matrices" begin
 
 m1 = BinaryTraitSubstitutionModel(1.0, 2.0);
 @test_logs show(devnull, m1)
@@ -97,7 +97,7 @@ PhyloTraits.setpinv!(rv, 0.05)
 @test_throws ErrorException RateVariationAcrossSites(:unknown)
 end
 
-@testset "Testing random discrete trait simulation" begin
+@testset "random discrete trait simulation" begin
 
 m1 = BinaryTraitSubstitutionModel(1.0,2.0, ["carnivory", "non-carnivory"]);
 m2 = EqualRatesSubstitutionModel(4, [3.0], ["S1","S2","S3","S4"]);
@@ -165,7 +165,7 @@ end
 
 end
 
-@testset "Test discrete likelihood, fixed topology" begin
+@testset "discrete likelihood, fixed topology" begin
 
 # test on a tree
 #=
@@ -344,7 +344,7 @@ pltw = [-0.08356534477069566, -2.5236181051014333]
 
 end # end of testset, fixed topology
 
-@testset "testing readfastatodna" begin
+@testset "readfastatodna" begin
 fastafile = joinpath(@__DIR__, "..", "examples", "test_8_withrepeatingsites.aln")
 #fastafile = abspath(joinpath(dirname(Base.find_package("PhyloTraits")), "..", "examples", "test_8_withrepeatingsites.aln"))
 dat, weights = readfastatodna(fastafile, true);
@@ -726,7 +726,7 @@ o, dna_net = @test_logs (:warn, "the network contains taxa with no data: those w
 @test size(dat2) == (22,)
 end # of traitlabels2indices
 
-@testset "testing prep and wrapper functions" begin
+@testset "prep and wrappers" begin
 # read in data
 #at home: fastafile = joinpath(@__DIR__, "../../dev/PhyloNetworks/", "examples", "Ae_bicornis_Tr406_Contig10132.aln") #small data
 fastafile = joinpath(@__DIR__, "..", "examples", "Ae_bicornis_Tr406_Contig10132.aln")
@@ -762,7 +762,7 @@ test_SSM = (@test_logs (:warn, r"pruned") match_mode=:any PhyloTraits.Statistica
 
 end #of testing prep and wrapper functions
 
-@testset "testing fit! functions for full network optimization" begin
+@testset "fit! for full network optimization" begin
 # read in data #
 #test
 #fastafile = joinpath(@__DIR__, "../../dev/PhyloNetworks/", "examples", "Ae_bicornis_Tr406_Contig10132.aln") #small data
