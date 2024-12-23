@@ -157,10 +157,10 @@ sim = rand(net, params) # checks for no error, but not used.
 Y = [11.640085037749985, 9.498284887480622, 9.568813792749083, 13.036916724865296, 6.873936265709946, 6.536647349405742, 5.95771939864956, 10.517318306450647, 9.34927049737206, 10.176238483133424, 10.760099940744308, 8.955543827353837]
 
 ## Construct regression matrix
-dfr_shift = descendencedataframe(net.edge[[8,17]], net)
+dfr_shift = descendencedataframe(net, net.edge[[8,17]])
 dfr_shift[!,:sum] = vec(sum(Matrix(dfr_shift[:,findall(DataFrames.propertynames(dfr_shift) .!= :tipnames)]), dims=2))
-dfr_hybrid = descendencedataframe(net; which=:allhybrids)
-@test_throws ArgumentError descendencedataframe(net; which=:something) # wrong 'which'
+dfr_hybrid = descendencedataframe(net)
+@test_throws ArgumentError descendencedataframe(net, :something) # wrong 'which'
 
 @test dfr_shift[!,:shift_8] ≈ dfr_hybrid[!,:shift_8]
 @test dfr_shift[!,:shift_17] ≈ dfr_hybrid[!,:shift_17]

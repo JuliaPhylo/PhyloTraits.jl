@@ -1132,13 +1132,14 @@ end
 ## Regression matrices for ANOVA / shifts
 
 """
-    descendencedataframe(node::Vector{Node}, net::HybridNetwork; checkpreorder=true)
-    descendencedataframe(edge::Vector{Edge}, net::HybridNetwork; checkpreorder=true)
-    descendencedataframe(net::HybridNetwork; checkpreorder=true, which=:allhybrids)
+    descendencedataframe(net::HybridNetwork, which=:allhybrids; checkpreorder=true)
+    descendencedataframe(net::HybridNetwork, node::Vector{Node}; checkpreorder=true)
+    descendencedataframe(net::HybridNetwork, edge::Vector{Edge}; checkpreorder=true)
 
 Data frame containing the genomic proportion inherited by each taxon in `net`,
-from each node or edge in the input vector, or from each hybrid node by default
-in the third method. The data frame has 1 row per tip (taxon) in the network
+from each hybrid node by default in the first method,
+or from each node or edge in the input vector in the second and third methods.
+The data frame has 1 row per tip (taxon) in the network
 and the following columns:
 - 1 column per edge or node, with columns named according to the pattern
   shift_{edge_number}" where `edge_number` is the number of the edge associated
@@ -1204,7 +1205,7 @@ julia> dat = DataFrame(trait = [13.391976856737717, 9.55741491696386, 7.17703734
    3 │  7.17704  C
    4 │  7.88906  D
 
-julia> dfr_shift = descendencedataframe(net.node[nodes_shifts], net) # the regressors matching the shifts.
+julia> dfr_shift = descendencedataframe(net, net.node[nodes_shifts]) # the regressors matching the shifts.
 4×3 DataFrame
  Row │ shift_1  shift_8  tipnames 
      │ Float64  Float64  String   
@@ -1310,17 +1311,17 @@ AIC: 7.4012043891
 [`phylolm`](@ref), [`PhyloNetworks.descendencematrix`](@extref).
 """
 function descendencedataframe(
-    node::Vector{Node},
-    net::HybridNetwork;
+    net::HybridNetwork,
+    node::Vector{Node};
     checkpreorder::Bool=true
 )
     T = PN.descendencematrix(net; checkpreorder=checkpreorder)
-    descendencedataframe(node, net, T)
+    descendencedataframe(net, node, T)
 end
 
 function descendencedataframe(
-    node::Vector{Node},
     net::HybridNetwork,
+    node::Vector{Node},
     T::MatrixTopologicalOrder
 )
     ## Get the descendence matrix for tips
@@ -1344,25 +1345,25 @@ function descendencedataframe(
 end
 
 function descendencedataframe(
-    edge::Vector{Edge},
-    net::HybridNetwork;
+    net::HybridNetwork,
+    edge::Vector{Edge};
     checkpreorder::Bool=true
 )
     childs = [getchild(ee) for ee in edge]
-    return(descendencedataframe(childs, net; checkpreorder=checkpreorder))
+    return(descendencedataframe(net, childs; checkpreorder=checkpreorder))
 end
 
-descendencedataframe(edge::Edge, net::HybridNetwork; checkpreorder::Bool=true) = descendencedataframe([edge], net; checkpreorder=checkpreorder)
-descendencedataframe(node::Node, net::HybridNetwork; checkpreorder::Bool=true) = descendencedataframe([node], net; checkpreorder=checkpreorder)
+descendencedataframe(net::HybridNetwork, edge::Edge; checkpreorder::Bool=true) = descendencedataframe(net, [edge]; checkpreorder=checkpreorder)
+descendencedataframe(net::HybridNetwork, node::Node; checkpreorder::Bool=true) = descendencedataframe(net, [node]; checkpreorder=checkpreorder)
 
 function descendencedataframe(
-    net::HybridNetwork;
+    net::HybridNetwork,
+    which=:allhybrids;
     checkpreorder::Bool=true,
-    which=:allhybrids,
 )
     if which == :allhybrids
         childs = [getchild(nn) for nn in net.hybrid] # checks that each hybrid node has a single child
-        dfr = descendencedataframe(childs, net; checkpreorder=checkpreorder)
+        dfr = descendencedataframe(net, childs; checkpreorder=checkpreorder)
         dfr[!,:sum] = sum.(eachrow(select(dfr, Not(:tipnames), copycols=false)))
         return(dfr)
     end

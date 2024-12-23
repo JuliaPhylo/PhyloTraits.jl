@@ -250,7 +250,7 @@ phy = readnewick(joinpath(@__DIR__, "..", "examples", "caudata_tree.txt"));
 dat = CSV.read(joinpath(@__DIR__,"..","examples","caudata_trait.txt"), DataFrame)
 
 ## Add some shifts in the model
-df_shift = descendencedataframe(phy.edge[[98, 326, 287]], phy)
+df_shift = descendencedataframe(phy, phy.edge[[98, 326, 287]])
 dat = innerjoin(dat, df_shift, on=:tipnames)
 ## Fit a BM
 fitBM = phylolm(@formula(trait ~ shift_98 + shift_326 + shift_287), dat, phy; reml=false)
