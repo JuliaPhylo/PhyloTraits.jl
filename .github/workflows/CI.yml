@@ -74,5 +74,5 @@ jobs:
         run: |
           using Documenter: DocMeta, doctest
           using PhyloTraits
-          DocMeta.setdocmeta!(PhyloTraits, :DocTestSetup, :(using PhyloTraits); recursive=true)
+          DocMeta.setdocmeta!(PhyloTraits, :DocTestSetup, :(using PhyloTraits; using PhyloNetworks); recursive=true)
           doctest(PhyloTraits)

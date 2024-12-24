@@ -8,7 +8,11 @@ links = InterLinks(
 )
 
 # NOTE: default loading of PhyloNetworks in all docstring examples
-DocMeta.setdocmeta!(PhyloTraits, :DocTestSetup, :(using PhyloNetworks, PhyloTraits); recursive=true)
+DocMeta.setdocmeta!(
+    PhyloTraits,
+    :DocTestSetup,
+    :(using PhyloNetworks; using PhyloTraits);
+    recursive=true)
 
 makedocs(;
     modules=[PhyloTraits],
