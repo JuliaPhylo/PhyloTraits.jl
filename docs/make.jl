@@ -46,4 +46,5 @@ makedocs(;
 deploydocs(;
     repo="github.com/JuliaPhylo/PhyloTraits.jl",
     devbranch="main",
+    push_preview = true,
 )
