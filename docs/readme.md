@@ -139,4 +139,4 @@ links = InterLinks(
 )
 ```
 
-Now `@ref` can be used to reference things in `PhyloNetworks`!
+The `links` object is then used in the `plugins` argument of the `makedocs` function found in `make.jl`. Now `@ref` can be used to reference things in `PhyloNetworks`!
