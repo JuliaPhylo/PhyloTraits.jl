@@ -367,7 +367,7 @@ model = TwoBinaryTraitSubstitutionModel([2.0,1.2,1.1,2.2,1.0,3.1,2.0,1.1],
         ["carnivory", "noncarnivory", "wet", "dry"]);
 model
 using PhyloPlots
-plot(model) # to visualize states and rates
+plot(model) # to visualize states and rates. not supported with PhyloPlots v2.0.0. requires PhyloPlots v1.0.0
 ```
 """
 struct TwoBinaryTraitSubstitutionModel <: TraitSubstitutionModel{String}
