@@ -126,3 +126,17 @@ big difference:
 The first version will look for a *section* header "blabla", to link to that section.
 The secon version will look for a *function* named "blabla",
 to link to the documentation for that function.
+
+### external references
+
+References to functions from external packages are handled with the `DocumenterInterLinks` package. To set up external references, the `make.jl` needs to be modified to include the package for referencing. For example, to make references to functions in `PhyloNetworks`, the `make.jl` file has the additional lines of code:
+
+```
+# Interlink with PhyloNetworks
+using DocumenterInterLinks
+links = InterLinks(
+    "PhyloNetworks" => "https://juliaphylo.github.io/PhyloNetworks.jl/stable/objects.inv"
+)
+```
+
+Now `@ref` can be used to reference things in `PhyloNetworks`!
