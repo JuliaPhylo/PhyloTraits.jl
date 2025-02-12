@@ -1,17 +1,51 @@
 # PhyloTraits: trait evolution along phylogenies
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaPhylo.github.io/PhyloTraits.jl/stable/)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaPhylo.github.io/PhyloTraits.jl/dev/)
-[![Build Status](https://github.com/JuliaPhylo/PhyloTraits.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/JuliaPhylo/PhyloTraits.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/JuliaPhylo/PhyloTraits.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaPhylo/PhyloTraits.jl)
-[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
-[![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
-[![PkgEval](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/P/PhyloTraits.svg)](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/P/PhyloTraits.html)
-[![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+|**Documentation**| **Build Status** |**Code Coverage**| **Style Guide** |
+|:---------------:|:----------------:|:---------------:|:----------------|
+|[![stable][docs-stable-img]][docs-stable-url] [![dev][docs-dev-img]][docs-dev-url] | [![build][build-img]][build-url] [![PkgEval][pgkeval-img]][pgkeval-url] [![aqua][aqua-img]][aqua-url] | [![coverage][codecov-img]][codecov-url] | [![Code Style: Blue][style-img]][style-url] [![collaborative][colprac-img]][colprac-url]
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://JuliaPhylo.github.io/PhyloTraits.jl/stable/
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://JuliaPhylo.github.io/PhyloTraits.jl/dev/
+
+[build-img]: https://github.com/JuliaPhylo/PhyloTraits.jl/actions/workflows/CI.yml/badge.svg?branch=main
+[build-url]: https://github.com/JuliaPhylo/PhyloTraits.jl/actions/workflows/CI.yml?query=branch%3Amain
+[pgkeval-img]: https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/P/PhyloTraits.svg
+[pgkeval-url]: https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/P/PhyloTraits.html
+[aqua-img]: https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg
+[aqua-url]: https://github.com/JuliaTesting/Aqua.jl
+
+[codecov-img]: https://codecov.io/gh/JuliaPhylo/PhyloTraits.jl/branch/main/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/JuliaPhylo/PhyloTraits.jl
+
+[style-img]: https://img.shields.io/badge/code%20style-blue-4495d1.svg
+[style-url]: https://github.com/invenia/BlueStyle
+<!-- ColPrac: Contributor's Guide on Collaborative Practices for Community Packages -->
+[colprac-img]: https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet
+[colprac-url]: https://github.com/SciML/ColPrac
 
 [Julia](http://julialang.org/) package for the analysis of trait evolution along
 a phylogeny, including phylogenetic networks. It depends on utilities from
 [PhyloNetworks](https://github.com/JuliaPhylo/PhyloNetworks.jl).
+
+## Quick start
+
+To install & use the package, install [Julia](https://julialang.org/downloads/)
+then type, within a Julia session:
+```julia-repl
+julia> using PhyloTraits
+```
+The first time, julia will be prompt you for package installation.
+
+Then follow the [latest documentation][docs-dev-url].
+These tutorials below may be useful, but use the older functions previously
+in PhyloNetworks v0.16, and some function names and options will need to be
+adjusted:
+- [PhyloNetworks' wiki](https://github.com/JuliaPhylo/PhyloNetworks.jl/wiki/Continuous-trait-evolution)
+  on continuous trait evolution
+- [tutorial](https://cecileane.github.io/networkPCM-workshop/) for
+  comparative methods, including network calibration (2023 workshop)
 
 ## Citing
 
@@ -48,4 +82,4 @@ ancestral state reconstruction, rates):
 
 > [!NOTE]
 > Much of this package was formerly part of PhyloNetworks v0.16.4 (and prior).
-> PhyloNetworks v0.17 will be stripped of functions for trait evolution.
+> PhyloNetworks v0.17, 1.0 (and later) are stripped of functions for trait evolution.
