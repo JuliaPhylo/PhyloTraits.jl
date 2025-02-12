@@ -1,7 +1,7 @@
 # PhyloTraits: trait evolution along phylogenies
 
-|**Documentation**| **Build Status** |**Code Coverage**| **Style Guide** |
-|:---------------:|:----------------:|:---------------:|:----------------|
+|**Documentation**| **Build Status** | **Code Coverage**   | **Style Guide** |
+|:---------------:|:----------------:|:-------------------:|:----------------|
 |[![stable][docs-stable-img]][docs-stable-url] [![dev][docs-dev-img]][docs-dev-url] | [![build][build-img]][build-url] [![PkgEval][pgkeval-img]][pgkeval-url] [![aqua][aqua-img]][aqua-url] | [![coverage][codecov-img]][codecov-url] | [![Code Style: Blue][style-img]][style-url] [![collaborative][colprac-img]][colprac-url]
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
