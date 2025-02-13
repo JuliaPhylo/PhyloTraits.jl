@@ -27,7 +27,8 @@
 
 [Julia](http://julialang.org/) package for the analysis of trait evolution along
 a phylogeny, including phylogenetic networks. It depends on utilities from
-[PhyloNetworks](https://github.com/JuliaPhylo/PhyloNetworks.jl).
+[PhyloNetworks](https://github.com/JuliaPhylo/PhyloNetworks.jl),
+from the [JuliaPhylo](https://github.com/JuliaPhylo) project.
 
 ## Quick start
 
@@ -36,11 +37,15 @@ then type, within a Julia session:
 ```julia-repl
 julia> using PhyloTraits
 ```
-The first time, julia will be prompt you for package installation.
+The first time, julia will prompt you for package installation.
 
 Then follow the [latest documentation][docs-dev-url].
-These tutorials below may be useful, but use the older functions previously
-in PhyloNetworks v0.16, and some function names and options will need to be
+
+## Tutorials and Wiki
+
+The tutorials below may be useful, but use older versions of the functions
+from PhyloNetworks v0.16 (see Note below).
+Some function names and options will need to be
 adjusted:
 - [PhyloNetworks' wiki](https://github.com/JuliaPhylo/PhyloNetworks.jl/wiki/Continuous-trait-evolution)
   on continuous trait evolution
@@ -55,7 +60,7 @@ Below is a short list.
 For continuous traits, analyses based on the Brownian motion process,
 with or without transgressive evolution after reticulations:
 
-- Bastide, Solís-Lemus, Kriebel, Sparks, Ané (2018).
+- Bastide, Solís-Lemus, Kriebel, Sparks & Ané (2018).
   Phylogenetic Comparative Methods for Phylogenetic Networks with Reticulations.
   Systematic Biology, 67(5):800–820.
   [doi:10.1093/sysbio/syy033](https://doi.org/10.1093/sysbio/syy033).
@@ -65,7 +70,7 @@ with or without transgressive evolution after reticulations:
 
 Continuous traits, accounting for within-species variation:
 
-- Benjamin Teo, Jeffrey P. Rose, Paul Bastide & Cécile Ané (2023).
+- Teo, Rose, Bastide & Ané (2023).
   Accounting for intraspecific variation in continuous trait evolution
   on a reticulate phylogeny.
   Bulletin of the Society of Systematic Biologists, 2(3):1-29.
