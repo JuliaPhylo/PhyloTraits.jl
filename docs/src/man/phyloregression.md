@@ -480,7 +480,124 @@ If the most complex model is given first, as done above, the table
 lists the most complex H₁ (with shifts) first, and the null model H₀
 is listed as the second model.
 
----
+## Empirical example: Xiphophorus fishes
+
+ata
+----
+
+*For this section we will use a network on *Xiphophorus* fishes from
+[Bastide et al. (2018)](https://doi.org/10.1093/sysbio/syy033),
+available on [dryad](https://doi.org/10.5061/dryad.nt2g6).
+More specifically, download
+- the time calibrated [network](https://datadryad.org/bitstream/handle/10255/dryad.157964/xiphophorus_networks_calibrated.tre?sequence=1)
+- the [trait](https://datadryad.org/bitstream/handle/10255/dryad.157963/xiphophorus_morphology_Cui_etal_2013.csv?sequence=1)
+  data on sword index and female preference for a sword,
+  originally from [Cui et al. (2013)](https://doi.org/10.1111/evo.12099).
+
+The files are also in the `examples` folder of the `PhyloTraits` package as `xiphophorus_networks_calibrated.tre` and `xiphophorus_morphology_Cui_etal_2013.csv`.
+
+Preparation
+-----------
+
+If not done already, load the packages needed for this analysis:
+```julia
+using PhyloNetworks
+using PhyloTraits
+using PhyloPlots
+using RCall
+using CSV
+using DataFrames
+using StatsAPI,StatsBase
+```
+then read in the networks and the trait data:
+```julia
+examples_path = joinpath(dirname(pathof(PhyloTraits)), "..","examples")
+
+topologies = readmultinewick(joinpath(examples_path,"xiphophorus_networks_calibrated.tre"));
+net3 = topologies[3]; # we will use the network with 3 reticulations
+plot(net3)        # just to look at the network: topology only
+plot(net3;useedgelength=true) # topology + branch lengths
+taxa_net = tipLabels(net3) # extract list of taxa
+```
+
+Sometimes not the trait data and phylogeny have non-overlapping taxa sets. `PhyloTraits` requires the data and phylogeny to have information on the same set of taxa. We will delete the rows in the trait data
+for the taxa that are missing in the network.
+```julia
+dat = CSV.read(joinpath(examples_path,"xiphophorus_morphology_Cui_etal_2013.csv"),DataFrame)
+missing_rows = Integer[]
+for i in reverse(1:nrow(dat))
+    j = findfirst(isequal(dat.tipnames[i]), taxa_net)
+    if isnothing(j) # taxon not found in network
+        println("taxon ", dat.tipnames[i], " (row $i) not found in network")
+        push!(missing_rows,i)
+    end
+end
+dat = dat[setdiff(1:nrow(dat),missing_rows),:]
+
+```
+The snippet above should work fairly generically, assuming that the column with the taxa is labelled `tipnames`.
+Here, it tells us that
+"taxon Xnezahualcoyotl (row 19) not found in network" and thus we want to remove it from our dataset.
+
+### Ancestral state prediction
+
+After fitting a model of trait evolution, we may wish to estimate the character at various internal nodes to gain insight on the ancestral states.
+
+For the ancestral states of the sword index:
+```julia
+dat_si = dat[:, [:tipnames,:sword_index]]
+AS_si = ancestralreconstruction(dat_si, net3)
+R"par(mar=c(.5,.5,.5,.5))";
+plot(net3, nodelabel = predict(AS_si,text=true), xlim=[0,25]);
+AS_si_int = predict(AS_si,interval=:prediction,level=0.90,text=true)
+plot(net3, nodelabel=AS_si_int[!,[:nodenumber,:interval]], useedgelength=true,);
+# compare ancestral state prediction interval to:
+extrema(dat[:,:sword_index])
+```
+
+female preference for a sword:
+```julia
+dat_fp = dat[:, [:preference, :tipnames]]
+AS_fp = ancestralreconstruction(dat_fp, net3)
+plot(net3, nodelabel=predict(AS_fp,text=true), xlim=[0,25]);
+AS_fp_int = predict(AS_si,interval=:prediction,level=0.90,text=true)
+plot(net3, nodelabel=AS_fp_int[!,[:nodenumber,:interval]], useedgelength=true, xlim=[-3,26]);
+extrema(skipmissing(dat[:,:preference]))
+```
+
+### Phylogenetic signal: Pagel's lambda
+-----------------------------------
+
+```julia
+lambda_si = phylolm(@formula(sword_index ~ 1), dat, net3, model="lambda")
+lambda_fp = phylolm(@formula(preference ~ 1),  dat, net3, model="lambda")
+```
+
+### Phylogenetic regression / ANOVA
+
+Does preference influence sword index?
+
+```julia
+@rlibrary ggplot2 # assumes R package ggplot2 already downloaded & installed
+ggplot(dat, aes(x=:preference, y=:sword_index)) + geom_point(alpha=0.9) +
+  xlab("female preference") + ylab("sword index");
+fit_BM = phylolm(@formula(sword_index ~ preference), dat, net3)
+fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model="lambda")
+```
+
+### Transgressive evolution
+
+To evaluate whether there was transgressive evolution that caused trait shifts at reticulation events, we can fit and compare different models of continuous trait evolution. Here we test two different transgressive evolution hypotheses: **1)** a model where the effect of the shift from each hybrid node is the same and **2)** the effect from each hybrid node results in a different shift.
+
+```julia
+df_shift = descendencedataframe(net3) ## regressors matching Hybrid Shifts
+plot(net3, showedgenumber=true, xlim=[0,18]);
+dat3 = leftjoin(dat, df_shift, on = :tipnames)
+fit0 = phylolm(@formula(sword_index ~ 1),   dat3, net3) # no shift
+fit1 = phylolm(@formula(sword_index ~ sum), dat3, net3) # the same shift at hybrid nodes
+fit2 = phylolm(@formula(sword_index ~ shift_24 + shift_37 + shift_45), dat3, net3) # different shifts at hybrid nodes
+ftest(fit2, fit1, fit0)
+```
 
 ### References
 
