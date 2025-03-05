@@ -482,10 +482,7 @@ is listed as the second model.
 
 ## Empirical example: Xiphophorus fishes
 
-ata
-----
-
-*For this section we will use a network on *Xiphophorus* fishes from
+For this section we will use a network on *Xiphophorus* fishes from
 [Bastide et al. (2018)](https://doi.org/10.1093/sysbio/syy033),
 available on [dryad](https://doi.org/10.5061/dryad.nt2g6).
 More specifically, download
@@ -496,11 +493,8 @@ More specifically, download
 
 The files are also in the `examples` folder of the `PhyloTraits` package as `xiphophorus_networks_calibrated.tre` and `xiphophorus_morphology_Cui_etal_2013.csv`.
 
-Preparation
------------
-
 If not done already, load the packages needed for this analysis:
-```julia
+```@repl fish
 using PhyloNetworks
 using PhyloTraits
 using PhyloPlots
@@ -508,21 +502,29 @@ using RCall
 using CSV
 using DataFrames
 using StatsAPI,StatsBase
+using StatsModels
+name(x) = joinpath("..", "assets", "figures", x); # hide
 ```
 then read in the networks and the trait data:
-```julia
+```@repl fish
 examples_path = joinpath(dirname(pathof(PhyloTraits)), "..","examples")
 
 topologies = readmultinewick(joinpath(examples_path,"xiphophorus_networks_calibrated.tre"));
-net3 = topologies[3]; # we will use the network with 3 reticulations
-plot(net3)        # just to look at the network: topology only
-plot(net3;useedgelength=true) # topology + branch lengths
-taxa_net = tipLabels(net3) # extract list of taxa
+net3 = topologies[3]; # we will use the network with 3 reticulations 
+R"svg"(name("net3.svg"), width=8, height=4) # hide
+R"par"(mar=[0,0,0,0]) # hide
+plot(net3;useedgelength=true); # topology + branch lengths
+R"dev.off()" # hide
+taxa_net = tipLabels(net3); # extract list of taxa
 ```
 
-Sometimes not the trait data and phylogeny have non-overlapping taxa sets. `PhyloTraits` requires the data and phylogeny to have information on the same set of taxa. We will delete the rows in the trait data
-for the taxa that are missing in the network.
-```julia
+![net3](../assets/figures/net3.svg)
+
+Sometimes the trait data and phylogeny have non-overlapping taxa sets.
+`PhyloTraits` requires the data and phylogeny to have information on the same set of taxa.
+We will delete the rows in the trait data for the taxa that are missing in the network.
+
+```@repl fish
 dat = CSV.read(joinpath(examples_path,"xiphophorus_morphology_Cui_etal_2013.csv"),DataFrame)
 missing_rows = Integer[]
 for i in reverse(1:nrow(dat))
@@ -544,60 +546,96 @@ Here, it tells us that
 After fitting a model of trait evolution, we may wish to estimate the character at various internal nodes to gain insight on the ancestral states.
 
 For the ancestral states of the sword index:
-```julia
-dat_si = dat[:, [:tipnames,:sword_index]]
-AS_si = ancestralreconstruction(dat_si, net3)
-R"par(mar=c(.5,.5,.5,.5))";
+```@repl fish
+dat_si = dat[:, [:tipnames,:sword_index]];
+AS_si = ancestralreconstruction(dat_si, net3); #the ancestral state estimates
+R"svg"(name("anc_fish_si_est.svg"), width=8, height=4) # hide
+R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel = predict(AS_si,text=true), xlim=[0,25]);
-AS_si_int = predict(AS_si,interval=:prediction,level=0.90,text=true)
-plot(net3, nodelabel=AS_si_int[!,[:nodenumber,:interval]], useedgelength=true,);
+R"dev.off()" # hide
+AS_si_int = predict(AS_si,interval=:prediction,level=0.90,text=true); #getting the 90% credible interval in a nice format for plotting
+R"svg"(name("anc_fish_si_ci.svg"), width=8, height=4) # hide
+R"par(mar=c(.5,.5,.5,.5))"; # hide
+plot(net3, nodelabel=AS_si_int[!,[:nodenumber,:interval]], useedgelength=true);
+R"dev.off()" # hide
 # compare ancestral state prediction interval to:
 extrema(dat[:,:sword_index])
 ```
 
+![anc_fish_si_est](../assets/figures/anc_fish_si_est.svg)
+![anc_fish_si_ci](../assets/figures/anc_fish_si_ci.svg)
+
+
 female preference for a sword:
-```julia
-dat_fp = dat[:, [:preference, :tipnames]]
-AS_fp = ancestralreconstruction(dat_fp, net3)
+```@repl fish
+dat_fp = dat[:, [:preference, :tipnames]];
+AS_fp = ancestralreconstruction(dat_fp, net3);
+R"svg"(name("anc_fish_fp_est.svg"), width=8, height=4) # hide
+R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel=predict(AS_fp,text=true), xlim=[0,25]);
-AS_fp_int = predict(AS_si,interval=:prediction,level=0.90,text=true)
+R"dev.off()" # hide
+AS_fp_int = predict(AS_si,interval=:prediction,level=0.90,text=true);
+R"svg"(name("anc_fish_fp_ci.svg"), width=8, height=4) # hide
+R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel=AS_fp_int[!,[:nodenumber,:interval]], useedgelength=true, xlim=[-3,26]);
+R"dev.off()" # hide
 extrema(skipmissing(dat[:,:preference]))
 ```
+![anc_fish_fp_est](../assets/figures/anc_fish_fp_est.svg)
+![anc_fish_fp_ci](../assets/figures/anc_fish_fp_ci.svg)
+
+
+In both cases, as a rough check for correctness, we can observe that both the estimates for the root state and their credible intervals fall within the extrema of the traits themselves.
+
 
 ### Phylogenetic signal: Pagel's lambda
------------------------------------
 
-```julia
+```@repl fish
 lambda_si = phylolm(@formula(sword_index ~ 1), dat, net3, model="lambda")
 lambda_fp = phylolm(@formula(preference ~ 1),  dat, net3, model="lambda")
 ```
+Since the likelihood is unconstrained, we may observe λ values greater than 1.0.   
+On both traits we observe λ>1.0 when fitting the Pagel's lambda model; consequently, we would interpret the patterns in trait data to have high phylogenetic signal.
+ 
+!!! note "Warnings from PhyloTraits"
+    When fitting a Pagel's lambda model on a network that is not time consistent, 
+    a warning will appear and notify the user that the node heights from the major tree within the network will be used for analysis.
+    Pagel's lambda models assume time consistency, making it important to calibrate a network prior to model fitting.
+    In our case, if we run `getnodeheights(net3)` we will get an error showing that the different path lengths that lead to the time inconsistency is relatively small. The small difference between paths likely results in a minor difference when using the major tree node heights instead of well calibrated heights. 
+
 
 ### Phylogenetic regression / ANOVA
 
 Does preference influence sword index?
 
-```julia
-@rlibrary ggplot2 # assumes R package ggplot2 already downloaded & installed
-ggplot(dat, aes(x=:preference, y=:sword_index)) + geom_point(alpha=0.9) +
-  xlab("female preference") + ylab("sword index");
+```@repl fish
 fit_BM = phylolm(@formula(sword_index ~ preference), dat, net3)
 fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model="lambda")
+lrtest(fit_BM,fit_λ)
 ```
+On both Brownian motion and Pagel's lambda models, 
+we find a positive but statisitcally insignificant, relationship between mate preference and sword index.
+Further, when comparing AIC values between the models, we may conclude that including the extra λ parameter in the Pagel's lambda does not drastically improve the model's ability to explain the patterns in the data.
+Since the Brownian Motion model is nested within the Pagel's lambda model (BM assumes λ=1.0), we can use a likelihood ratio test to more formally conclude that the Pagel's lambda model does not significantly fit the data better than Brownain Motion alone.
+
+
+
 
 ### Transgressive evolution
 
-To evaluate whether there was transgressive evolution that caused trait shifts at reticulation events, we can fit and compare different models of continuous trait evolution. Here we test two different transgressive evolution hypotheses: **1)** a model where the effect of the shift from each hybrid node is the same and **2)** the effect from each hybrid node results in a different shift.
+To evaluate whether there was transgressive evolution that caused trait shifts at reticulation events, we can fit and compare different models of continuous trait evolution.
+Here we test two different transgressive evolution hypotheses: `fit1`, a model where the effect from each hybrid node is the same and `fit2`, a model where the effect from each hybrid node is different.
 
-```julia
-df_shift = descendencedataframe(net3) ## regressors matching Hybrid Shifts
-plot(net3, showedgenumber=true, xlim=[0,18]);
-dat3 = leftjoin(dat, df_shift, on = :tipnames)
+```@repl fish
+df_shift = descendencedataframe(net3); ## regressors matching Hybrid Shifts
+dat3 = leftjoin(dat, df_shift, on = :tipnames); # add the regressors to the data
 fit0 = phylolm(@formula(sword_index ~ 1),   dat3, net3) # no shift
 fit1 = phylolm(@formula(sword_index ~ sum), dat3, net3) # the same shift at hybrid nodes
 fit2 = phylolm(@formula(sword_index ~ shift_24 + shift_37 + shift_45), dat3, net3) # different shifts at hybrid nodes
-ftest(fit2, fit1, fit0)
+ftest(fit0, fit1, fit2)
 ```
+
+From the p-values we might conclude that either transgressive model does not fit the data significantly better than the model without trait shifts. 
 
 ### References
 
