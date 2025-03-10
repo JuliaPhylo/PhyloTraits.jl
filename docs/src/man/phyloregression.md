@@ -647,10 +647,9 @@ Phylogenetic regression can help us anwser the question:
 does preference influence sword index?
 
 ```@repl fish
-@rlibrary ggplot2 # assumes R package ggplot2 already downloaded & installed
-ggplot(dat, aes(x=:preference, y=:sword_index)) + geom_point(alpha=0.9) +
-  xlab("female preference") + ylab("sword index")
-ggsave(name("sword_vs_preference.svg"), device = "svg", width=8, height=4) # hide
+R"svg"(name("sword_vs_preference.svg"), width=8, height=4) # hide
+R"plot($(dat.preference), $(dat.sword_index), xlab = \"female preference\", ylab = \"sword index\")";
+R"dev.off()" # hide
 ```
 ![sword_vs_preference](../assets/figures/sword_vs_preference.svg)
 
