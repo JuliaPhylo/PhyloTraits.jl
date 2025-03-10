@@ -494,17 +494,17 @@ More specifically, download:
 The files are also in the `examples` folder of the `PhyloTraits` package as `xiphophorus_networks_calibrated.tre` and `xiphophorus_morphology_Cui_etal_2013.csv`.
 
 If not done already, load the packages needed for this analysis:
-```@repl fish
-using PhyloNetworks,PhyloTraits,PhyloPlots
-using RCall,CSV,DataFrames
-using StatsAPI,StatsBase,StatsModels
+```@example fish
+using PhyloNetworks, PhyloTraits, PhyloPlots
+using RCall, CSV, DataFrames
+using StatsAPI, StatsBase, StatsModels
 name(x) = joinpath("..", "assets", "figures", x); # hide
 ```
 then read in the networks data:
-```@repl fish
+```@example fish
 examples_path = joinpath(dirname(pathof(PhyloTraits)), "..", "examples");
 topologies = readmultinewick(joinpath(examples_path, "xiphophorus_networks_calibrated.tre"));
-net3 = topologies[3]; # we will use the network with 3 reticulations 
+net3 = topologies[3]; # we will use the network with 3 reticulations
 R"svg"(name("net3.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(net3; useedgelength=true); # topology + branch lengths
@@ -513,13 +513,14 @@ R"dev.off()" # hide
 
 ![net3](../assets/figures/net3.svg)
 
-The file `examples/xiphophorus_networks_calibrated.tre` contains three calibrated networks,
-with 0, 1 or 3 reticulations (see [Bastide et al. (2018)](https://doi.org/10.1093/sysbio/syy033)) for details.
+The file `examples/xiphophorus_networks_calibrated.tre` contains three
+calibrated networks, with 0, 1 or 3 reticulations
+(see [Bastide et al. (2018)](https://doi.org/10.1093/sysbio/syy033) for details).
 In this tutorial, we use the network with 3 reticulations.
 
-We can [PhyloNetworks.rotate!](@extref) some of the nodes to avoid crossing edges and produce a better figure:
+We can [rotate!](@extref PhyloNetworks) some of the nodes to avoid crossing edges and produce a better figure:
 
-```@repl fish
+```@example fish
 rotate!(net3, -4)
 rotate!(net3, -5)
 rotate!(net3, -6)
@@ -535,7 +536,7 @@ R"dev.off()" # hide
 ![net3](../assets/figures/net3_rot.svg)
 
 We can then read in the trait data:
-```@repl fish
+```@example fish
 dat = CSV.read(joinpath(examples_path, "xiphophorus_morphology_Cui_etal_2013.csv"), DataFrame);
 ```
 
@@ -555,14 +556,17 @@ for i in reverse(1:nrow(dat))
 end
 dat = dat[setdiff(1:nrow(dat),missing_rows),:];
 ```
-The snippet above should work fairly generically, assuming that the column with the taxa is labelled `tipnames`.
+The snippet above should work fairly generically, assuming that the column with
+the taxa is labelled `tipnames`.
 Here, it tells us that
-`taxon Xnezahualcoyotl (row 19) not found in network` and thus we removed it from our dataset.
+`taxon Xnezahualcoyotl (row 19) not found in network` and thus our code
+(last line) removed it from our data frame `dat`.
 
 ### Ancestral state prediction
 
 As [seen previsouly](#From-estimated-parameters),
-after fitting a model of trait evolution, we may wish to estimate the character at various internal nodes to gain insight on the ancestral states.
+after fitting a model of trait evolution, we may wish to estimate the character
+at various internal nodes to gain insight on the ancestral states.
 
 For the ancestral states of the sword index:
 ```@repl fish
@@ -570,7 +574,7 @@ dat_si = dat[:, [:tipnames,:sword_index]];
 AS_si = ancestralreconstruction(dat_si, net3); # the ancestral state estimates
 R"svg"(name("anc_fish_si_est.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
-plot(net3, nodelabel = predict(AS_si, text=true), xlim=[0,25]);
+plot(net3, nodelabel = predict(AS_si, text=true), xlim=[0,20]);
 R"dev.off()" # hide
 ```
 ![anc_fish_si_est](../assets/figures/anc_fish_si_est.svg)
@@ -585,10 +589,11 @@ R"dev.off()" # hide
 
 ![anc_fish_si_ci](../assets/figures/anc_fish_si_ci.svg)
 
-Note that here, the first plot ignores branch lengths, while the second one uses them (`useedgelength=true`).
+Note that here, the first plot ignores branch lengths,
+while the second one uses them (`useedgelength=true`).
 
-As a consistency check, we can observe that the ancestral state prediction interval 
-falls within the extrema of the trait itself:
+As a consistency check, we can observe that the ancestral state prediction
+interval falls within the extrema of the trait itself:
 ```@repl fish
 AS_si_int[findfirst(AS_si_int.nodenumber .== -2),:interval]
 extrema(dat[:,:sword_index])
@@ -600,7 +605,7 @@ dat_fp = dat[:, [:preference, :tipnames]];
 AS_fp = ancestralreconstruction(dat_fp, net3);
 R"svg"(name("anc_fish_fp_est.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
-plot(net3, nodelabel=predict(AS_fp,text=true), xlim=[0,25]);
+plot(net3, nodelabel=predict(AS_fp,text=true), xlim=[0,20]);
 R"dev.off()" # hide
 ```
 ![anc_fish_fp_est](../assets/figures/anc_fish_fp_est.svg)
@@ -622,20 +627,30 @@ extrema(skipmissing(dat[:,:preference]))
 
 ### Phylogenetic signal: Pagel's lambda
 
-We can use [Pagel's lambda](#Pagel's-Lambda) transformation to asses the phylogenetic sigal.
+We can use [Pagel's lambda](#Pagel's-Lambda) transformation to asses the
+phylogenetic sigal.
 
 ```@repl fish
 lambda_si = phylolm(@formula(sword_index ~ 1), dat, net3, model="lambda")
 lambda_fp = phylolm(@formula(preference ~ 1),  dat, net3, model="lambda")
 ```
-On both traits we observe λ>1.0 when fitting the Pagel's lambda model; consequently, we would interpret the patterns in trait data to have high phylogenetic signal.
-Note that here, we observe λ values greater than 1.0: the observed value is the maximum value so that the transformation does not produce negative branch lengths.
- 
+On both traits we observe λ>1.0 when fitting the Pagel's lambda model;
+consequently, we would interpret the patterns in trait data to have
+high phylogenetic signal.
+Note that here, we observe λ values greater than 1.0: the observed value is the
+maximum value so that the transformation does not produce negative branch lengths.
+
 !!! note "Warnings from PhyloTraits"
-    When fitting a Pagel's lambda model on a network that is not time consistent, 
-    a warning will appear and notify the user that the node heights from the major tree within the network will be used for analysis.
-    Pagel's lambda models assume time consistency, making it important to calibrate a network prior to model fitting.
-    In our case, if we run `getnodeheights(net3)` we will get an error showing that the different path lengths that lead to the time inconsistency is relatively small. The small difference between paths likely results in a minor difference when using the major tree node heights instead of well calibrated heights. 
+    When fitting a Pagel's lambda model on a network that is not time consistent,
+    a warning will appear and notify the user that the node heights from the
+    major tree within the network will be used for analysis.
+    Pagel's lambda models assume time consistency, making it important to
+    calibrate a network prior to model fitting.
+    In our case, if we run `getnodeheights(net3)` we will get an error showing
+    that the different path lengths that lead to the time inconsistency is
+    relatively small. The small difference between paths likely results in a
+    minor difference when using the major tree node heights instead of
+    well-calibrated heights.
     ```@repl fish
     getnodeheights(net3)
     ```
@@ -647,8 +662,9 @@ Phylogenetic regression can help us anwser the question:
 does preference influence sword index?
 
 ```@repl fish
-R"svg"(name("sword_vs_preference.svg"), width=8, height=4) # hide
-R"plot($(dat.preference), $(dat.sword_index), xlab = \"female preference\", ylab = \"sword index\")";
+R"svg"(name("sword_vs_preference.svg"), width=6, height=6) # hide
+R"par"(mar=[3,2.5,.2,.2], las=1) # reduce margins, defaults are too big
+R"plot"(dat.preference, dat.sword_index, xlab = "female preference", ylab = "sword index");
 R"dev.off()" # hide
 ```
 ![sword_vs_preference](../assets/figures/sword_vs_preference.svg)
@@ -658,18 +674,23 @@ fit_BM = phylolm(@formula(sword_index ~ preference), dat, net3)
 fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model="lambda")
 lrtest(fit_BM,fit_λ)
 ```
-On both Brownian motion and Pagel's lambda models, 
+On both Brownian motion and Pagel's lambda models,
 we find a positive but statisitcally insignificant, relationship between mate preference and sword index.
 
-Further, when comparing AIC values between the models, we may conclude that including the extra λ parameter in the Pagel's lambda does not drastically improve the model's ability to explain the patterns in the data.
-Since the Brownian Motion model is nested within the Pagel's lambda model (BM assumes λ=1.0), we can use a likelihood ratio test to more formally conclude that the Pagel's lambda model does not significantly fit the data better than Brownain Motion alone.
-
-
+Further, when comparing AIC values between the models, we may conclude that
+including the extra λ parameter in the Pagel's lambda does not drastically
+improve the model's ability to explain the patterns in the data.
+Since the Brownian Motion model is nested within the Pagel's lambda model
+(BM assumes λ=1.0), we can use a likelihood ratio test to more formally conclude
+that the Pagel's lambda model does not significantly fit the data better than
+the Brownain Motion alone.
 
 
 ### Transgressive evolution
 
-To evaluate whether there was transgressive evolution that caused trait shifts at reticulation events, we can fit and compare different models of continuous trait evolution.
+To evaluate whether there was transgressive evolution that caused trait shifts
+at reticulation events, we can fit and compare different models of
+continuous trait evolution.
 
 Here we compare three different models:
 - `fit0`: no effect of reticulation events on the trait expectation;
@@ -686,7 +707,8 @@ fit2 = phylolm(@formula(sword_index ~ shift_24 + shift_37 + shift_45), dat3, net
 ftest(fit0, fit1, fit2)
 ```
 
-From the p-values we might conclude that neither transgressive model can fit the data significantly better than the model without trait shifts. 
+From the p-values we might conclude that neither transgressive model can fit
+the data significantly better than the model without trait shifts.
 
 For the female preference, we get:
 ```@repl fish
@@ -697,7 +719,8 @@ ftest(fit0, fit1, fit2)
 ftest(fit0, fit2)
 ```
 
-The heterogeneous model gets some support, with effects in opposite directions (some positive, some negative).
+The heterogeneous model gets some support, with effects in opposite directions
+(some positive, some negative).
 
 ### References
 
