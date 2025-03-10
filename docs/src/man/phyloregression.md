@@ -486,8 +486,8 @@ For this section we will use a network on *Xiphophorus* fishes from
 [Bastide et al. (2018)](https://doi.org/10.1093/sysbio/syy033),
 available on [dryad](https://doi.org/10.5061/dryad.nt2g6).
 More specifically, download
-- the time calibrated [network](https://datadryad.org/bitstream/handle/10255/dryad.157964/xiphophorus_networks_calibrated.tre?sequence=1)
-- the [trait](https://datadryad.org/bitstream/handle/10255/dryad.157963/xiphophorus_morphology_Cui_etal_2013.csv?sequence=1)
+- the time calibrated [network](https://datadryad.org/api/v2/files/343930/download)
+- the [trait](https://datadryad.org/api/v2/files/343929/download)
   data on sword index and female preference for a sword,
   originally from [Cui et al. (2013)](https://doi.org/10.1111/evo.12099).
 
