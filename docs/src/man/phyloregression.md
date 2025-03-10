@@ -518,7 +518,8 @@ calibrated networks, with 0, 1 or 3 reticulations
 (see [Bastide et al. (2018)](https://doi.org/10.1093/sysbio/syy033) for details).
 In this tutorial, we use the network with 3 reticulations.
 
-We can [rotate!](@extref PhyloNetworks) some of the nodes to avoid crossing edges and produce a better figure:
+We can [`rotate!`](@extref PhyloNetworks.rotate!) some of the nodes
+to avoid crossing edges and produce a better figure:
 
 ```@example fish
 rotate!(net3, -4)
