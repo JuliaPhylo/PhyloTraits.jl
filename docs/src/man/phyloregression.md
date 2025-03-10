@@ -1,6 +1,7 @@
 ```@setup tree_trait
 using PhyloNetworks
 using PhyloTraits
+using Suppressor 
 mkpath("../assets/figures")
 ```
 
@@ -202,6 +203,8 @@ nothing # hide
 ```
 The prediction intervals ignore the fact that we estimated the process
 parameters, so they are less accurate and the function throws a warning.
+We can suppress this warning by adding the optional keyword argument
+`verbose = false` in the `ancestralreconstruction` function.
 The output is an object of the same [`ReconstructedStates`](@ref) type as earlier,
 and the same extractors can be applied to it:
 ```@example tree_trait
@@ -219,7 +222,7 @@ with a single call of the function [`ancestralreconstruction`](@ref) on a
 DataFrame with the trait to reconstruct, and the tip labels:
 ```@example tree_trait
 datTrait1 = DataFrame(trait1 = dat[:,:trait1], tipnames = dat[:,:tipnames])
-ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
+ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; verbose = false)
 nothing # hide
 ```
 ```@example tree_trait
@@ -245,7 +248,7 @@ values in trait 1.
 ```@example tree_trait
 allowmissing!(datTrait1, :trait1)
 datTrait1[2, :trait1] = missing; # second row: for taxon C
-ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
+ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; verbose = false)
 nothing # hide
 ```
 ```@example tree_trait
@@ -281,7 +284,8 @@ so we can reconstruct our trait doing the following:
 ancTrait3 = ancestralreconstruction(fitTrait3, # model with estimated coefs etc.
   hcat(ones(7,1),
   [ 3.312, 4.438,  3.922,  3.342,  2.564,  1.315,  2.0], # from sim1[:internalnodes]
-  [-3.62, -0.746, -2.217, -3.612, -2.052, -2.871, -2.0]) # from sim2[:internalnodes]
+  [-3.62, -0.746, -2.217, -3.612, -2.052, -2.871, -2.0]); # from sim2[:internalnodes]
+  verbose = false
 )
 nothing # hide
 ```
@@ -493,6 +497,10 @@ More specifically, download:
 
 The files are also in the `examples` folder of the `PhyloTraits` package as `xiphophorus_networks_calibrated.tre` and `xiphophorus_morphology_Cui_etal_2013.csv`.
 
+```@setup fish
+using Suppressor
+```
+
 If not done already, load the packages needed for this analysis:
 ```@example fish
 using PhyloNetworks, PhyloTraits, PhyloPlots
@@ -633,7 +641,7 @@ phylogenetic sigal.
 
 ```@repl fish
 lambda_si = phylolm(@formula(sword_index ~ 1), dat, net3, model="lambda")
-lambda_fp = phylolm(@formula(preference ~ 1),  dat, net3, model="lambda")
+lambda_fp = phylolm(@formula(preference ~ 1),  dat, net3, model="lambda"; verbose = false)
 ```
 On both traits we observe λ>1.0 when fitting the Pagel's lambda model;
 consequently, we would interpret the patterns in trait data to have
@@ -664,7 +672,7 @@ does preference influence sword index?
 
 ```@repl fish
 R"svg"(name("sword_vs_preference.svg"), width=6, height=6) # hide
-R"par"(mar=[3,2.5,.2,.2], las=1) # reduce margins, defaults are too big
+R"par"(mar=[3,2.5,.2,.2], las=1) # hide # reduce margins, defaults are too big
 R"plot"(dat.preference, dat.sword_index, xlab = "female preference", ylab = "sword index");
 R"dev.off()" # hide
 ```
@@ -672,7 +680,7 @@ R"dev.off()" # hide
 
 ```@repl fish
 fit_BM = phylolm(@formula(sword_index ~ preference), dat, net3)
-fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model="lambda")
+fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model="lambda"; verbose=false)
 lrtest(fit_BM,fit_λ)
 ```
 On both Brownian motion and Pagel's lambda models,
@@ -705,7 +713,9 @@ dat3 = leftjoin(dat, df_shift, on = :tipnames); # add the regressors to the data
 fit0 = phylolm(@formula(sword_index ~ 1),   dat3, net3) # no shift
 fit1 = phylolm(@formula(sword_index ~ sum), dat3, net3) # the same shift at hybrid nodes
 fit2 = phylolm(@formula(sword_index ~ shift_24 + shift_37 + shift_45), dat3, net3) # different shifts at hybrid nodes
+@suppress_err begin # hide 
 ftest(fit0, fit1, fit2)
+end # hide
 ```
 
 From the p-values we might conclude that neither transgressive model can fit
@@ -716,8 +726,10 @@ For the female preference, we get:
 fit0 = phylolm(@formula(preference ~ 1),   dat3, net3) # no shift
 fit1 = phylolm(@formula(preference ~ sum), dat3, net3) # the same shift at hybrid nodes
 fit2 = phylolm(@formula(preference ~ shift_24 + shift_37 + shift_45), dat3, net3) # different shifts at hybrid nodes
+@suppress_err begin # hide
 ftest(fit0, fit1, fit2)
 ftest(fit0, fit2)
+end # hide
 ```
 
 The heterogeneous model gets some support, with effects in opposite directions
