@@ -192,13 +192,14 @@ methods based on simulations with a ParamsProcess "params":
 =#
 
 """
-    ancestralreconstruction(net::HybridNetwork, Y::Vector, params::ParamsBM)
+    ancestralreconstruction(net::HybridNetwork, Y::Vector, params::ParamsBM; verbose::Bool=true)
 
 Compute the conditional expectations and variances of the ancestral (un-observed)
 traits values at the internal nodes of the phylogenetic network (`net`),
 given the values of the traits at the tips of the network (`Y`) and some
 known parameters of the process used for trait evolution (`params`, only BM with fixed root
 works for now).
+If `false`, the optional keyword argument `verbose` suppresses PhyloTraits-specific warnings.
 
 This function assumes that the parameters of the process are known. For a more general
 function, see `ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`.
@@ -334,7 +335,7 @@ function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix;verbo
 end
 
 @doc raw"""
-    ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])
+    ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix]; verbose::Bool=true)
 
 Function to find the ancestral traits reconstruction on a network, given an
 object fitted by function [`phylolm`](@ref). By default, the function assumes
@@ -342,6 +343,7 @@ that the regressor is just an intercept. If the value of the regressor for
 all the ancestral states is known, it can be entered in X_n, a matrix with as
 many columns as the number of predictors used, and as many lines as the number
 of unknown nodes or tips.
+If `false`, the optional keyword argument `verbose` suppresses PhyloTraits-specific warnings.
 
 Returns an object of type [`ReconstructedStates`](@ref).
 
@@ -513,7 +515,8 @@ end
 
 Estimate the ancestral traits on a network, given some data at the tips.
 Uses function [`phylolm`](@ref) to perform a phylogenetic regression of the data against an
-intercept (amounts to fitting an evolutionary model on the network).
+intercept (amounts to fitting an evolutionary model on the network). 
+If `false`, the optional keyword argument `verbose` suppresses PhyloTraits-specific warnings.
 
 See documentation on [`phylolm`](@ref) and `ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`
 for further details.
