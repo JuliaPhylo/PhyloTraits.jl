@@ -204,7 +204,7 @@ nothing # hide
 The prediction intervals ignore the fact that we estimated the process
 parameters, so they are less accurate and the function throws a warning.
 We can suppress this warning by adding the optional keyword argument
-`verbose=false` in the `ancestralreconstruction` function.
+`showWarnings=false` in the `ancestralreconstruction` function.
 The output is an object of the same [`ReconstructedStates`](@ref) type as earlier,
 and the same extractors can be applied to it:
 ```@example tree_trait
@@ -222,7 +222,7 @@ with a single call of the function [`ancestralreconstruction`](@ref) on a
 DataFrame with the trait to reconstruct, and the tip labels:
 ```@example tree_trait
 datTrait1 = DataFrame(trait1 = dat[:,:trait1], tipnames = dat[:,:tipnames])
-ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; verbose=false)
+ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; showWarnings=false)
 nothing # hide
 ```
 ```@example tree_trait
@@ -248,7 +248,7 @@ values in trait 1.
 ```@example tree_trait
 allowmissing!(datTrait1, :trait1)
 datTrait1[2, :trait1] = missing; # second row: for taxon C
-ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; verbose=false)
+ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; showWarnings=false)
 nothing # hide
 ```
 ```@example tree_trait
@@ -285,7 +285,7 @@ ancTrait3 = ancestralreconstruction(fitTrait3, # model with estimated coefs etc.
   hcat(ones(7,1),
   [ 3.312, 4.438,  3.922,  3.342,  2.564,  1.315,  2.0], # from sim1[:internalnodes]
   [-3.62, -0.746, -2.217, -3.612, -2.052, -2.871, -2.0]); # from sim2[:internalnodes]
-  verbose=false
+  showWarnings=false
 )
 nothing # hide
 ```
@@ -580,11 +580,13 @@ Here, it tells us that
 As [seen previously](#From-estimated-parameters),
 after fitting a model of trait evolution, we may wish to estimate the character
 at various internal nodes to gain insight on the ancestral states.
+We set `showWarnings=false` here to avoid warning messages about
+the intervals being too narrow due to parameter estimation.
 
 For the ancestral states of the sword index:
 ```@example fish
 dat_si = dat[:, [:tipnames,:sword_index]];
-AS_si = ancestralreconstruction(dat_si, net3); # the ancestral state estimates
+AS_si = ancestralreconstruction(dat_si, net3; showWarnings=false); # the ancestral state estimates
 R"svg"(name("anc_fish_si_est.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel = predict(AS_si, text=true), xlim=[0,20]);
@@ -619,7 +621,7 @@ extrema(dat[:,:sword_index])
 We can do the same for the female preference for a sword:
 ```@example fish
 dat_fp = dat[:, [:preference, :tipnames]];
-AS_fp = ancestralreconstruction(dat_fp, net3);
+AS_fp = ancestralreconstruction(dat_fp, net3; showWarnings=false);
 R"svg"(name("anc_fish_fp_est.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel=predict(AS_fp,text=true), xlim=[0,20]);
@@ -652,7 +654,7 @@ phylogenetic sigal.
 ```@repl fish
 lambda_si = phylolm(@formula(sword_index ~ 1), dat, net3, model="lambda")
 lambda_fp = phylolm(@formula(preference ~ 1),  dat, net3, model="lambda";
-                    verbose=false)
+                    showWarnings=false)
 ```
 On both traits we observe λ>1.0 when fitting the Pagel's lambda model;
 consequently, we would interpret the patterns in trait data to have
@@ -693,7 +695,7 @@ nothing      # hide
 
 ```@repl fish
 fit_BM = phylolm(@formula(sword_index ~ preference), dat, net3)
-fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model="lambda"; verbose=false)
+fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model="lambda"; showWarnings=false)
 lrtest(fit_BM,fit_λ)
 ```
 On both Brownian motion and Pagel's lambda models,

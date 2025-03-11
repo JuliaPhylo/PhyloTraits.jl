@@ -153,20 +153,20 @@ end
 #= ----- roadmap of ancestralreconstruction, continuous traits ------
 
 all methods return a ReconstructedStates object. 
-All methods use the `verbose` argument to specify whether warnings are printed
+All methods use the `showWarnings` argument to specify whether warnings are printed
 core method called by every other method:
 
 1. ancestralreconstruction(Vzz, VzyVyinvchol, RL, Y, m_y, m_z,
-                                nodenumbers, tipnumbers, sigma2, add_var, model; verbose)
+                                nodenumbers, tipnumbers, sigma2, add_var, model)
 
 higher-level methods, for real data:
 
-2. ancestralreconstruction(dataframe, net; tipnames=:tipnames, verbose, kwargs...)
+2. ancestralreconstruction(dataframe, net; tipnames=:tipnames, showWarnings, kwargs...)
    - dataframe: 2 columns only, species names & tip response values
    - fits an intercept-only model, then calls #3
    - by default without kwargs: model = BM w/o within-species variation
 
-3. ancestralreconstruction(PhyloNetworkLinearModel[, Matrix]; verbose)
+3. ancestralreconstruction(PhyloNetworkLinearModel[, Matrix]; showWarnings)
    - takes a model already fitted
    - if no matrix given: the model must be intercept-only. An expanded intercept
      column is created with length = # nodes with *no* data
@@ -185,21 +185,20 @@ higher-level methods, for real data:
 
 methods based on simulations with a ParamsProcess "params":
 
-4. ancestralreconstruction(net, Y, params; verbose) which calls:
-   ancestralreconstruction(V::MatrixTopologicalOrder, Y, params ; verbose)
+4. ancestralreconstruction(net, Y, params) which calls:
+   ancestralreconstruction(V::MatrixTopologicalOrder, Y, params)
    - intercept-only: known β and known variance: "simple" kriging is correct
    - BM only: params must be of type ParamsBM
 =#
 
 """
-    ancestralreconstruction(net::HybridNetwork, Y::Vector, params::ParamsBM; verbose::Bool=true)
+    ancestralreconstruction(net::HybridNetwork, Y::Vector, params::ParamsBM)
 
 Compute the conditional expectations and variances of the ancestral (un-observed)
 traits values at the internal nodes of the phylogenetic network (`net`),
 given the values of the traits at the tips of the network (`Y`) and some
 known parameters of the process used for trait evolution (`params`, only BM with fixed root
 works for now).
-If `false`, the optional keyword argument `verbose` suppresses PhyloTraits-specific warnings.
 
 This function assumes that the parameters of the process are known. For a more general
 function, see `ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`.
@@ -208,18 +207,16 @@ function, see `ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matri
 function ancestralreconstruction(
     net::HybridNetwork,
     Y::Vector,
-    params::ParamsBM;
-    verbose::Bool = true
+    params::ParamsBM
 )
     V = sharedpathmatrix(net)
-    ancestralreconstruction(V, Y, params; verbose)
+    ancestralreconstruction(V, Y, params)
 end
 
 function ancestralreconstruction(
     V::MatrixTopologicalOrder,
     Y::Vector,
-    params::ParamsBM;
-    verbose::Bool = true
+    params::ParamsBM
 )
     # Variances matrices
     Vy = V[:tips]
@@ -235,8 +232,7 @@ function ancestralreconstruction(
         Y, m_y, m_z,
         V.internalnodenumbers,
         V.tipnumbers,
-        params.sigma2;
-        verbose)
+        params.sigma2)
 end
 
 # Reconstruction from all the needed quantities
@@ -251,9 +247,7 @@ function ancestralreconstruction(
     tipnumbers::Vector,
     sigma2::Real,
     add_var::Matrix=zeros(size(Vz)), # Additional variance for BLUP
-    model::Union{PhyloNetworkLinearModel,Missing}=missing;
-    verbose::Bool = true # Currently unused for this method of ancestralreconstruction
-)
+    model::Union{PhyloNetworkLinearModel,Missing}=missing)
     # E[z∣y] = E[z∣X] + Cov(z,y)⋅Var(y)⁻¹⋅(y-E[y∣X])
     m_z_cond_y = m_z + VzyVyinvchol * (RL \ (Y - m_y))
     V_z_cond_y = sigma2 .* (Vz - VzyVyinvchol * VzyVyinvchol')
@@ -269,7 +263,7 @@ X_n: matrix with as many columns as the number of predictors used,
 
 TO DO: Handle the order of internal nodes and no-data tips for matrix X_n
 =#
-function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix;verbose::Bool=true)
+function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix; showWarnings::Bool=true)
     if size(X_n)[2] != length(coef(obj))
         error("""The number of predictors for the ancestral states (number of columns of X_n)
               does not match the number of predictors at the tips.""")
@@ -288,7 +282,7 @@ function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix;verbo
     m_z = X_n * coef(obj)
     # If the tips were re-organized, do the same for Vyz
     if obj.ind == [0]
-        verbose && @warn """There were no indication for the position of the tips on the network.
+        showWarnings && @warn """There were no indication for the position of the tips on the network.
              I am assuming that they are given in the same order.
              Please check that this is what you intended."""
         ind = collect(1:length(obj.V.tipnumbers))
@@ -315,7 +309,7 @@ function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix;verbo
     # below: "universal" kriging: β estimated, variance components known
     U = X_n - VzyVyinvchol * (obj.RL \ obj.X)
     add_var = U * vcov(obj) * U'
-    verbose && @warn """These prediction intervals show uncertainty in ancestral values,
+    showWarnings && @warn """These prediction intervals show uncertainty in ancestral values,
          assuming that the estimated variance rate of evolution is correct.
          Additional uncertainty in the estimation of this variance rate is
          ignored, so prediction intervals should be larger."""
@@ -330,12 +324,11 @@ function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix;verbo
         nmTipNumbers,
         sigma2_phylo(obj),
         add_var,
-        obj;
-        verbose)
+        obj)
 end
 
 @doc raw"""
-    ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix]; verbose::Bool=true)
+    ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix]; showWarnings::Bool=true)
 
 Function to find the ancestral traits reconstruction on a network, given an
 object fitted by function [`phylolm`](@ref). By default, the function assumes
@@ -343,7 +336,8 @@ that the regressor is just an intercept. If the value of the regressor for
 all the ancestral states is known, it can be entered in X_n, a matrix with as
 many columns as the number of predictors used, and as many lines as the number
 of unknown nodes or tips.
-If `false`, the optional keyword argument `verbose` suppresses PhyloTraits-specific warnings.
+Setting the optional keyword argument `showWarnings` to `false` supresses
+PhyloTraits-specific warning outputs.
 
 Returns an object of type [`ReconstructedStates`](@ref).
 
@@ -497,7 +491,7 @@ julia> pred = predict(ancStates, interval = :prediction, text = true);
 julia> plot(phy, nodelabel = pred[!,[:nodenumber,:interval]]);
 ```
 """
-function ancestralreconstruction(obj::PhyloNetworkLinearModel; verbose::Bool = true)
+function ancestralreconstruction(obj::PhyloNetworkLinearModel; showWarnings::Bool=true)
     # default reconstruction for known predictors
     if ((size(obj.X)[2] != 1) || !any(obj.X .== 1)) # Test if the regressor is just an intercept.
         error("""Predictor(s) other than a plain intercept are used in this `PhyloNetworkLinearModel` object.
@@ -507,7 +501,7 @@ function ancestralreconstruction(obj::PhyloNetworkLinearModel; verbose::Bool = t
     Otherwise, you might consider doing a multivariate linear regression (not implemented yet).""")
     end
     X_n = ones((length(obj.V.nodenumbers_toporder) - sum(obj.nonmissing), 1))
-    ancestralreconstruction(obj, X_n; verbose)
+    ancestralreconstruction(obj, X_n; showWarnings)
 end
 
 """
@@ -516,7 +510,6 @@ end
 Estimate the ancestral traits on a network, given some data at the tips.
 Uses function [`phylolm`](@ref) to perform a phylogenetic regression of the data against an
 intercept (amounts to fitting an evolutionary model on the network). 
-If `false`, the optional keyword argument `verbose` suppresses PhyloTraits-specific warnings.
 
 See documentation on [`phylolm`](@ref) and `ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`
 for further details.
@@ -527,7 +520,7 @@ function ancestralreconstruction(
     fr::AbstractDataFrame,
     net::HybridNetwork;
     tipnames::Symbol=:tipnames,
-    verbose::Bool = true,
+    showWarnings::Bool=true,
     kwargs...
 )
     nn = DataFrames.propertynames(fr)
@@ -538,5 +531,5 @@ function ancestralreconstruction(
     end
     f = @eval(@formula($(nn[datpos][1]) ~ 1))
     reg = phylolm(f, fr, net; tipnames=tipnames, kwargs...)
-    return ancestralreconstruction(reg; verbose)
+    return ancestralreconstruction(reg; showWarnings)
 end

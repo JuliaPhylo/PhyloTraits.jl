@@ -317,6 +317,7 @@ Optional arguments (default):
 - bounds for the alpha parameter of the Gamma distribution of
   rates across sites: `alphamin=0.05`, `alphamax=50`.
 - `verbose` (false): if true, more information is output.
+- `showWarnings` (true): if false, warnings are ignored.
 
 # examples:
 
@@ -416,15 +417,15 @@ fixit: add option to allow users to specify root prior,
 using either equal frequencies or stationary frequencies for trait models.
 """
 function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    tips::Dict; verbose::Bool=true, kwargs...) #tips::Dict no ratemodel version
+    tips::Dict; kwargs...) #tips::Dict no ratemodel version
     ratemodel = RateVariationAcrossSites(ncat=1)
-    fitdiscrete(net, model, ratemodel, tips; verbose=verbose, kwargs...)
+    fitdiscrete(net, model, ratemodel, tips; kwargs...)
 end
 
 #tips::Dict version with ratemodel
 function fitdiscrete(net::HybridNetwork, model::SubstitutionModel, ratemodel::RateVariationAcrossSites,
-    tips::Dict; verbose::Bool=true, kwargs...)
-        species = String[]
+    tips::Dict; showWarnings::Bool=true, kwargs...)
+    species = String[]
     dat = Vector{Int}[] # indices of trait labels
     for (k,v) in tips
         !ismissing(v) || continue
@@ -433,20 +434,20 @@ function fitdiscrete(net::HybridNetwork, model::SubstitutionModel, ratemodel::Ra
         vi !== nothing || error("trait $v not found in model")
         push!(dat, [vi])
     end
-    o, net = check_matchtaxonnames!(species, dat, net; verbose=verbose) # dat[o] would make a shallow copy only
+    o, net = check_matchtaxonnames!(species, dat, net; showWarnings=showWarnings) # dat[o] would make a shallow copy only
     StatsAPI.fit(StatisticalSubstitutionModel, net, model, ratemodel, view(dat, o); kwargs...)
 end
 
 #dat::DataFrame, no rate model version
 function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    dat::DataFrame; verbose::Bool=true, kwargs...)
+    dat::DataFrame; kwargs...)
     ratemodel = RateVariationAcrossSites(ncat=1)
-    fitdiscrete(net, model, ratemodel, dat; verbose=verbose, kwargs...)
+    fitdiscrete(net, model, ratemodel, dat; kwargs...)
 end
 
 #dat::DataFrame with rate model version
 function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    ratemodel::RateVariationAcrossSites, dat::DataFrame; verbose::Bool=true, kwargs...)
+    ratemodel::RateVariationAcrossSites, dat::DataFrame; showWarnings::Bool=true, kwargs...)
     i = findfirst(isequal(:taxon), DataFrames.propertynames(dat))
     if i===nothing i = findfirst(isequal(:species), DataFrames.propertynames(dat)); end
     if i===nothing i=1; end # first column if no column "taxon" or "species"
@@ -458,25 +459,23 @@ function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
     end
     species = dat[:,i]    # modified in place later
     dat = traitlabels2indices(dat[!,j], model)   # vec of vec, indices
-    o, net = check_matchtaxonnames!(species, dat, net; verbose=verbose)
+    o, net = check_matchtaxonnames!(species, dat, net; showWarnings=showWarnings)
     StatsAPI.fit(StatisticalSubstitutionModel, net, model, ratemodel, view(dat, o); kwargs...)
 end
 
 #species, dat version, no ratemodel
 function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    species::Array{<:AbstractString}, dat::DataFrame;
-    verbose::Bool=true, kwargs...)
+    species::Array{<:AbstractString}, dat::DataFrame; kwargs...)
     ratemodel = RateVariationAcrossSites(ncat=1)
-    fitdiscrete(net, model, ratemodel, species, dat; verbose=verbose, kwargs...)
+    fitdiscrete(net, model, ratemodel, species, dat; kwargs...)
 end
 
 #species, dat version with ratemodel
 function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
     ratemodel::RateVariationAcrossSites, species::Array{<:AbstractString},
-    dat::DataFrame;
-    verbose::Bool=true, kwargs...)
+    dat::DataFrame; showWarnings::Bool=true, kwargs...)
     dat2 = traitlabels2indices(dat, model) # vec of vec, indices
-    o, net = check_matchtaxonnames!(copy(species), dat2, net; verbose=verbose)
+    o, net = check_matchtaxonnames!(copy(species), dat2, net; showWarnings=showWarnings)
     StatsAPI.fit(StatisticalSubstitutionModel, net, model, ratemodel, view(dat2, o); kwargs...)
 end
 
@@ -487,7 +486,6 @@ function fitdiscrete(
     species::Array{<:AbstractString},
     dat::DataFrame,
     rvSymbol::Symbol=:noRV;
-    verbose::Bool=true,
     kwargs...
 )
     rate = startingrate(net)
@@ -509,25 +507,23 @@ function fitdiscrete(
     end
 
     rvas = RateVariationAcrossSites(rvSymbol)
-    fitdiscrete(net, model, rvas, species, dat; verbose=verbose, kwargs...)
+    fitdiscrete(net, model, rvas, species, dat; kwargs...)
 end
 
 #dnadata with dnapatternweights version, no ratemodel
 function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    dnadata::DataFrame, dnapatternweights::Array{Float64};
-    verbose::Bool=true, kwargs...)
+    dnadata::DataFrame, dnapatternweights::Array{Float64}; kwargs...)
     ratemodel = RateVariationAcrossSites(ncat=1)
-    fitdiscrete(net, model, ratemodel, dnadata, dnapatternweights;
-    verbose=verbose, kwargs...)
+    fitdiscrete(net, model, ratemodel, dnadata, dnapatternweights; kwargs...)
 end
 
 #dnadata with dnapatternweights version with ratemodel
 function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
     ratemodel::RateVariationAcrossSites,dnadata::DataFrame,
     dnapatternweights::Array{<:AbstractFloat};
-    verbose::Bool=true, kwargs...)
+    showWarnings::Bool=true, kwargs...)
     dat2 = traitlabels2indices(dnadata[!,2:end], model)
-    o, net = check_matchtaxonnames!(dnadata[:,1], dat2, net; verbose=verbose)
+    o, net = check_matchtaxonnames!(dnadata[:,1], dat2, net; showWarnings=showWarnings)
     kwargs = (:siteweights => dnapatternweights, kwargs...)
     StatsAPI.fit(StatisticalSubstitutionModel, net, model, ratemodel, view(dat2, o);
         kwargs...)
@@ -540,7 +536,6 @@ function fitdiscrete(
     dnadata::DataFrame,
     dnapatternweights::Array{<:AbstractFloat},
     rvSymbol::Symbol=:noRV;
-    verbose::Bool=true,
     kwargs...
 )
     rate = startingrate(net)
@@ -561,7 +556,7 @@ function fitdiscrete(
     end
 
     rvas = RateVariationAcrossSites(rvSymbol)
-    fitdiscrete(net, model, rvas, dnadata, dnapatternweights;verbose=verbose, kwargs...)
+    fitdiscrete(net, model, rvas, dnadata, dnapatternweights; kwargs...)
 end
 
 """
@@ -893,17 +888,17 @@ function traitlabels2indices(data::Union{AbstractMatrix,AbstractDataFrame},
 end
 
 """
-    check_matchtaxonnames!(species, data, net)
+    check_matchtaxonnames!(species, data, net; kwargs...)
 
 Modify `species` and `dat` by removing the species (rows) absent from the network.
 Return a new network (`net` is *not* modified) with tips matching those in species:
 if some species in `net` have no data, these species are pruned from the network.
 The network also has its node names reset, such that leaves have nodes have
 consecutive numbers starting at 1, with leaves first.
-The optional keyword argument `verbose` denotes whether warnings are printed.
+The optional keyword argument `showWarnings` denotes whether warnings are printed.
 Used by [`fitdiscrete`](@ref) to build a new [`StatisticalSubstitutionModel`](@ref).
 """
-function check_matchtaxonnames!(species::AbstractVector, dat::AbstractVector, net::HybridNetwork; verbose::Bool=true)
+function check_matchtaxonnames!(species::AbstractVector, dat::AbstractVector, net::HybridNetwork; showWarnings::Bool=true)
     # 1. basic checks for dimensions and types
     eltt = eltype(dat)
     @assert eltt <: AbstractVector "traits should be a vector of vectors"
@@ -926,7 +921,7 @@ function check_matchtaxonnames!(species::AbstractVector, dat::AbstractVector, ne
     indnotindat = findall(x -> x ∉ species, netlab) # species not in data
     net = deepcopy(net)
     if !isempty(indnotindat)
-        verbose && @warn "the network contains taxa with no data: those will be pruned"
+        showWarnings && @warn "the network contains taxa with no data: those will be pruned"
         for i in indnotindat
             deleteleaf!(net, netlab[i])
         end

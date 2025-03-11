@@ -60,7 +60,7 @@ so we get to see the default starting values.
 
 ```@repl concatdna
 d1 = fitdiscrete(dna_net, :JC69, dna_dat, dna_weights, :Gamma; optimizeQ=false, optimizeRVAS=false)
-d2 = fitdiscrete(dna_net, :HKY85, dna_dat, dna_weights, :Gamma; optimizeQ=false, optimizeRVAS=false, verbose=false)
+d2 = fitdiscrete(dna_net, :HKY85, dna_dat, dna_weights, :Gamma; optimizeQ=false, optimizeRVAS=false, showWarnings=false)
 ```
 When allowing for rate variation across sites with gamma-distributed rates,
 the default shape parameter α is 1.
@@ -69,7 +69,7 @@ In the more interesting examples below,
 we optimize the evolutionary rates and the way rates vary across sites
 (which is the default).
 ```@repl concatdna
-d3 = fitdiscrete(dna_net, :JC69, dna_dat, dna_weights, :Gamma; ftolAbs=0.1, xtolAbs=0.01, verbose=false)
+d3 = fitdiscrete(dna_net, :JC69, dna_dat, dna_weights, :Gamma; ftolAbs=0.1, xtolAbs=0.01, showWarnings=false)
 ```
 Lenient tolerance parameters `ftolAbs` etc. have been chosen here to
 make this example faster.
