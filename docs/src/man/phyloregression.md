@@ -1,7 +1,6 @@
 ```@setup tree_trait
 using PhyloNetworks
 using PhyloTraits
-using Suppressor 
 mkpath("../assets/figures")
 ```
 
@@ -498,7 +497,8 @@ More specifically, download:
 The files are also in the `examples` folder of the `PhyloTraits` package as `xiphophorus_networks_calibrated.tre` and `xiphophorus_morphology_Cui_etal_2013.csv`.
 
 ```@setup fish
-using Suppressor
+using Logging
+nowarninglogger = ConsoleLogger(stderr, Logging.Error)
 ```
 
 If not done already, load the packages needed for this analysis:
@@ -729,7 +729,7 @@ fit0 = phylolm(@formula(sword_index ~ 1),   dat3, net3) # no shift
 fit1 = phylolm(@formula(sword_index ~ sum), dat3, net3) # same shift at hybrids
 fit2 = phylolm(@formula(sword_index ~ shift_24 + shift_37 + shift_45),
                dat3, net3) # different shifts at hybrid nodes
-@suppress_err begin # hide
+with_logger(nowarninglogger) do # hide
 ftest(fit0, fit1, fit2)
 end # hide
 ```
@@ -742,7 +742,7 @@ For the female preference, we get:
 fit0 = phylolm(@formula(preference ~ 1),   dat3, net3) # no shift
 fit1 = phylolm(@formula(preference ~ sum), dat3, net3) # same shift at hybrids
 fit2 = phylolm(@formula(preference ~ shift_24 + shift_37 + shift_45), dat3, net3) # different shifts at hybrid nodes
-@suppress_err begin # hide
+with_logger(nowarninglogger) do # hide
 ftest(fit0, fit1, fit2)
 ftest(fit0, fit2)
 end # hide
