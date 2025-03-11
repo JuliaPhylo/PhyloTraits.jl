@@ -204,7 +204,7 @@ nothing # hide
 The prediction intervals ignore the fact that we estimated the process
 parameters, so they are less accurate and the function throws a warning.
 We can suppress this warning by adding the optional keyword argument
-`verbose = false` in the `ancestralreconstruction` function.
+`verbose=false` in the `ancestralreconstruction` function.
 The output is an object of the same [`ReconstructedStates`](@ref) type as earlier,
 and the same extractors can be applied to it:
 ```@example tree_trait
@@ -222,7 +222,7 @@ with a single call of the function [`ancestralreconstruction`](@ref) on a
 DataFrame with the trait to reconstruct, and the tip labels:
 ```@example tree_trait
 datTrait1 = DataFrame(trait1 = dat[:,:trait1], tipnames = dat[:,:tipnames])
-ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; verbose = false)
+ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; verbose=false)
 nothing # hide
 ```
 ```@example tree_trait
@@ -248,7 +248,7 @@ values in trait 1.
 ```@example tree_trait
 allowmissing!(datTrait1, :trait1)
 datTrait1[2, :trait1] = missing; # second row: for taxon C
-ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; verbose = false)
+ancTrait1Approx = ancestralreconstruction(datTrait1, truenet; verbose=false)
 nothing # hide
 ```
 ```@example tree_trait
@@ -285,7 +285,7 @@ ancTrait3 = ancestralreconstruction(fitTrait3, # model with estimated coefs etc.
   hcat(ones(7,1),
   [ 3.312, 4.438,  3.922,  3.342,  2.564,  1.315,  2.0], # from sim1[:internalnodes]
   [-3.62, -0.746, -2.217, -3.612, -2.052, -2.871, -2.0]); # from sim2[:internalnodes]
-  verbose = false
+  verbose=false
 )
 nothing # hide
 ```
@@ -507,6 +507,7 @@ using PhyloNetworks, PhyloTraits, PhyloPlots
 using RCall, CSV, DataFrames
 using StatsAPI, StatsBase, StatsModels
 name(x) = joinpath("..", "assets", "figures", x); # hide
+nothing      # hide
 ```
 then read in the networks data:
 ```@example fish
@@ -517,6 +518,7 @@ R"svg"(name("net3.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(net3; useedgelength=true); # topology + branch lengths
 R"dev.off()" # hide
+nothing      # hide
 ```
 
 ![net3](../assets/figures/net3.svg)
@@ -540,13 +542,15 @@ R"svg"(name("net3_rot.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
 plot(net3; useedgelength=true); # topology + branch lengths
 R"dev.off()" # hide
+nothing      # hide
 ```
 
 ![net3](../assets/figures/net3_rot.svg)
 
 We can then read in the trait data:
 ```@example fish
-dat = CSV.read(joinpath(examples_path, "xiphophorus_morphology_Cui_etal_2013.csv"), DataFrame);
+csvfile = joinpath(examples_path, "xiphophorus_morphology_Cui_etal_2013.csv")
+dat = CSV.read(csvfile, DataFrame);
 ```
 
 Sometimes the trait data and phylogeny have non-overlapping taxa sets.
@@ -573,27 +577,31 @@ Here, it tells us that
 
 ### Ancestral state prediction
 
-As [seen previsouly](#From-estimated-parameters),
+As [seen previously](#From-estimated-parameters),
 after fitting a model of trait evolution, we may wish to estimate the character
 at various internal nodes to gain insight on the ancestral states.
 
 For the ancestral states of the sword index:
-```@repl fish
+```@example fish
 dat_si = dat[:, [:tipnames,:sword_index]];
 AS_si = ancestralreconstruction(dat_si, net3); # the ancestral state estimates
 R"svg"(name("anc_fish_si_est.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel = predict(AS_si, text=true), xlim=[0,20]);
 R"dev.off()" # hide
+nothing      # hide
 ```
 ![anc_fish_si_est](../assets/figures/anc_fish_si_est.svg)
 
-```@repl fish
-AS_si_int = predict(AS_si, interval=:prediction, level=0.90, text=true); # getting the 90% credible interval in a nice format for plotting
+To get the 90% credible interval in a text format to use as labels for plotting,
+we can use option `text=true` in the `predict` function.
+```@example fish
+AS_si_int = predict(AS_si, interval=:prediction, level=0.90, text=true);
 R"svg"(name("anc_fish_si_ci.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel=AS_si_int[!,[:nodenumber,:interval]], useedgelength=true);
 R"dev.off()" # hide
+nothing      # hide
 ```
 
 ![anc_fish_si_ci](../assets/figures/anc_fish_si_ci.svg)
@@ -609,29 +617,31 @@ extrema(dat[:,:sword_index])
 ```
 
 We can do the same for the female preference for a sword:
-```@repl fish
+```@example fish
 dat_fp = dat[:, [:preference, :tipnames]];
 AS_fp = ancestralreconstruction(dat_fp, net3);
 R"svg"(name("anc_fish_fp_est.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel=predict(AS_fp,text=true), xlim=[0,20]);
 R"dev.off()" # hide
+nothing      # hide
 ```
 ![anc_fish_fp_est](../assets/figures/anc_fish_fp_est.svg)
 
-```@repl fish
+```@example fish
 AS_fp_int = predict(AS_fp,interval=:prediction,level=0.90,text=true);
 R"svg"(name("anc_fish_fp_ci.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
-plot(net3, nodelabel=AS_fp_int[!,[:nodenumber,:interval]], useedgelength=true, xlim=[-3,26]);
+plot(net3, nodelabel=AS_fp_int[!,[:nodenumber,:interval]],
+     useedgelength=true, xlim=[-3,26]);
 R"dev.off()" # hide
+nothing      # hide
 ```
 ![anc_fish_fp_ci](../assets/figures/anc_fish_fp_ci.svg)
 
 ```@repl fish
 AS_fp_int[findfirst(AS_fp_int.nodenumber .== -2),:interval]
 extrema(skipmissing(dat[:,:preference]))
-
 ```
 
 ### Phylogenetic signal: Pagel's lambda
@@ -641,7 +651,8 @@ phylogenetic sigal.
 
 ```@repl fish
 lambda_si = phylolm(@formula(sword_index ~ 1), dat, net3, model="lambda")
-lambda_fp = phylolm(@formula(preference ~ 1),  dat, net3, model="lambda"; verbose = false)
+lambda_fp = phylolm(@formula(preference ~ 1),  dat, net3, model="lambda";
+                    verbose=false)
 ```
 On both traits we observe λ>1.0 when fitting the Pagel's lambda model;
 consequently, we would interpret the patterns in trait data to have
@@ -670,11 +681,13 @@ maximum value so that the transformation does not produce negative branch length
 Phylogenetic regression can help us anwser the question:
 does preference influence sword index?
 
-```@repl fish
-R"svg"(name("sword_vs_preference.svg"), width=6, height=6) # hide
-R"par"(mar=[3,2.5,.2,.2], las=1) # hide # reduce margins, defaults are too big
-R"plot"(dat.preference, dat.sword_index, xlab = "female preference", ylab = "sword index");
+```@example fish
+R"svg"(name("sword_vs_preference.svg"), width=5, height=5) # hide
+R"par"(mar=[3,2.5,.2,.2], las=1, mgp=[1.5,0.8,0]); # hide
+R"plot"(dat.preference, dat.sword_index,
+        xlab="female preference", ylab="sword index");
 R"dev.off()" # hide
+nothing      # hide
 ```
 ![sword_vs_preference](../assets/figures/sword_vs_preference.svg)
 
@@ -709,11 +722,12 @@ Here we compare three different models:
 For the sword index, we get:
 ```@repl fish
 df_shift = descendencedataframe(net3); # regressors matching Hybrid Shifts
-dat3 = leftjoin(dat, df_shift, on = :tipnames); # add the regressors to the data
+dat3 = leftjoin(dat, df_shift, on = :tipnames); # add regressors to data
 fit0 = phylolm(@formula(sword_index ~ 1),   dat3, net3) # no shift
-fit1 = phylolm(@formula(sword_index ~ sum), dat3, net3) # the same shift at hybrid nodes
-fit2 = phylolm(@formula(sword_index ~ shift_24 + shift_37 + shift_45), dat3, net3) # different shifts at hybrid nodes
-@suppress_err begin # hide 
+fit1 = phylolm(@formula(sword_index ~ sum), dat3, net3) # same shift at hybrids
+fit2 = phylolm(@formula(sword_index ~ shift_24 + shift_37 + shift_45),
+               dat3, net3) # different shifts at hybrid nodes
+@suppress_err begin # hide
 ftest(fit0, fit1, fit2)
 end # hide
 ```
@@ -724,7 +738,7 @@ the data significantly better than the model without trait shifts.
 For the female preference, we get:
 ```@repl fish
 fit0 = phylolm(@formula(preference ~ 1),   dat3, net3) # no shift
-fit1 = phylolm(@formula(preference ~ sum), dat3, net3) # the same shift at hybrid nodes
+fit1 = phylolm(@formula(preference ~ sum), dat3, net3) # same shift at hybrids
 fit2 = phylolm(@formula(preference ~ shift_24 + shift_37 + shift_45), dat3, net3) # different shifts at hybrid nodes
 @suppress_err begin # hide
 ftest(fit0, fit1, fit2)
