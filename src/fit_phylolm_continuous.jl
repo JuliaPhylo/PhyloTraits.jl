@@ -47,7 +47,7 @@ function phylolm(
     withinspecies_var::Bool=false,
     counts::Union{Nothing, Vector}=nothing,
     ySD::Union{Nothing, Vector}=nothing,
-    showWarnings::Bool=true
+    suppresswarnings::Bool=false
 )
     if withinspecies_var
         phylolm_wsp(model, X,Y,net, reml; nonmissing=nonmissing, ind=ind,
@@ -56,7 +56,7 @@ function phylolm(
     else
         phylolm(model, X,Y,net, reml; nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            startingValue=startingValue, fixedValue=fixedValue, showWarnings=showWarnings)
+            startingValue=startingValue, fixedValue=fixedValue, suppresswarnings=suppresswarnings)
     end
 end
 
@@ -92,7 +92,7 @@ function phylolm(
     xtolAbs::AbstractFloat=xAbsTr,
     startingValue::Real=0.5,
     fixedValue::Union{Real,Missing}=missing,
-    showWarnings::Bool=true
+    suppresswarnings::Bool=false
 )
     # BM variance covariance
     V = sharedpathmatrix(net) # runs preorder!(net) by default
@@ -100,7 +100,7 @@ function phylolm(
     if istimeconsistent(net, false) # false: no need to preorder again
         times = getnodeheights(net, false)
     else
-        showWarnings && @warn """The network is not time consistent (node heights are not well-defined).
+        !suppresswarnings && @warn """The network is not time consistent (node heights are not well-defined).
         The network should be calibrated for this analysis, as the theory for Pagel's model
         assumes a time-consistent network.
         The analysis will use node heights based on the major tree, in the meantime.
@@ -415,7 +415,7 @@ Keyword arguments
   Default is false, setting it to true is dangerous, and strongly discouraged.
 * `reml=true`: if `true`, use REML criterion ("restricted maximum likelihood")
   for estimating variance components, else use ML criterion.
-* `showWarnings=true`: an optional argument to determine whether
+* `suppresswarnings=false`: an optional argument to determine whether
   PhyloTraits-specific warnings get thrown. Currently only implemented for the
   Pagel's lambda model, as this is the only method that throws a warning.
 
@@ -741,7 +741,7 @@ function phylolm(
     fixedValue::Union{Real,Missing}=missing,
     withinspecies_var::Bool=false,
     y_mean_std::Bool=false,
-    showWarnings::Bool=true
+    suppresswarnings::Bool=false
 )
     # Match the tips names: make sure that the data provided by the user will
     # be in the same order as the ordered tips in matrix V.
@@ -823,7 +823,7 @@ function phylolm(
     res = phylolm(mm.m, Y, net, modelobj; reml=reml, nonmissing=nonmissing, ind=ind,
                   ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
                   startingValue=startingValue, fixedValue=fixedValue,
-                  withinspecies_var=withinspecies_var, counts=counts, ySD=ySD, showWarnings=showWarnings)
+                  withinspecies_var=withinspecies_var, counts=counts, ySD=ySD, suppresswarnings=suppresswarnings)
     res.formula = f
     return res
 end
