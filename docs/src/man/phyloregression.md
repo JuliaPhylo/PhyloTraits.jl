@@ -1,6 +1,8 @@
 ```@setup tree_trait
 using PhyloNetworks
 using PhyloTraits
+using Logging
+nowarninglogger = ConsoleLogger(stderr, Logging.Error)
 mkpath("../assets/figures")
 ```
 
@@ -123,8 +125,11 @@ In other words, we can reconstruct the state at the internal nodes,
 given the values at the tips, the known value at the root (2)
 and the known BM variance (0.5).
 ```@example tree_trait
+with_logger(nowarninglogger) do # hide
+global ancTrait1=1 # hide 
 ancTrait1 = ancestralreconstruction(truenet, dat.trait1, ParamsBM(2, 0.5))
 nothing # hide
+end # hide
 ```
 Function [`ancestralreconstruction`](@ref) creates an object with type
 [`ReconstructedStates`](@ref). Several extractors can be applied to it:
@@ -220,8 +225,11 @@ with a single call of the function [`ancestralreconstruction`](@ref) on a
 DataFrame with the trait to reconstruct, and the tip labels:
 ```@example tree_trait
 datTrait1 = DataFrame(trait1 = dat[:,:trait1], tipnames = dat[:,:tipnames])
+with_logger(nowarninglogger) do # hide
+global ancTrait1Approx =1 # hide
 ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
+end # hide
 ```
 ```@example tree_trait
 ancInt = predict(ancTrait1Approx, interval=:prediction, level=0.9, text=true, combine=true) 
@@ -246,8 +254,11 @@ values in trait 1.
 ```@example tree_trait
 allowmissing!(datTrait1, :trait1)
 datTrait1[2, :trait1] = missing; # second row: for taxon C
+with_logger(nowarninglogger) do # hide
+global ancTrait1Approx=1 
 ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
+end # hide
 ```
 ```@example tree_trait
 ancInt = predict(ancTrait1Approx, interval=:prediction, text=true, combine=true) 
@@ -279,12 +290,15 @@ ancestral states, if they are known. They are actually known in this
 toy example because we generated the data ourselves (see next section),
 so we can reconstruct our trait doing the following:
 ```@example tree_trait
+with_logger(nowarninglogger) do # hide
+global ancTrait3=1 # hide
 ancTrait3 = ancestralreconstruction(fitTrait3, # model with estimated coefs etc.
   hcat(ones(7,1),
   [ 3.312, 4.438,  3.922,  3.342,  2.564,  1.315,  2.0], # from sim1[:internalnodes]
   [-3.62, -0.746, -2.217, -3.612, -2.052, -2.871, -2.0]) # from sim2[:internalnodes]
 )
 nothing # hide
+end # hide
 ```
 ```@example tree_trait
 ancInt = predict(ancTrait3, interval=:prediction, text=true, combine=true) 
@@ -582,7 +596,10 @@ at various internal nodes to gain insight on the ancestral states.
 For the ancestral states of the sword index:
 ```@example fish
 dat_si = dat[:, [:tipnames,:sword_index]];
+with_logger(nowarninglogger) do # hide
+global AS_si=1 # hide
 AS_si = ancestralreconstruction(dat_si, net3); # the ancestral state estimates
+end # hide
 R"svg"(name("anc_fish_si_est.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel = predict(AS_si, text=true), xlim=[0,20]);
@@ -617,7 +634,10 @@ extrema(dat[:,:sword_index])
 We can do the same for the female preference for a sword:
 ```@example fish
 dat_fp = dat[:, [:preference, :tipnames]];
+with_logger(nowarninglogger) do # hide
+global AS_fp=1 # hide
 AS_fp = ancestralreconstruction(dat_fp, net3);
+end # hide
 R"svg"(name("anc_fish_fp_est.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
 plot(net3, nodelabel=predict(AS_fp,text=true), xlim=[0,20]);
