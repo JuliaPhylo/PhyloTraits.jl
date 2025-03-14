@@ -4,7 +4,8 @@ using Documenter
 # Interlink with PhyloNetworks
 using DocumenterInterLinks
 links = InterLinks(
-    "PhyloNetworks" => "https://juliaphylo.github.io/PhyloNetworks.jl/stable/objects.inv"
+    "PhyloNetworks" => "https://juliaphylo.github.io/PhyloNetworks.jl/stable/objects.inv",
+    "PhyloPlots" => "https://juliaphylo.github.io/PhyloPlots.jl/stable/objects.inv"
 )
 
 # NOTE: default loading of PhyloNetworks in all docstring examples

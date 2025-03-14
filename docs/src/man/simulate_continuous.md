@@ -117,7 +117,7 @@ plot above that this branch is number 6, so we define the following object:
 edge_afterhyb = truenet.edge[6] # the 6th edge has number 6
 shift = ShiftNet(truenet.edge[6], 5.0,  truenet)
 ```
-Note that the edge numbers and values of a `ShiftNet` object can be retrieved
+Note that the edge numbers and values of a [`ShiftNet`](@ref) object can be retrieved
 thanks to functions [`getshiftedgenumber`](@ref) and [`getshiftvalue`](@ref).
 The constructor can take a single edge and associated value, like here,
 or two vectors of edges and matching values.
@@ -131,7 +131,7 @@ shift = shiftathybrids(5.0,  truenet)
 ```
 
 The parameters for the simulation are then defined as above, just adding
-our `ShiftNet` object as a parameter.
+our [`ShiftNet`](@ref) object as a parameter.
 Again, we use a custom stable random number generator to make our example
 reproducible, but we recommend *against* this random number generator forf
 simulation studies (just remove the argument `rng`).

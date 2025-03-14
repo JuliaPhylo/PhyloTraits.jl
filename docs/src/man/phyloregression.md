@@ -137,7 +137,7 @@ stderror(ancTrait1) # associated standard errors
 predict(ancTrait1, interval=:prediction, level=0.90) # prediction interval (at level 90%)
 ```
 We can plot the ancestral states or prediction intervals on the tree, using the
-`nodelabel` argument of the `plot` function.
+`nodelabel` argument of the [`PhyloPlots.plot`](@extref) function.
 ```@example tree_trait
 R"svg"(name("ancestral_expe.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
@@ -157,14 +157,14 @@ nothing # hide
 ```
 ![ancestral_predint](../assets/figures/ancestral_predint.svg)
 
-The `predict` function has an optional argument to state
+The [`PhyloTraits.predict`](@ref) function has an optional argument to state
 the `level` of the prediction interval. If not given, the default value is
 0.95.
 
 It is also possible to plot both the reconstructed state and the predicted value
 on the same plot, using the optional keyword argument `combine`.
 As shown below, we could also use the `RCall` method from the
-[`plot`](https://juliaphylo.github.io/PhyloPlots.jl/stable/lib/public/) function.
+[`PhyloPlots.plot`](@extref) function.
 ```@example tree_trait
 ancInt = predict(ancTrait1, interval=:prediction, text=true, combine=true) 
 plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]], tipoffset=0.1);
@@ -446,7 +446,7 @@ its genome that was inherited from this reticulation. Here, A and B's ancestry
 if fully inherited from edge 6, below the one reticulation in the network.
 
 We can use the columns in this dataframe as regressors (predictors) in the
-`phylolm` function. Their coefficients will measure the shift after each
+[`phylolm`](@ref) function. Their coefficients will measure the shift after each
 reticulation.
 In the example below, the species names are listed in a different order than in `df_shift`, and contained in a column called "species", to show how this is
 handled to merge and then fit the data.

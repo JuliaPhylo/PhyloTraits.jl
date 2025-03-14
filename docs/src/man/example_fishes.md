@@ -97,7 +97,7 @@ Here, it tells us that
 
 ## Ancestral state prediction
 
-As [done in the tutorial](#From-estimated-parameters),
+As [done in the manual](phyloregression.md#From-estimated-parameters),
 after fitting a model of trait evolution, we may wish to estimate the character
 at various internal nodes to gain insight on the ancestral states.
 
@@ -173,7 +173,7 @@ extrema(skipmissing(dat[:,:preference]))
 
 ## Phylogenetic signal: Pagel's lambda
 
-We can use [Pagel's lambda](#Pagel's-Lambda) transformation to asses the
+We can use [Pagel's lambda](phyloregression.md#Pagel's-Lambda) transformation to asses the
 phylogenetic sigal.
 
 ```@repl fish
