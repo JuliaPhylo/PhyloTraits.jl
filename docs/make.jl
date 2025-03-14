@@ -35,6 +35,9 @@ makedocs(;
             "DNA evolutionary models" => "man/fitdiscreteDNA.md",
             "Discrete trait simulation" => "man/simulate_discrete.md",
         ],
+        "Examples" => [
+            "Xiphophorus fishes" => "man/example_fishes.md",
+        ],
         "Library" => [
             "public" => "lib/public.md",
             "internals" => "lib/internal.md",
