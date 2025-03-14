@@ -39,12 +39,10 @@ julia> using PhyloTraits
 ```
 The first time, julia will prompt you for package installation.
 
-Then follow the [latest documentation][docs-dev-url].
-
 ## Tutorials
 
-- PhyloTraits's [documentation][docs-dev-url] includes a manual,
-  and examples of empirical analyses from the literature
+- Follow PhyloTraits's [latest documentation][docs-dev-url].
+  It includes a manual and examples of empirical analyses from the literature.
 - This [tutorial](https://cecileane.github.io/networkPCM-workshop/)
   (from a 2023 workshop) is on comparative methods
   and includes a tutorial for network calibration.
