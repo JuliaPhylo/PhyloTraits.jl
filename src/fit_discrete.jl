@@ -317,7 +317,8 @@ Optional arguments (default):
 - bounds for the alpha parameter of the Gamma distribution of
   rates across sites: `alphamin=0.05`, `alphamax=50`.
 - `verbose` (false): if true, more information is output.
-- `suppresswarnings` (false): if true, warnings are ignored.
+- `suppresswarnings` (false): if true, warnings from
+  [`check_matchtaxonnames!`](@ref) are suppressed.
 
 # examples:
 
@@ -947,7 +948,7 @@ if some species in `net` have no data, these species are pruned from the network
 The network also has its node names reset, such that leaves have nodes have
 consecutive numbers starting at 1, with leaves first.
 
-The optional keyword argument `suppresswarnings`, which is `false`` by default,
+The optional keyword argument `suppresswarnings`, which is `false` by default,
 can be set to `true` to suppress warnings about taxa in the network without data.
 
 Used by [`fitdiscrete`](@ref) to build a new [`StatisticalSubstitutionModel`](@ref).
