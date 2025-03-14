@@ -416,15 +416,24 @@ log-likelihood: -5.2568
 fixit: add option to allow users to specify root prior,
 using either equal frequencies or stationary frequencies for trait models.
 """
-function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    tips::Dict; kwargs...) #tips::Dict no ratemodel version
+function fitdiscrete( # no ratemodel
+    net::HybridNetwork,
+    model::SubstitutionModel,
+    tips::Dict;
+    kwargs...
+)
     ratemodel = RateVariationAcrossSites(ncat=1)
     fitdiscrete(net, model, ratemodel, tips; kwargs...)
 end
 
-#tips::Dict version with ratemodel
-function fitdiscrete(net::HybridNetwork, model::SubstitutionModel, ratemodel::RateVariationAcrossSites,
-    tips::Dict; suppresswarnings::Bool=false, kwargs...)
+function fitdiscrete( # with ratemodel
+    net::HybridNetwork,
+    model::SubstitutionModel,
+    ratemodel::RateVariationAcrossSites,
+    tips::Dict;
+    suppresswarnings::Bool=false,
+    kwargs...
+)
     species = String[]
     dat = Vector{Int}[] # indices of trait labels
     for (k,v) in tips
@@ -438,16 +447,24 @@ function fitdiscrete(net::HybridNetwork, model::SubstitutionModel, ratemodel::Ra
     StatsAPI.fit(StatisticalSubstitutionModel, net, model, ratemodel, view(dat, o); kwargs...)
 end
 
-#dat::DataFrame, no rate model version
-function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    dat::DataFrame; kwargs...)
+function fitdiscrete( # dataframe, no ratemodel
+    net::HybridNetwork,
+    model::SubstitutionModel,
+    dat::DataFrame;
+    kwargs...
+)
     ratemodel = RateVariationAcrossSites(ncat=1)
     fitdiscrete(net, model, ratemodel, dat; kwargs...)
 end
 
-#dat::DataFrame with rate model version
-function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    ratemodel::RateVariationAcrossSites, dat::DataFrame; suppresswarnings::Bool=false, kwargs...)
+function fitdiscrete( # dataframe, with ratemodel
+    net::HybridNetwork,
+    model::SubstitutionModel,
+    ratemodel::RateVariationAcrossSites,
+    dat::DataFrame;
+    suppresswarnings::Bool=false,
+    kwargs...
+)
     i = findfirst(isequal(:taxon), DataFrames.propertynames(dat))
     if i===nothing i = findfirst(isequal(:species), DataFrames.propertynames(dat)); end
     if i===nothing i=1; end # first column if no column "taxon" or "species"
@@ -463,17 +480,26 @@ function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
     StatsAPI.fit(StatisticalSubstitutionModel, net, model, ratemodel, view(dat, o); kwargs...)
 end
 
-#species, dat version, no ratemodel
-function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    species::Array{<:AbstractString}, dat::DataFrame; kwargs...)
+function fitdiscrete( # species, dataframe, no ratemodel
+    net::HybridNetwork,
+    model::SubstitutionModel,
+    species::Array{<:AbstractString},
+    dat::DataFrame;
+    kwargs...
+)
     ratemodel = RateVariationAcrossSites(ncat=1)
     fitdiscrete(net, model, ratemodel, species, dat; kwargs...)
 end
 
-#species, dat version with ratemodel
-function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    ratemodel::RateVariationAcrossSites, species::Array{<:AbstractString},
-    dat::DataFrame; suppresswarnings::Bool=false, kwargs...)
+function fitdiscrete( # species, dataframe, with ratemodel
+    net::HybridNetwork,
+    model::SubstitutionModel,
+    ratemodel::RateVariationAcrossSites,
+    species::Array{<:AbstractString},
+    dat::DataFrame;
+    suppresswarnings::Bool=false,
+    kwargs...
+)
     dat2 = traitlabels2indices(dat, model) # vec of vec, indices
     o, net = check_matchtaxonnames!(copy(species), dat2, net; suppresswarnings=suppresswarnings)
     StatsAPI.fit(StatisticalSubstitutionModel, net, model, ratemodel, view(dat2, o); kwargs...)
@@ -511,17 +537,27 @@ function fitdiscrete(
 end
 
 #dnadata with dnapatternweights version, no ratemodel
-function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    dnadata::DataFrame, dnapatternweights::Array{Float64}; kwargs...)
+function fitdiscrete(
+    net::HybridNetwork,
+    model::SubstitutionModel,
+    dnadata::DataFrame,
+    dnapatternweights::Array{Float64};
+    kwargs...
+)
     ratemodel = RateVariationAcrossSites(ncat=1)
     fitdiscrete(net, model, ratemodel, dnadata, dnapatternweights; kwargs...)
 end
 
 #dnadata with dnapatternweights version with ratemodel
-function fitdiscrete(net::HybridNetwork, model::SubstitutionModel,
-    ratemodel::RateVariationAcrossSites,dnadata::DataFrame,
+function fitdiscrete(
+    net::HybridNetwork,
+    model::SubstitutionModel,
+    ratemodel::RateVariationAcrossSites,
+    dnadata::DataFrame,
     dnapatternweights::Array{<:AbstractFloat};
-    suppresswarnings::Bool=false, kwargs...)
+    suppresswarnings::Bool=false,
+    kwargs...
+)
     dat2 = traitlabels2indices(dnadata[!,2:end], model)
     o, net = check_matchtaxonnames!(dnadata[:,1], dat2, net; suppresswarnings=suppresswarnings)
     kwargs = (:siteweights => dnapatternweights, kwargs...)
@@ -574,9 +610,14 @@ See [`traitlabels2indices`](@ref) to convert trait labels to trait indices.
 after doing checks, preordering nodes in the network, making sure nodes have
 consecutive numbers, species are matched between data and network etc.
 """
-function StatsAPI.fit(::Type{SSM}, net::HybridNetwork, model::SubstitutionModel,
-    ratemodel::RateVariationAcrossSites, trait::AbstractVector; kwargs...)
-
+function StatsAPI.fit(
+    ::Type{SSM},
+    net::HybridNetwork,
+    model::SubstitutionModel,
+    ratemodel::RateVariationAcrossSites,
+    trait::AbstractVector;
+    kwargs...
+)
     sw = nothing
     if haskey(kwargs, :siteweights)
         sw = kwargs[:siteweights]
@@ -704,7 +745,7 @@ function update_logtrans(obj::SSM)
     for edge in obj.net.edge # update logtrans: same for all displayed trees, all traits
         enum = edge.number
         len = edge.length
-        for i = 1:length(rates)
+        for i in eachindex(rates)
             obj.logtrans[:,:,enum, i] .= log.(P!(Ptmp, obj.model, len * rates[i]))
         end
     end
@@ -720,7 +761,7 @@ function update_logtrans(obj::SSM, edge::Edge)
     rates = obj.ratemodel.ratemultiplier
     enum = edge.number
     len = edge.length
-    for i in 1:length(rates)
+    for i in eachindex(rates)
         pmat = view(obj.logtrans, :,:,enum,i)
         @inbounds pmat .= log.(P!(pmat, obj.model, len * rates[i]))
     end
@@ -738,7 +779,10 @@ The object's partial likelihoods are updated:
 - overall likelihoods on each displayed tree, given each rate category and for
   each given site/trait: are cached in `_loglikcache`.
 """
-function discrete_corelikelihood!(obj::SSM; whichtrait::AbstractVector{Int} = 1:obj.nsites)
+function discrete_corelikelihood!(
+    obj::SSM;
+    whichtrait::AbstractVector{Int} = 1:obj.nsites
+)
     # fill _loglikcache
     nr = length(obj.ratemodel.ratemultiplier)
     nt = length(obj.displayedtree)
@@ -782,7 +826,12 @@ Used by [`discrete_corelikelihood!`](@ref).
 
 **Preconditions**: `obj.logtrans` updated, edges directed, nodes/edges preordered
 """
-function discrete_corelikelihood_trait!(obj::SSM, t::Integer, ci::Integer, ri::Integer)
+function discrete_corelikelihood_trait!(
+    obj::SSM,
+    t::Integer,
+    ci::Integer,
+    ri::Integer
+)
     forwardlik = obj.forwardlik
     directlik  = obj.directlik
     tree = obj.displayedtree[t]
@@ -850,8 +899,10 @@ function traitlabels2indices(data::AbstractVector, model::SubstitutionModel)
     return A
 end
 
-function traitlabels2indices(data::Union{AbstractMatrix,AbstractDataFrame},
-                             model::SubstitutionModel)
+function traitlabels2indices(
+    data::Union{AbstractMatrix,AbstractDataFrame},
+    model::SubstitutionModel
+)
     A = Vector{Vector{Union{Missings.Missing,Int}}}(undef, 0) # indices of trait labels
     labs = getlabels(model)
     isDNA = typeof(labs) == Array{DNA,1}
@@ -895,10 +946,18 @@ Return a new network (`net` is *not* modified) with tips matching those in speci
 if some species in `net` have no data, these species are pruned from the network.
 The network also has its node names reset, such that leaves have nodes have
 consecutive numbers starting at 1, with leaves first.
-The optional keyword argument `suppresswarnings` denotes whether warnings are printed.
+
+The optional keyword argument `suppresswarnings`, which is `false`` by default,
+can be set to `true` to suppress warnings about taxa in the network without data.
+
 Used by [`fitdiscrete`](@ref) to build a new [`StatisticalSubstitutionModel`](@ref).
 """
-function check_matchtaxonnames!(species::AbstractVector, dat::AbstractVector, net::HybridNetwork; suppresswarnings::Bool=false)
+function check_matchtaxonnames!(
+    species::AbstractVector,
+    dat::AbstractVector,
+    net::HybridNetwork;
+    suppresswarnings::Bool=false,
+)
     # 1. basic checks for dimensions and types
     eltt = eltype(dat)
     @assert eltt <: AbstractVector "traits should be a vector of vectors"
@@ -1014,8 +1073,12 @@ as when the species names are in column 1.
 For DNA data, the relative rate model is returned, with a
 stationary distribution equal to the empirical frequencies.
 """
-function defaultsubstitutionmodel(net::HybridNetwork, modsymbol::Symbol, data::DataFrame,
-        siteweights=repeat([1.], inner=size(data,2))::AbstractVector)
+function defaultsubstitutionmodel(
+    net::HybridNetwork,
+    modsymbol::Symbol,
+    data::DataFrame,
+    siteweights=repeat([1.], inner=size(data,2))::AbstractVector
+)
     rate = startingrate(net)
     actualdat = view(data, :, 2:size(data,2))
     labels = learnlabels(modsymbol, actualdat)

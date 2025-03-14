@@ -210,7 +210,7 @@ does preference influence sword index?
 
 ```@example fish
 R"svg"(name("sword_vs_preference.svg"), width=5, height=5) # hide
-R"par"(mar=[3,2.5,.2,.2], las=1, mgp=[1.5,0.8,0]); # hide
+R"par"(mar=[3,3,.2,.2], las=1, mgp=[2,0.7,0]); # hide
 R"plot"(dat.preference, dat.sword_index,
         xlab="female preference", ylab="sword index");
 R"dev.off()" # hide
@@ -224,13 +224,13 @@ fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model="lambda";
 lrtest(fit_BM,fit_λ)
 ```
 On both Brownian motion and Pagel's lambda models,
-we find a positive but statisitcally insignificant, relationship between mate preference and sword index.
+we find a positive --but statistically insignificant-- relationship between mate preference and sword index.
 
 Further, when comparing AIC values between the models, we may conclude that
 including the extra λ parameter in the Pagel's lambda does not drastically
 improve the model's ability to explain the patterns in the data.
 Since the Brownian Motion model is nested within the Pagel's lambda model
-(BM assumes λ=1.0), we can use a likelihood ratio test to more formally conclude
+(BM assumes λ=1), we can use a likelihood ratio test to more formally conclude
 that the Pagel's lambda model does not significantly fit the data better than
 the Brownain Motion alone.
 

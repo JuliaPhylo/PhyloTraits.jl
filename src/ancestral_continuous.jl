@@ -152,7 +152,7 @@ end
 
 #= ----- roadmap of ancestralreconstruction, continuous traits ------
 
-all methods return a ReconstructedStates object. 
+all methods return a ReconstructedStates object.
 core method called by every other method:
 
 1. ancestralreconstruction(Vzz, VzyVyinvchol, RL, Y, m_y, m_z,
@@ -246,7 +246,8 @@ function ancestralreconstruction(
     tipnumbers::Vector,
     sigma2::Real,
     add_var::Matrix=zeros(size(Vz)), # Additional variance for BLUP
-    model::Union{PhyloNetworkLinearModel,Missing}=missing)
+    model::Union{PhyloNetworkLinearModel,Missing}=missing
+)
     # E[z∣y] = E[z∣X] + Cov(z,y)⋅Var(y)⁻¹⋅(y-E[y∣X])
     m_z_cond_y = m_z + VzyVyinvchol * (RL \ (Y - m_y))
     V_z_cond_y = sigma2 .* (Vz - VzyVyinvchol * VzyVyinvchol')
@@ -506,7 +507,7 @@ end
 
 Estimate the ancestral traits on a network, given some data at the tips.
 Uses function [`phylolm`](@ref) to perform a phylogenetic regression of the data against an
-intercept (amounts to fitting an evolutionary model on the network). 
+intercept (amounts to fitting an evolutionary model on the network).
 
 See documentation on [`phylolm`](@ref) and `ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])`
 for further details.
