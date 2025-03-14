@@ -125,11 +125,8 @@ In other words, we can reconstruct the state at the internal nodes,
 given the values at the tips, the known value at the root (2)
 and the known BM variance (0.5).
 ```@example tree_trait
-with_logger(nowarninglogger) do # hide
-global ancTrait1=1 # hide 
 ancTrait1 = ancestralreconstruction(truenet, dat.trait1, ParamsBM(2, 0.5))
 nothing # hide
-end # hide
 ```
 Function [`ancestralreconstruction`](@ref) creates an object with type
 [`ReconstructedStates`](@ref). Several extractors can be applied to it:
@@ -226,7 +223,6 @@ DataFrame with the trait to reconstruct, and the tip labels:
 ```@example tree_trait
 datTrait1 = DataFrame(trait1 = dat[:,:trait1], tipnames = dat[:,:tipnames])
 with_logger(nowarninglogger) do # hide
-global ancTrait1Approx =1 # hide
 ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
 end # hide
@@ -255,7 +251,6 @@ values in trait 1.
 allowmissing!(datTrait1, :trait1)
 datTrait1[2, :trait1] = missing; # second row: for taxon C
 with_logger(nowarninglogger) do # hide
-global ancTrait1Approx=1 
 ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
 end # hide
