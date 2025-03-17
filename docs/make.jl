@@ -4,7 +4,8 @@ using Documenter
 # Interlink with PhyloNetworks
 using DocumenterInterLinks
 links = InterLinks(
-    "PhyloNetworks" => "https://juliaphylo.github.io/PhyloNetworks.jl/stable/objects.inv"
+    "PhyloNetworks" => "https://juliaphylo.github.io/PhyloNetworks.jl/stable/objects.inv",
+    "PhyloPlots" => "https://juliaphylo.github.io/PhyloPlots.jl/stable/objects.inv"
 )
 
 # NOTE: default loading of PhyloNetworks in all docstring examples
@@ -34,6 +35,9 @@ makedocs(;
             "Discrete trait analysis" => "man/fitDiscrete.md",
             "DNA evolutionary models" => "man/fitdiscreteDNA.md",
             "Discrete trait simulation" => "man/simulate_discrete.md",
+        ],
+        "Examples" => [
+            "Xiphophorus fishes" => "man/example_fishes.md",
         ],
         "Library" => [
             "public" => "lib/public.md",

@@ -312,7 +312,7 @@ function ancestralreconstruction(obj::PhyloNetworkLinearModel, X_n::Matrix)
     @warn """These prediction intervals show uncertainty in ancestral values,
          assuming that the estimated variance rate of evolution is correct.
          Additional uncertainty in the estimation of this variance rate is
-         ignored, so prediction intervals should be larger."""
+         ignored, so prediction intervals should be larger.""" maxlog=1
     return ancestralreconstruction(
         Vzz,
         VzyVyinvchol,

@@ -531,6 +531,7 @@ blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in anc
 # plot(net, blup)
 @test_logs show(devnull, blup)
 
+
 # BLUP same, using the function directly
 blup_bis = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") match_mode=:any ancestralreconstruction(dfr, net));
 
@@ -579,6 +580,19 @@ predMiss = ee[indexin([n.number for n in net.leaf][[2,4]], ee[!,:nodenumber]),:p
 for pp = predMiss
     @test pp[end] == '*'
 end
+
+# Test warning logger 
+test_logger = TestLogger()
+with_logger(test_logger) do 
+    ancestralreconstruction(phynetlm)
+    ancestralreconstruction(phynetlm)
+    @warn "this is not the ancestral reconstruction warning"
+end
+@test length(test_logger.logs) == 2
+@test startswith(test_logger.logs[1].message,"These prediction intervals show uncertainty in ancestral values")
+@test test_logger.logs[2].message == "this is not the ancestral reconstruction warning"
+
+
 
 end
 

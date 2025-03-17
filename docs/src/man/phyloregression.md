@@ -1,6 +1,8 @@
 ```@setup tree_trait
 using PhyloNetworks
 using PhyloTraits
+using Logging
+nowarninglogger = ConsoleLogger(stderr, Logging.Error)
 mkpath("../assets/figures")
 ```
 
@@ -135,7 +137,7 @@ stderror(ancTrait1) # associated standard errors
 predict(ancTrait1, interval=:prediction, level=0.90) # prediction interval (at level 90%)
 ```
 We can plot the ancestral states or prediction intervals on the tree, using the
-`nodelabel` argument of the `plot` function.
+`nodelabel` argument of the [`PhyloPlots.plot`](@extref) function.
 ```@example tree_trait
 R"svg"(name("ancestral_expe.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
@@ -155,14 +157,14 @@ nothing # hide
 ```
 ![ancestral_predint](../assets/figures/ancestral_predint.svg)
 
-The `predict` function has an optional argument to state
+The [`PhyloTraits.predict`](@ref) function has an optional argument to state
 the `level` of the prediction interval. If not given, the default value is
 0.95.
 
 It is also possible to plot both the reconstructed state and the predicted value
 on the same plot, using the optional keyword argument `combine`.
 As shown below, we could also use the `RCall` method from the
-[`plot`](https://juliaphylo.github.io/PhyloPlots.jl/stable/lib/public/) function.
+[`PhyloPlots.plot`](@extref) function.
 ```@example tree_trait
 ancInt = predict(ancTrait1, interval=:prediction, text=true, combine=true) 
 plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]], tipoffset=0.1);
@@ -202,6 +204,7 @@ nothing # hide
 ```
 The prediction intervals ignore the fact that we estimated the process
 parameters, so they are less accurate and the function throws a warning.
+Note that this warning will only show once in a given `julia` session.
 The output is an object of the same [`ReconstructedStates`](@ref) type as earlier,
 and the same extractors can be applied to it:
 ```@example tree_trait
@@ -219,8 +222,10 @@ with a single call of the function [`ancestralreconstruction`](@ref) on a
 DataFrame with the trait to reconstruct, and the tip labels:
 ```@example tree_trait
 datTrait1 = DataFrame(trait1 = dat[:,:trait1], tipnames = dat[:,:tipnames])
+with_logger(nowarninglogger) do # hide
 ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
+end # hide
 ```
 ```@example tree_trait
 ancInt = predict(ancTrait1Approx, interval=:prediction, level=0.9, text=true, combine=true) 
@@ -245,8 +250,10 @@ values in trait 1.
 ```@example tree_trait
 allowmissing!(datTrait1, :trait1)
 datTrait1[2, :trait1] = missing; # second row: for taxon C
+with_logger(nowarninglogger) do # hide
 ancTrait1Approx = ancestralreconstruction(datTrait1, truenet)
 nothing # hide
+end # hide
 ```
 ```@example tree_trait
 ancInt = predict(ancTrait1Approx, interval=:prediction, text=true, combine=true) 
@@ -278,12 +285,15 @@ ancestral states, if they are known. They are actually known in this
 toy example because we generated the data ourselves (see next section),
 so we can reconstruct our trait doing the following:
 ```@example tree_trait
+with_logger(nowarninglogger) do # hide
+global ancTrait3=1 # hide
 ancTrait3 = ancestralreconstruction(fitTrait3, # model with estimated coefs etc.
   hcat(ones(7,1),
   [ 3.312, 4.438,  3.922,  3.342,  2.564,  1.315,  2.0], # from sim1[:internalnodes]
   [-3.62, -0.746, -2.217, -3.612, -2.052, -2.871, -2.0]) # from sim2[:internalnodes]
 )
 nothing # hide
+end # hide
 ```
 ```@example tree_trait
 ancInt = predict(ancTrait3, interval=:prediction, text=true, combine=true) 
@@ -436,7 +446,7 @@ its genome that was inherited from this reticulation. Here, A and B's ancestry
 if fully inherited from edge 6, below the one reticulation in the network.
 
 We can use the columns in this dataframe as regressors (predictors) in the
-`phylolm` function. Their coefficients will measure the shift after each
+[`phylolm`](@ref) function. Their coefficients will measure the shift after each
 reticulation.
 In the example below, the species names are listed in a different order than in `df_shift`, and contained in a column called "species", to show how this is
 handled to merge and then fit the data.
@@ -479,8 +489,6 @@ In the output table, models are listed in the order in which they were given.
 If the most complex model is given first, as done above, the table
 lists the most complex H₁ (with shifts) first, and the null model H₀
 is listed as the second model.
-
----
 
 ### References
 

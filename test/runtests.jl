@@ -14,6 +14,7 @@ using StaticArrays # for rate substitution matrices
 using Statistics
 using StatsBase # for aic etc., stderr
 using StatsAPI
+using Logging # for testing of the warning logging
 
 const PN = PhyloNetworks
 

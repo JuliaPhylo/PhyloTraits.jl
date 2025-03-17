@@ -39,18 +39,16 @@ julia> using PhyloTraits
 ```
 The first time, julia will prompt you for package installation.
 
-Then follow the [latest documentation][docs-dev-url].
+## Tutorials
 
-## Tutorials and Wiki
-
-The tutorials below may be useful, but use older versions of the functions
-from PhyloNetworks v0.16 (see Note below).
-Some function names and options will need to be
-adjusted:
-- [PhyloNetworks' wiki](https://github.com/JuliaPhylo/PhyloNetworks.jl/wiki/Continuous-trait-evolution)
-  on continuous trait evolution
-- [tutorial](https://cecileane.github.io/networkPCM-workshop/) for
-  comparative methods, including network calibration (2023 workshop)
+- Follow PhyloTraits's [latest documentation][docs-dev-url].
+  It includes a manual and examples of empirical analyses from the literature.
+- This [tutorial](https://cecileane.github.io/networkPCM-workshop/)
+  (from a 2023 workshop) is on comparative methods
+  and includes a tutorial for network calibration.
+  Caveat: it does *not* use PhyloTraits. It uses older versions of the
+  functions from PhyloNetworks v0.16 (see Note below).
+  Some function names and options will need to be adjusted.
 
 ## Citing
 

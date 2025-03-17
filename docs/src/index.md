@@ -35,7 +35,7 @@ Quick links for methods about trait evolution on networks:
 
 ## Manual
 
-For a tutorial, see this manual.
+The manual pages contain detailed tutorials on how to use the functions of the package.
 
 ```@contents
 Pages = [
@@ -44,6 +44,17 @@ Pages = [
     "man/fitDiscrete.md",
     "man/fitdiscreteDNA.md",
     "man/simulate_discrete.md",
+]
+Depth = 3
+```
+
+## Examples
+
+This section contains example of empirical analyses from the literature.
+
+```@contents
+Pages = [
+    "man/example_fishes.md",
 ]
 Depth = 3
 ```

@@ -46,7 +46,8 @@ function phylolm(
     fixedValue::Union{Real,Missing}=missing,
     withinspecies_var::Bool=false,
     counts::Union{Nothing, Vector}=nothing,
-    ySD::Union{Nothing, Vector}=nothing
+    ySD::Union{Nothing, Vector}=nothing,
+    suppresswarnings::Bool=false,
 )
     if withinspecies_var
         phylolm_wsp(model, X,Y,net, reml; nonmissing=nonmissing, ind=ind,
@@ -55,7 +56,8 @@ function phylolm(
     else
         phylolm(model, X,Y,net, reml; nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            startingValue=startingValue, fixedValue=fixedValue)
+            startingValue=startingValue, fixedValue=fixedValue,
+            suppresswarnings=suppresswarnings)
     end
 end
 
@@ -90,7 +92,8 @@ function phylolm(
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
     startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing
+    fixedValue::Union{Real,Missing}=missing,
+    suppresswarnings::Bool=false
 )
     # BM variance covariance
     V = sharedpathmatrix(net) # runs preorder!(net) by default
@@ -98,7 +101,7 @@ function phylolm(
     if istimeconsistent(net, false) # false: no need to preorder again
         times = getnodeheights(net, false)
     else
-        @warn """The network is not time consistent (node heights are not well-defined).
+        !suppresswarnings && @warn """The network is not time consistent (node heights are not well-defined).
         The network should be calibrated for this analysis, as the theory for Pagel's model
         assumes a time-consistent network.
         The analysis will use node heights based on the major tree, in the meantime.
@@ -177,7 +180,8 @@ function phylolm(
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
     startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing
+    fixedValue::Union{Real,Missing}=missing,
+    kwargs...
 )
     preorder!(net)
     gammas = getGammas(net)
@@ -412,6 +416,9 @@ Keyword arguments
   Default is false, setting it to true is dangerous, and strongly discouraged.
 * `reml=true`: if `true`, use REML criterion ("restricted maximum likelihood")
   for estimating variance components, else use ML criterion.
+* `suppresswarnings=false`: if `true`, PhyloTraits-specific warnings are
+  suppressed. Currently, only Pagel's lambda model may throw a warning
+  (if the network is not time-consistent).
 
 The following tolerance parameters control the optimization of lambda if
 `model="lambda"` or `model="scalinghybrid"`, and control the optimization of the
@@ -734,7 +741,8 @@ function phylolm(
     startingValue::Real=0.5,
     fixedValue::Union{Real,Missing}=missing,
     withinspecies_var::Bool=false,
-    y_mean_std::Bool=false
+    y_mean_std::Bool=false,
+    suppresswarnings::Bool=false
 )
     # Match the tips names: make sure that the data provided by the user will
     # be in the same order as the ordered tips in matrix V.
@@ -816,7 +824,8 @@ function phylolm(
     res = phylolm(mm.m, Y, net, modelobj; reml=reml, nonmissing=nonmissing, ind=ind,
                   ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
                   startingValue=startingValue, fixedValue=fixedValue,
-                  withinspecies_var=withinspecies_var, counts=counts, ySD=ySD)
+                  withinspecies_var=withinspecies_var, counts=counts, ySD=ySD,
+                  suppresswarnings=suppresswarnings)
     res.formula = f
     return res
 end
