@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Xiphophorus fishes · PhyloTraits.jl</title><meta name="title" content="Xiphophorus fishes · PhyloTraits.jl"/><meta property="og:title" content="Xiphophorus fishes · PhyloTraits.jl"/><meta property="twitter:title" content="Xiphophorus fishes · PhyloTraits.jl"/><meta name="description" content="Documentation for PhyloTraits.jl."/><meta property="og:description" content="Documentation for PhyloTraits.jl."/><meta property="twitter:description" content="Documentation for PhyloTraits.jl."/><meta property="og:url" content="https://JuliaPhylo.github.io/PhyloTraits.jl/man/example_fishes/"/><meta property="twitter:url" content="https://JuliaPhylo.github.io/PhyloTraits.jl/man/example_fishes/"/><link rel="canonical" href="https://JuliaPhylo.github.io/PhyloTraits.jl/man/example_fishes/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img class="docs-light-only" src="../../assets/logo.png" alt="PhyloTraits.jl logo"/><img class="docs-dark-only" src="../../assets/logo-dark.png" alt="PhyloTraits.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">PhyloTraits.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../phyloregression/">Continuous trait analysis</a></li><li><a class="tocitem" href="../simulate_continuous/">Continuous trait simulation</a></li><li><a class="tocitem" href="../fitDiscrete/">Discrete trait analysis</a></li><li><a class="tocitem" href="../fitdiscreteDNA/">DNA evolutionary models</a></li><li><a class="tocitem" href="../simulate_discrete/">Discrete trait simulation</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li class="is-active"><a class="tocitem" href>Xiphophorus fishes</a><ul class="internal"><li><a class="tocitem" href="#Data-loading"><span>Data loading</span></a></li><li><a class="tocitem" href="#Ancestral-state-prediction"><span>Ancestral state prediction</span></a></li><li><a class="tocitem" href="#Phylogenetic-signal:-Pagel&#39;s-lambda"><span>Phylogenetic signal: Pagel&#39;s lambda</span></a></li><li><a class="tocitem" href="#Phylogenetic-regression-of-sword-index-versus-preference"><span>Phylogenetic regression of sword index versus preference</span></a></li><li><a class="tocitem" href="#Transgressive-evolution"><span>Transgressive evolution</span></a></li></ul></li></ul></li><li><span class="tocitem">Library</span><ul><li><a class="tocitem" href="../../lib/public/">public</a></li><li><a class="tocitem" href="../../lib/internal/">internals</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Xiphophorus fishes</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Xiphophorus fishes</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaPhylo/PhyloTraits.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/main/docs/src/man/example_fishes.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Empirical-example:-Xiphophorus-fishes"><a class="docs-heading-anchor" href="#Empirical-example:-Xiphophorus-fishes">Empirical example: Xiphophorus fishes</a><a id="Empirical-example:-Xiphophorus-fishes-1"></a><a class="docs-heading-anchor-permalink" href="#Empirical-example:-Xiphophorus-fishes" title="Permalink"></a></h1><p>We reproduce here the analyses on <em>Xiphophorus</em> fishes from <a href="https://doi.org/10.1093/sysbio/syy033">Bastide et al. (2018)</a>, available on <a href="https://doi.org/10.5061/dryad.nt2g6">dryad</a>.</p><h2 id="Data-loading"><a class="docs-heading-anchor" href="#Data-loading">Data loading</a><a id="Data-loading-1"></a><a class="docs-heading-anchor-permalink" href="#Data-loading" title="Permalink"></a></h2><p>The data can be downloaded here:</p><ul><li>the time calibrated <a href="https://datadryad.org/api/v2/files/343930/download">network</a>;</li><li>the <a href="https://datadryad.org/api/v2/files/343929/download">trait</a> data on sword index and female preference for a sword, originally from <a href="https://doi.org/10.1111/evo.12099">Cui et al. (2013)</a>.</li></ul><p>The files are also in the <code>examples</code> folder of the <code>PhyloTraits</code> package as  <code>xiphophorus_networks_calibrated.tre</code> and <code>xiphophorus_morphology_Cui_etal_2013.csv</code>.</p><p>If not done already, load the packages needed for this analysis:</p><pre><code class="language-julia hljs">using PhyloNetworks, PhyloTraits, PhyloPlots
+using RCall, CSV, DataFrames
+using StatsAPI, StatsBase, StatsModels</code></pre><p>then read in the networks data:</p><pre><code class="language-julia hljs">examples_path = joinpath(dirname(pathof(PhyloTraits)), &quot;..&quot;, &quot;examples&quot;);
+topologies = readmultinewick(joinpath(examples_path, &quot;xiphophorus_networks_calibrated.tre&quot;));
+net3 = topologies[3]; # we will use the network with 3 reticulations
+plot(net3; useedgelength=true); # topology + branch lengths</code></pre><p><img src="../../assets/figures/net3.svg" alt="net3"/></p><p>The file <code>examples/xiphophorus_networks_calibrated.tre</code> contains three calibrated networks, with 0, 1 or 3 reticulations (see <a href="https://doi.org/10.1093/sysbio/syy033">Bastide et al. (2018)</a> for details). In this tutorial, we use the network with 3 reticulations.</p><p>We can <a href="https://juliaphylo.github.io/PhyloNetworks.jl/stable/lib/public/#PhyloNetworks.rotate%21-Tuple%7BHybridNetwork%2C%20Integer%7D"><code>rotate!</code></a> some of the nodes to avoid crossing edges and produce a better figure:</p><pre><code class="language-julia hljs">rotate!(net3, -4)
+rotate!(net3, -5)
+rotate!(net3, -6)
+rotate!(net3, -14)
+rotate!(net3, -16)
+rotate!(net3, -17)
+plot(net3; useedgelength=true); # topology + branch lengths</code></pre><p><img src="../../assets/figures/net3_rot.svg" alt="net3"/></p><p>We can then read in the trait data:</p><pre><code class="language-julia hljs">csvfile = joinpath(examples_path, &quot;xiphophorus_morphology_Cui_etal_2013.csv&quot;)
+dat = CSV.read(csvfile, DataFrame);</code></pre><div><div style = "float: left;"><span>24×3 DataFrame</span></div><div style = "clear: both;"></div></div><div class = "data-frame" style = "overflow-x: scroll;"><table class = "data-frame" style = "margin-bottom: 6px;"><thead><tr class = "header"><th class = "rowNumber" style = "font-weight: bold; text-align: right;">Row</th><th style = "text-align: left;">tipnames</th><th style = "text-align: left;">sword_index</th><th style = "text-align: left;">preference</th></tr><tr class = "subheader headerLastRow"><th class = "rowNumber" style = "font-weight: bold; text-align: right;"></th><th title = "InlineStrings.String15" style = "text-align: left;">String15</th><th title = "Float64" style = "text-align: left;">Float64</th><th title = "Union{Missing, Float64}" style = "text-align: left;">Float64?</th></tr></thead><tbody><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">1</td><td style = "text-align: left;">Xalvarezi</td><td style = "text-align: right;">0.65</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">2</td><td style = "text-align: left;">Xandersi</td><td style = "text-align: right;">0.35</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">3</td><td style = "text-align: left;">Xbirchmanni</td><td style = "text-align: right;">0.275</td><td style = "text-align: right;">-0.33</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">4</td><td style = "text-align: left;">Xclemenciae</td><td style = "text-align: right;">0.564</td><td style = "text-align: right;">0.44</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">5</td><td style = "text-align: left;">Xcontinens</td><td style = "text-align: right;">0.3</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">6</td><td style = "text-align: left;">Xcortezi</td><td style = "text-align: right;">0.37</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">7</td><td style = "text-align: left;">Xcouchianus</td><td style = "text-align: right;">0.275</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">8</td><td style = "text-align: left;">Xevelynae</td><td style = "text-align: right;">0.275</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">9</td><td style = "text-align: left;">Xgordoni</td><td style = "text-align: right;">0.275</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">10</td><td style = "text-align: left;">Xhellerii</td><td style = "text-align: right;">0.641</td><td style = "text-align: right;">0.91</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">11</td><td style = "text-align: left;">Xmaculatus</td><td style = "text-align: right;">0.275</td><td style = "text-align: right;">0.24</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">12</td><td style = "text-align: left;">Xmalinche</td><td style = "text-align: right;">0.37</td><td style = "text-align: right;">-0.24</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">13</td><td style = "text-align: left;">Xmayae</td><td style = "text-align: right;">0.7</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">14</td><td style = "text-align: left;">Xmeyeri</td><td style = "text-align: right;">0.275</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">15</td><td style = "text-align: left;">Xmilleri</td><td style = "text-align: right;">0.275</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">16</td><td style = "text-align: left;">Xmontezumae</td><td style = "text-align: right;">1.03</td><td style = "text-align: right;">0.19</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">17</td><td style = "text-align: left;">Xmonticolus</td><td style = "text-align: right;">0.517</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">18</td><td style = "text-align: left;">Xmultilineatus</td><td style = "text-align: right;">0.4</td><td style = "text-align: right;">-0.08</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">19</td><td style = "text-align: left;">Xnezahualcoyotl</td><td style = "text-align: right;">0.48</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">20</td><td style = "text-align: left;">Xnigrensis</td><td style = "text-align: right;">0.37</td><td style = "text-align: right;">-0.1</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">21</td><td style = "text-align: left;">Xpygmaeus</td><td style = "text-align: right;">0.3</td><td style = "text-align: right;">-0.02</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">22</td><td style = "text-align: left;">Xsignum</td><td style = "text-align: right;">0.6</td><td style = "font-style: italic; text-align: right;">missing</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">23</td><td style = "text-align: left;">Xvariatus</td><td style = "text-align: right;">0.275</td><td style = "text-align: right;">0.28</td></tr><tr><td class = "rowNumber" style = "font-weight: bold; text-align: right;">24</td><td style = "text-align: left;">Xxiphidium</td><td style = "text-align: right;">0.3</td><td style = "font-style: italic; text-align: right;">missing</td></tr></tbody></table></div><p>Sometimes the trait data and phylogeny have non-overlapping taxa sets. <code>PhyloTraits</code> requires the data and phylogeny to have information on the same set of taxa. We will delete the rows in the trait data for the taxa that are missing in the network.</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; taxa_net = tiplabels(net3); # extract list of taxa</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; missing_rows = Integer[];</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; for i in reverse(1:nrow(dat))
+           j = findfirst(isequal(dat.tipnames[i]), taxa_net)
+           if isnothing(j) # taxon not found in network
+               println(&quot;taxon &quot;, dat.tipnames[i], &quot; (row $i) not found in network&quot;)
+               push!(missing_rows,i)
+           end
+       end</code><code class="nohighlight hljs ansi" style="display:block;">taxon Xnezahualcoyotl (row 19) not found in network</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; dat = dat[setdiff(1:nrow(dat),missing_rows),:];</code><code class="nohighlight hljs ansi" style="display:block;"></code></pre><p>The snippet above should work fairly generically, assuming that the column with the taxa is labelled <code>tipnames</code>. Here, it tells us that <code>taxon Xnezahualcoyotl (row 19) not found in network</code> and thus our code (last line) removed it from our data frame <code>dat</code>.</p><h2 id="Ancestral-state-prediction"><a class="docs-heading-anchor" href="#Ancestral-state-prediction">Ancestral state prediction</a><a id="Ancestral-state-prediction-1"></a><a class="docs-heading-anchor-permalink" href="#Ancestral-state-prediction" title="Permalink"></a></h2><p>As <a href="../phyloregression/#From-estimated-parameters">done in the manual</a>, after fitting a model of trait evolution, we may wish to estimate the character at various internal nodes to gain insight on the ancestral states.</p><p>For the ancestral states of the sword index:</p><pre><code class="language-julia hljs">dat_si = dat[:, [:tipnames,:sword_index]];
+AS_si = ancestralreconstruction(dat_si, net3); # the ancestral state estimates
+plot(net3, nodelabel = predict(AS_si, text=true), xlim=[0,20]);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr33"><span class="sgr1">┌ Warning: </span></span>These prediction intervals show uncertainty in ancestral values,
+<span class="sgr33"><span class="sgr1">│ </span></span>assuming that the estimated variance rate of evolution is correct.
+<span class="sgr33"><span class="sgr1">│ </span></span>Additional uncertainty in the estimation of this variance rate is
+<span class="sgr33"><span class="sgr1">│ </span></span>ignored, so prediction intervals should be larger.
+<span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ PhyloTraits ~/work/PhyloTraits.jl/PhyloTraits.jl/src/ancestral_continuous.jl:312</span></code></pre><p><img src="../../assets/figures/anc_fish_si_est.svg" alt="anc_fish_si_est"/></p><p>The prediction intervals ignore the fact that we estimated the process parameters, so they are less accurate and the function throws a warning. This warning will only show once in a given <code>julia</code> session.</p><p>To get the 90% credible interval in a text format to use as labels for plotting, we can use option <code>text=true</code> in the <code>predict</code> function.</p><pre><code class="language-julia hljs">AS_si_int = predict(AS_si, interval=:prediction, level=0.90, text=true);
+plot(net3, nodelabel=AS_si_int[!,[:nodenumber,:interval]], useedgelength=true);</code></pre><p><img src="../../assets/figures/anc_fish_si_ci.svg" alt="anc_fish_si_ci"/></p><p>Note that here, the first plot ignores branch lengths, while the second one uses them (<code>useedgelength=true</code>).</p><p>As a consistency check, we can observe that the ancestral state prediction interval falls within the extrema of the trait itself:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; AS_si_int[findfirst(AS_si_int.nodenumber .== -2),:interval]</code><code class="nohighlight hljs ansi" style="display:block;">&quot;[0.3, 0.63]&quot;</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; extrema(dat[:,:sword_index])</code><code class="nohighlight hljs ansi" style="display:block;">(0.275, 1.03)</code></pre><p>We can do the same for the female preference for a sword:</p><pre><code class="language-julia hljs">dat_fp = dat[:, [:preference, :tipnames]];
+AS_fp = ancestralreconstruction(dat_fp, net3);
+plot(net3, nodelabel=predict(AS_fp,text=true), xlim=[0,20]);</code></pre><p><img src="../../assets/figures/anc_fish_fp_est.svg" alt="anc_fish_fp_est"/></p><pre><code class="language-julia hljs">AS_fp_int = predict(AS_fp,interval=:prediction,level=0.90,text=true);
+plot(net3, nodelabel=AS_fp_int[!,[:nodenumber,:interval]],
+     useedgelength=true, xlim=[-3,26]);</code></pre><p><img src="../../assets/figures/anc_fish_fp_ci.svg" alt="anc_fish_fp_ci"/></p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; AS_fp_int[findfirst(AS_fp_int.nodenumber .== -2),:interval]</code><code class="nohighlight hljs ansi" style="display:block;">&quot;[0.02, 0.62]&quot;</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; extrema(skipmissing(dat[:,:preference]))</code><code class="nohighlight hljs ansi" style="display:block;">(-0.33, 0.91)</code></pre><h2 id="Phylogenetic-signal:-Pagel&#39;s-lambda"><a class="docs-heading-anchor" href="#Phylogenetic-signal:-Pagel&#39;s-lambda">Phylogenetic signal: Pagel&#39;s lambda</a><a id="Phylogenetic-signal:-Pagel&#39;s-lambda-1"></a><a class="docs-heading-anchor-permalink" href="#Phylogenetic-signal:-Pagel&#39;s-lambda" title="Permalink"></a></h2><p>We can use <a href="../phyloregression/#Pagel&#39;s-Lambda">Pagel&#39;s lambda</a> transformation to asses the phylogenetic sigal.</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; lambda_si = phylolm(@formula(sword_index ~ 1), dat, net3, model=&quot;lambda&quot;)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr33"><span class="sgr1">┌ Warning: </span></span>The network is not time consistent (node heights are not well-defined).
+<span class="sgr33"><span class="sgr1">│ </span></span>The network should be calibrated for this analysis, as the theory for Pagel&#39;s model
+<span class="sgr33"><span class="sgr1">│ </span></span>assumes a time-consistent network.
+<span class="sgr33"><span class="sgr1">│ </span></span>The analysis will use node heights based on the major tree, in the meantime.
+<span class="sgr33"><span class="sgr1">└ </span></span><span class="sgr90">@ PhyloTraits ~/work/PhyloTraits.jl/PhyloTraits.jl/src/fit_phylolm_continuous.jl:104</span>
+<span class="sgr36"><span class="sgr1">[ Info: </span></span>Maximum lambda value to maintain positive branch lengths: 1.07157
+PhyloNetworkLinearModel
+
+Formula: sword_index ~ 1
+
+Model: Pagel&#39;s lambda
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00321484
+Lambda: 1.07157
+
+Coefficients:
+───────────────────────────────────────────────────────────────────────
+                Coef.  Std. Error     t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+───────────────────────────────────────────────────────────────────────
+(Intercept)  0.465531    0.103858  4.48    0.0002   0.250142   0.680919
+───────────────────────────────────────────────────────────────────────
+Log Likelihood: 13.3199544676
+AIC: -20.6399089351</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; lambda_fp = phylolm(@formula(preference ~ 1),  dat, net3, model=&quot;lambda&quot;;
+                           suppresswarnings=true)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36"><span class="sgr1">[ Info: </span></span>Maximum lambda value to maintain positive branch lengths: 1.07157
+PhyloNetworkLinearModel
+
+Formula: preference ~ 1
+
+Model: Pagel&#39;s lambda
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00662525
+Lambda: 1.07157
+
+Coefficients:
+────────────────────────────────────────────────────────────────────────
+                Coef.  Std. Error     t  Pr(&gt;|t|)   Lower 95%  Upper 95%
+────────────────────────────────────────────────────────────────────────
+(Intercept)  0.327211    0.169062  1.94    0.0849  -0.0552334   0.709655
+────────────────────────────────────────────────────────────────────────
+Log Likelihood: -0.6904893047
+AIC: 7.3809786093</code></pre><p>On both traits we observe λ&gt;1.0 when fitting the Pagel&#39;s lambda model; consequently, we would interpret the patterns in trait data to have high phylogenetic signal. Note that here, we observe λ values greater than 1.0: the observed value is the maximum value so that the transformation does not produce negative branch lengths.</p><div class="admonition is-info"><header class="admonition-header">Warnings from PhyloTraits</header><div class="admonition-body"><p>When fitting a Pagel&#39;s lambda model on a network that is not time consistent, a warning will appear and notify the user that the node heights from the major tree within the network will be used for analysis. Pagel&#39;s lambda models assume time consistency, making it important to calibrate a network prior to model fitting. In our case, if we run <code>getnodeheights(net3)</code> we will get an error showing that the different path lengths that lead to the time inconsistency is relatively small. The small difference between paths likely results in a minor difference when using the major tree node heights instead of well-calibrated heights.</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; getnodeheights(net3)</code><code class="nohighlight hljs ansi" style="display:block;">ERROR: the network is not time consistent. paths of different lengths: [10.997628573602418, 10.997629766245751]</code></pre></div></div><h2 id="Phylogenetic-regression-of-sword-index-versus-preference"><a class="docs-heading-anchor" href="#Phylogenetic-regression-of-sword-index-versus-preference">Phylogenetic regression of sword index versus preference</a><a id="Phylogenetic-regression-of-sword-index-versus-preference-1"></a><a class="docs-heading-anchor-permalink" href="#Phylogenetic-regression-of-sword-index-versus-preference" title="Permalink"></a></h2><p>Phylogenetic regression can help us anwser the question: does preference influence sword index?</p><pre><code class="language-julia hljs">R&quot;plot&quot;(dat.preference, dat.sword_index,
+        xlab=&quot;female preference&quot;, ylab=&quot;sword index&quot;);</code></pre><p><img src="../../assets/figures/sword_vs_preference.svg" alt="sword_vs_preference"/></p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; fit_BM = phylolm(@formula(sword_index ~ preference), dat, net3)</code><code class="nohighlight hljs ansi" style="display:block;">PhyloNetworkLinearModel
+
+Formula: sword_index ~ 1 + preference
+
+Model: Brownian motion
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00522392
+
+Coefficients:
+───────────────────────────────────────────────────────────────────────
+                Coef.  Std. Error     t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+───────────────────────────────────────────────────────────────────────
+(Intercept)  0.29801     0.177351  1.68    0.1314  -0.110963   0.706982
+preference   0.552722    0.303918  1.82    0.1065  -0.148114   1.25356
+───────────────────────────────────────────────────────────────────────
+Log Likelihood: -0.2269154067
+AIC: 6.4538308134</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model=&quot;lambda&quot;; suppresswarnings=true)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36"><span class="sgr1">[ Info: </span></span>Maximum lambda value to maintain positive branch lengths: 1.07157
+PhyloNetworkLinearModel
+
+Formula: sword_index ~ 1 + preference
+
+Model: Pagel&#39;s lambda
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00601073
+Lambda: 1.07157
+
+Coefficients:
+───────────────────────────────────────────────────────────────────────
+                Coef.  Std. Error     t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+───────────────────────────────────────────────────────────────────────
+(Intercept)  0.290629    0.191634  1.52    0.1678  -0.151281   0.732538
+preference   0.568499    0.317498  1.79    0.1111  -0.163653   1.30065
+───────────────────────────────────────────────────────────────────────
+Log Likelihood: 0.0192051774
+AIC: 7.9615896453</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; lrtest(fit_BM,fit_λ)</code><code class="nohighlight hljs ansi" style="display:block;">Likelihood-ratio test: 2 models fitted on 10 observations
+────────────────────────────────────────────────────
+     DOF  ΔDOF   LogLik  Deviance   Chisq  p(&gt;Chisq)
+────────────────────────────────────────────────────
+[1]    3        -0.2269    0.4538
+[2]    4     1   0.0192   -0.0384  0.4922     0.4829
+────────────────────────────────────────────────────</code></pre><p>On both Brownian motion and Pagel&#39;s lambda models, we find a positive –but statistically insignificant– relationship between mate preference and sword index.</p><p>Further, when comparing AIC values between the models, we may conclude that including the extra λ parameter in the Pagel&#39;s lambda does not drastically improve the model&#39;s ability to explain the patterns in the data. Since the Brownian Motion model is nested within the Pagel&#39;s lambda model (BM assumes λ=1), we can use a likelihood ratio test to more formally conclude that the Pagel&#39;s lambda model does not significantly fit the data better than the Brownain Motion alone.</p><h2 id="Transgressive-evolution"><a class="docs-heading-anchor" href="#Transgressive-evolution">Transgressive evolution</a><a id="Transgressive-evolution-1"></a><a class="docs-heading-anchor-permalink" href="#Transgressive-evolution" title="Permalink"></a></h2><p>To evaluate whether there was transgressive evolution that caused trait shifts at reticulation events, we can fit and compare different models of continuous trait evolution.</p><p>Here we compare three different models:</p><ul><li><code>fit0</code>: no effect of reticulation events on the trait expectation;</li><li><code>fit1</code>: all three reticulation events lead to the same shift value on the trait expectation;</li><li><code>fit2</code>: each reticulation events has its own shift value on the trait expectation.</li></ul><p>For the sword index, we get:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; df_shift = descendencedataframe(net3); # regressors matching Hybrid Shifts</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; dat3 = leftjoin(dat, df_shift, on = :tipnames); # add regressors to data</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; fit0 = phylolm(@formula(sword_index ~ 1),   dat3, net3) # no shift</code><code class="nohighlight hljs ansi" style="display:block;">PhyloNetworkLinearModel
+
+Formula: sword_index ~ 1
+
+Model: Brownian motion
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00287803
+
+Coefficients:
+───────────────────────────────────────────────────────────────────────
+                Coef.  Std. Error     t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+───────────────────────────────────────────────────────────────────────
+(Intercept)  0.463689   0.0961999  4.82    &lt;1e-04   0.264182   0.663195
+───────────────────────────────────────────────────────────────────────
+Log Likelihood: 7.5373160072
+AIC: -11.0746320144</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; fit1 = phylolm(@formula(sword_index ~ sum), dat3, net3) # same shift at hybrids</code><code class="nohighlight hljs ansi" style="display:block;">PhyloNetworkLinearModel
+
+Formula: sword_index ~ 1 + sum
+
+Model: Brownian motion
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00296278
+
+Coefficients:
+──────────────────────────────────────────────────────────────────────────
+                  Coef.  Std. Error      t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────────────────
+(Intercept)   0.480222    0.101313    4.74    0.0001   0.26953    0.690914
+sum          -0.0509388   0.0836633  -0.61    0.5492  -0.224926   0.123049
+──────────────────────────────────────────────────────────────────────────
+Log Likelihood: 6.156064176
+AIC: -6.312128352</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; fit2 = phylolm(@formula(sword_index ~ shift_24 + shift_37 + shift_45),
+                      dat3, net3) # different shifts at hybrid nodes</code><code class="nohighlight hljs ansi" style="display:block;">PhyloNetworkLinearModel
+
+Formula: sword_index ~ 1 + shift_24 + shift_37 + shift_45
+
+Model: Brownian motion
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00286279
+
+Coefficients:
+──────────────────────────────────────────────────────────────────────────
+                  Coef.  Std. Error      t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────────────────
+(Intercept)   0.438245     0.102997   4.25    0.0004   0.22267   0.65382
+shift_24     -0.197443     0.121163  -1.63    0.1197  -0.45104   0.0561533
+shift_37      0.17982      0.184011   0.98    0.3407  -0.20532   0.564959
+shift_45      0.0514679    0.18868    0.27    0.7880  -0.343443  0.446379
+──────────────────────────────────────────────────────────────────────────
+Log Likelihood: 6.3555666437
+AIC: -2.7111332873</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; ftest(fit0, fit1, fit2)</code><code class="nohighlight hljs ansi" style="display:block;">F-test: 3 models fitted on 23 observations
+───────────────────────────────────────────────────────────────
+     DOF  ΔDOF     SSR     ΔSSR      R²     ΔR²      F*   p(&gt;F)
+───────────────────────────────────────────────────────────────
+[1]    2        0.0633           0.0000
+[2]    3     1  0.0622  -0.0011  0.0173  0.0173  0.3707  0.5492
+[3]    5     2  0.0544  -0.0078  0.1409  0.1236  1.3667  0.2789
+───────────────────────────────────────────────────────────────</code></pre><p>From the p-values we might conclude that neither transgressive model can fit the data significantly better than the model without trait shifts.</p><p>For the female preference, we get:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; fit0 = phylolm(@formula(preference ~ 1),   dat3, net3) # no shift</code><code class="nohighlight hljs ansi" style="display:block;">PhyloNetworkLinearModel
+
+Formula: preference ~ 1
+
+Model: Brownian motion
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00628407
+
+Coefficients:
+────────────────────────────────────────────────────────────────────────
+                Coef.  Std. Error     t  Pr(&gt;|t|)   Lower 95%  Upper 95%
+────────────────────────────────────────────────────────────────────────
+(Intercept)  0.319654    0.162738  1.96    0.0811  -0.0484843   0.687792
+────────────────────────────────────────────────────────────────────────
+Log Likelihood: -1.2863264745
+AIC: 6.5726529491</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; fit1 = phylolm(@formula(preference ~ sum), dat3, net3) # same shift at hybrids</code><code class="nohighlight hljs ansi" style="display:block;">PhyloNetworkLinearModel
+
+Formula: preference ~ 1 + sum
+
+Model: Brownian motion
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00501745
+
+Coefficients:
+──────────────────────────────────────────────────────────────────────────
+                 Coef.  Std. Error      t  Pr(&gt;|t|)   Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────────────────
+(Intercept)   0.469906    0.167467   2.81    0.0230   0.0837264  0.856086
+sum          -0.238006    0.131578  -1.81    0.1081  -0.541424   0.0654127
+──────────────────────────────────────────────────────────────────────────
+Log Likelihood: -0.8826157436
+AIC: 7.7652314871</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; fit2 = phylolm(@formula(preference ~ shift_24 + shift_37 + shift_45), dat3, net3) # different shifts at hybrid nodes</code><code class="nohighlight hljs ansi" style="display:block;">PhyloNetworkLinearModel
+
+Formula: preference ~ 1 + shift_24 + shift_37 + shift_45
+
+Model: Brownian motion
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.00137721
+
+Coefficients:
+───────────────────────────────────────────────────────────────────────────
+                 Coef.  Std. Error      t  Pr(&gt;|t|)   Lower 95%   Upper 95%
+───────────────────────────────────────────────────────────────────────────
+(Intercept)   0.325374   0.0990922   3.28    0.0167   0.0829039   0.567844
+shift_24     -0.330101   0.0997144  -3.31    0.0162  -0.574093   -0.0861084
+shift_37     -0.265437   0.149011   -1.78    0.1251  -0.630052    0.099179
+shift_45      0.573092   0.183459    3.12    0.0205   0.124183    1.022
+───────────────────────────────────────────────────────────────────────────
+Log Likelihood: 3.8187152343
+AIC: 2.3625695313</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; ftest(fit0, fit1, fit2)
+       ftest(fit0, fit2)</code><code class="nohighlight hljs ansi" style="display:block;">F-test: 2 models fitted on 10 observations
+────────────────────────────────────────────────────────────────
+     DOF  ΔDOF     SSR     ΔSSR      R²     ΔR²       F*   p(&gt;F)
+────────────────────────────────────────────────────────────────
+[1]    2        0.0566           0.0000
+[2]    5     3  0.0083  -0.0483  0.8539  0.8539  11.6887  0.0064
+────────────────────────────────────────────────────────────────</code></pre><p>The heterogeneous model gets some support, with effects in opposite directions (some positive, some negative).</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../simulate_discrete/">« Discrete trait simulation</a><a class="docs-footer-nextpage" href="../../lib/public/">public »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.9.0 on <span class="colophon-date" title="Monday 17 March 2025 13:50">Monday 17 March 2025</span>. Using Julia version 1.11.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
