@@ -43,12 +43,10 @@ The first time, julia will prompt you for package installation.
 
 - Follow PhyloTraits's [latest documentation][docs-dev-url].
   It includes a manual and examples of empirical analyses from the literature.
-- This [tutorial](https://cecileane.github.io/networkPCM-workshop/)
-  (from a 2023 workshop) is on comparative methods
-  and includes a tutorial for network calibration.
-  Caveat: it does *not* use PhyloTraits. It uses older versions of the
-  functions from PhyloNetworks v0.16 (see Note below).
-  Some function names and options will need to be adjusted.
+- This [tutorial](https://juliaphylo.github.io/networkPCM-tutorial/)
+  is on comparative methods.
+  It includes a tutorial for network calibration, which may be necessary
+  prior to trait evolution analyses.
 
 ## Citing
 
