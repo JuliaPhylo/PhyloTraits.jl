@@ -514,7 +514,7 @@ fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(
 ## scaling Hybrid
 fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid", reml=false)
 @test_logs show(devnull, fitSH)
-@test lambda_estim(fitSH) ≈ -52.81305448333567 atol=1e-6
+@test lambda_estim(fitSH) ≈ 0 atol=1e-6
 
 ### Ancestral State Reconstruction
 params = ParamsBM(3, 1)
@@ -639,10 +639,10 @@ lmSHone = phylolm(@formula(trait ~ pred), dfr, net, model = "scalinghybrid", fix
 @test loglikelihood(lmnet) ≈ loglikelihood(lmSHone)
 
 lmSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid", reml=false)
-@test lambda_estim(lmSH) ≈ 23.46668204551696 atol=1e-5
+@test lambda_estim(lmSH) ≈ 17.839285714285698 atol=1e-5
 lmSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid")
-@test lambda_estim(lmSH) ≈ 24.61373831478016 atol=1e-5
-# λ so large?? largest γ = 0.056, so λγ = 1.34 is > 1...
+@test lambda_estim(lmSH) ≈ 17.839285714285698 atol=1e-5
+# λ at its maximum allowed: largest γ = 0.056, so λγ ≈ 1 when λ ≈ 17.839
 end
 
 ###############################################################################
