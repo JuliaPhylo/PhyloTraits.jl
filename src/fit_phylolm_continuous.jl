@@ -809,6 +809,11 @@ function phylolm(
         any(DataFrames.propertynames(fr) .== colname) ||
             error("expected the response's SD (per species) in column $colname, but no such column was found")
         ySD = fr[nonmissing,colname]
+        for (n,sd) in zip(counts, ySD)
+            n≤1 || continue
+            (ismissing(sd) || sd != 0) &&
+                    error("please make SD=0 for column $colname when n≤1")
+        end
         all(!ismissing, ySD) || error("some SD values are missing, column $colname")
         all(x -> x≥0, ySD) || error("some SD values are negative, column $colname")
         all(isfinite.(ySD))|| error("some SD values are infinite, column $colname")
