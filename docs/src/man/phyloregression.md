@@ -141,7 +141,8 @@ We can plot the ancestral states or prediction intervals on the tree, using the
 ```@example tree_trait
 R"svg"(name("ancestral_expe.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel=predict(ancTrait1, text=true), tipoffset=0.1);
+plot(truenet, nodelabel=predict(ancTrait1, text=true), nodelabeladj=[1,-0.1],
+     tipoffset=0.1);
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -151,7 +152,8 @@ nothing # hide
 ancInt = predict(ancTrait1, interval=:prediction, text=true) # format the prediction intervals for the plot
 R"svg"(name("ancestral_predint.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel=ancInt[!,[:nodenumber,:interval]], tipoffset=0.1);
+plot(truenet, tipoffset=0.1,
+     nodelabel=ancInt[!,[:nodenumber,:interval]], nodelabeladj=[1,-.1]);
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -167,7 +169,8 @@ As shown below, we could also use the `RCall` method from the
 [`PhyloPlots.plot`](@extref) function.
 ```@example tree_trait
 ancInt = predict(ancTrait1, interval=:prediction, text=true, combine=true) 
-plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]], tipoffset=0.1);
+plot(truenet, tipoffset=0.1, nodelabel = ancInt[!,[:nodenumber,:interval]],
+     nodelabeladj=[1,-0.1]);
 nothing # hide
 ```
 These plots tend to be quite busy, even for small networks.
@@ -210,7 +213,7 @@ and the same extractors can be applied to it:
 ```@example tree_trait
 R"svg"(name("ancestral1.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = predict(ancTrait1Approx, text = true));
+plot(truenet, nodelabel=predict(ancTrait1Approx, text=true), nodelabeladj=[1,-0.1]);
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -231,7 +234,7 @@ end # hide
 ancInt = predict(ancTrait1Approx, interval=:prediction, level=0.9, text=true, combine=true) 
 R"svg"(name("ancestral2.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]]);
+plot(truenet, nodelabel=ancInt[!,[:nodenumber,:interval]], nodelabeladj=[1,-0.1]);
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -259,7 +262,7 @@ end # hide
 ancInt = predict(ancTrait1Approx, interval=:prediction, text=true, combine=true) 
 R"svg"(name("ancestral3.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]]);
+plot(truenet, nodelabel=ancInt[!,[:nodenumber,:interval]], nodelabeladj=[1,-0.1]);
 R"dev.off()" # hide
 nothing # hide
 ```
@@ -299,7 +302,7 @@ end # hide
 ancInt = predict(ancTrait3, interval=:prediction, text=true, combine=true) 
 R"svg"(name("ancestral4.svg"), width=8, height=4) # hide
 R"par"(mar=[0,0,0,0]) # hide
-plot(truenet, nodelabel = ancInt[!,[:nodenumber,:interval]]);
+plot(truenet, nodelabel=ancInt[!,[:nodenumber,:interval]], nodelabeladj=[1,-0.1]);
 R"dev.off()" # hide
 nothing # hide
 ```

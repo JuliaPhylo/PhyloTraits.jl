@@ -123,7 +123,8 @@ we can use option `text=true` in the `predict` function.
 AS_si_int = predict(AS_si, interval=:prediction, level=0.90, text=true);
 R"svg"(name("anc_fish_si_ci.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
-plot(net3, nodelabel=AS_si_int[!,[:nodenumber,:interval]], useedgelength=true);
+plot(net3, useedgelength=true, nodecex=0.7,
+     nodelabel=AS_si_int[!,[:nodenumber,:interval]]);
 R"dev.off()" # hide
 nothing      # hide
 ```
@@ -149,18 +150,19 @@ AS_fp = ancestralreconstruction(dat_fp, net3);
 end # hide
 R"svg"(name("anc_fish_fp_est.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
-plot(net3, nodelabel=predict(AS_fp,text=true), xlim=[0,20]);
+plot(net3, xlim=[0,20], nodelabel=predict(AS_fp,text=true),
+     nodelabeladj=[1,-.05], nodecex=-.9);
 R"dev.off()" # hide
 nothing      # hide
 ```
 ![anc_fish_fp_est](../assets/figures/anc_fish_fp_est.svg)
 
 ```@example fish
-AS_fp_int = predict(AS_fp,interval=:prediction,level=0.90,text=true);
+AS_fp_int = predict(AS_fp, interval=:prediction, level=0.90, text=true);
 R"svg"(name("anc_fish_fp_ci.svg"), width=8, height=4) # hide
 R"par(mar=c(.5,.5,.5,.5))"; # hide
-plot(net3, nodelabel=AS_fp_int[!,[:nodenumber,:interval]],
-     useedgelength=true, xlim=[-3,26]);
+plot(net3, useedgelength=true, xlim=[-3,26], nodecex=-.9,
+     nodelabel=AS_fp_int[!,[:nodenumber,:interval]], nodelabeladj=[1,-.1]);
 R"dev.off()" # hide
 nothing      # hide
 ```

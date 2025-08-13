@@ -445,7 +445,7 @@ julia> predict(ancStates, interval = :prediction)
 
 julia> using PhyloPlots # next: plot ancestral states on the tree
 
-julia> plot(phy, nodelabel = predict(ancStates));
+julia> plot(phy, nodelabel = predict(ancStates), nodelabeladj=[1,-0.1]);
 
 julia> pred = predict(ancStates, interval = :prediction, text = true);
 
@@ -482,7 +482,8 @@ julia> first(predict(ancStates, interval=:prediction), 3)
    2 │         -8     1.35185  -0.698432  3.40214
    3 │         -7     1.61993  -0.17179   3.41165
 
-julia> plot(phy, nodelabel = predict(ancStates, text=true));
+julia> plot(phy, nodelabel = predict(ancStates, text=true),
+            nodelabeladj=[1,-0.1]);
 
 julia> pred = predict(ancStates, interval = :prediction, text = true);
 
