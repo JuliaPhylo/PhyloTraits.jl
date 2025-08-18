@@ -488,13 +488,27 @@ changed to λγ, using the same λ at all reticulations.
 Note that for a major edge with original inheritance γ, the partner minor edge
 has inheritance γ_minor = 1-γ, so the major edge's inheritance is changed to
 1-λγ_minor = λγ+1-λ.
+*Warning*: this model assumes that all hybrid nodes are bicombining, that is,
+they have exactly 2 parents each.
 
 For more information: see Bastide (2017) dissertation, section 4.3.2 p.175,
 available at https://tel.archives-ouvertes.fr/tel-01629648
 
-λ ∈ [0,1] is mutable and may be optimized. It is a measure of how important the
+λ ∈ [0,λmax] is mutable and may be optimized.
+It is a measure of how important the
 reticulations are for explaining variation in the response.
-When λ=1, the `ScalingHybrid` model reduces to the `BM` model.
+- When λ = 1, the `ScalingHybrid` model reduces to the `BM` model on the
+  original network N.
+- λ = 0 corresponds to the BM model on N's major tree (after removing all
+  minor hybrid edges). Please note that testing the null hypothesis "λ = 0"
+  would require comparing the likelihood ratio statistic to a null distribution
+  that is *not* a chi-square distribution with 1 degree freedom, because 0 is at
+  the boundary of allowable λ values. A mixture of 2 chi-square distributions
+  might be appropriate (see for example
+  [Mitchell, Allman & Rhodes 2019](https://doi.org/10.1214/19-EJS1576)
+  and references therein).
+- λmax = 1/maximum(γ_minor) ≥ 1.
+  It is the maximum λ value such that λγ_minor ≤ 1 at all hybrid nodes.
 """
 mutable struct ScalingHybrid <: ContinuousTraitEM
     lambda::Float64
