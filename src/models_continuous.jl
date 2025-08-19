@@ -486,13 +486,13 @@ and N(λ) is a obtained from the input network by rescaling the inheritance
 parameter γ of all minor edges by the same λ: a minor edge has its original γ
 changed to λγ, using the same λ at all reticulations.
 Note that for a major edge with original inheritance γ, the partner minor edge
-has inheritance γ_minor = 1-γ, so the major edge's inheritance is changed to
-1-λγ_minor = λγ+1-λ.
+has inheritance γ_minor_ = 1-γ, so the major edge's inheritance is changed to
+1-λγ_minor_ = λγ+1-λ.
 *Warning*: this model assumes that all hybrid nodes are bicombining, that is,
 they have exactly 2 parents each.
 
 For more information: see Bastide (2017) dissertation, section 4.3.2 p.175,
-available at https://tel.archives-ouvertes.fr/tel-01629648
+available at [here](https://tel.archives-ouvertes.fr/tel-01629648).
 
 λ ∈ [0,λmax] is mutable and may be optimized.
 It is a measure of how important the
@@ -507,8 +507,8 @@ reticulations are for explaining variation in the response.
   might be appropriate (see for example
   [Mitchell, Allman & Rhodes 2019](https://doi.org/10.1214/19-EJS1576)
   and references therein).
-- λmax = 1/maximum(γ_minor) ≥ 1.
-  It is the maximum λ value such that λγ_minor ≤ 1 at all hybrid nodes.
+- λmax = 1/maximum(γ_minor_) ≥ 1.
+  It is the maximum λ value such that λγ_minor_ ≤ 1 at all hybrid nodes.
 """
 mutable struct ScalingHybrid <: ContinuousTraitEM
     lambda::Float64
