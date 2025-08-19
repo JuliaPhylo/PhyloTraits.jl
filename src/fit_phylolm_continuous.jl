@@ -289,11 +289,11 @@ function phylolm_lambda(
         up = up-up/1000
         NLopt.upper_bounds!(opt, up)
         @info "Maximum lambda value to maintain positive branch lengths: " * @sprintf("%.6g", up)
-        count = 0
+        # count = 0
         function fun(x::Vector{Float64}, g::Vector{Float64})
             x = convert(AbstractFloat, x[1])
             res = logLik_lam(x, X,Y,V, reml, gammas, times; nonmissing=nonmissing, ind=ind)
-            count =+ 1
+            # count =+ 1
             #println("f_$count: $(round(res, digits=5)), x: $(x)")
             return res
         end
@@ -365,9 +365,14 @@ function phylolm_scalinghybrid(
         NLopt.xtol_rel!(opt, xtolRel) # criterion on parameter value changes
         NLopt.xtol_abs!(opt, xtolAbs) # criterion on parameter value changes
         NLopt.maxeval!(opt, 1000) # max number of iterations
-        #NLopt.lower_bounds!(opt, 1e-100) # Lower bound
-        #NLopt.upper_bounds!(opt, 1.0)
-        count = 0
+        NLopt.lower_bounds!(opt, 1e-100)
+        # upper bound: largest λ such that λγ ≤ 1 for all minor γ's
+        # allow for the `ismajor` parent having lower γ
+        largestminorγ = maximum(e.gamma for e in net.edge if e.gamma < 0.5)
+        up = 1/largestminorγ * 0.999
+        NLopt.upper_bounds!(opt, up)
+        # @info "Maximum lambda value to maintain all γs in [0,1]: " * @sprintf("%.6g", up)
+        # count = 0
         function fun(x::Vector{Float64}, g::Vector{Float64})
             x = convert(AbstractFloat, x[1])
             res = logLik_lam_hyb(x, X, Y, net, reml, gammas; nonmissing=nonmissing, ind=ind)
@@ -377,7 +382,6 @@ function phylolm_scalinghybrid(
         end
         NLopt.min_objective!(opt, fun)
         fmin, xmin, ret = NLopt.optimize(opt, [startingValue])
-        # Best value dans result
         res_lam = xmin[1]
     else
         res_lam = fixedValue
@@ -805,6 +809,11 @@ function phylolm(
         any(DataFrames.propertynames(fr) .== colname) ||
             error("expected the response's SD (per species) in column $colname, but no such column was found")
         ySD = fr[nonmissing,colname]
+        for (n,sd) in zip(counts, ySD)
+            n≤1 || continue
+            (ismissing(sd) || sd != 0) &&
+                    error("please make SD=0 for column $colname when n≤1")
+        end
         all(!ismissing, ySD) || error("some SD values are missing, column $colname")
         all(x -> x≥0, ySD) || error("some SD values are negative, column $colname")
         all(isfinite.(ySD))|| error("some SD values are infinite, column $colname")

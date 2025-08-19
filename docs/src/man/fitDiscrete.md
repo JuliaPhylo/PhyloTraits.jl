@@ -48,17 +48,23 @@ Let's plot the network and map the data onto it:
 using RCall, PhyloPlots
 R"svg"(figname("fitdiscrete_trait_net_1.svg"), width=4, height=3); # hide
 R"par"(mar=[0,0,0,0]); # to reduce margins
-res = plot(net, tipoffset=0.3); # the results "res" provides point coordinates, to use for data annotation
-o = [findfirst(isequal(tax), species) for tax in tiplabels(net)] # 5,2,4,1,3,6: order to match taxa from "species" to tip labels
-isequal(species[o], tiplabels(net)) # true :)
+res = plot(net, tipoffset=0.3); # has point coordinates, for data annotation
+o = indexin(tiplabels(net), species)
+# o = 5,2,4,1,3,6 here: order to match taxa from "species" to tip labels
+species[o] == tiplabels(net) # true :) sanity check
 traitcolor = map(x -> (x=="lo" ? "grey" : "red"), dat.trait[o])
-leaves = res[13][!,:lea]
-R"points"(x=res[13][leaves,:x] .+0.1, y=res[13][leaves,:y], pch=16, col=traitcolor, cex=1.5); # adds grey & red points
+ndf = res[:node_data] # node data frame: info for plotting nodes
+leaves = ndf[!,:lea]
+R"points"(x=ndf[leaves,:x] .+0.1, y=ndf[leaves,:y],
+          pch=16, col=traitcolor, cex=1.5); # adds grey & red points at tips
 R"legend"(x=1, y=7, legend=["hi","lo"], pch=16, col=["red","grey"],
           title="my trait", bty="n",var"title.adj"=0);
 # next: add to gene flow edge the proportion γ of genes affected
-hi = findfirst([!e.ismajor for e in net.edge]) # 6 : "h"ybrid "i"ndex: index of gene flow edge (minor hybrid) in net: horizontal segment
-R"text"(res[14][hi,:x]-0.3, res[14][hi,:y]-0.1, res[14][hi,:gam], col="deepskyblue", cex=0.75); # add the γ value
+hi = findfirst([!e.ismajor for e in net.edge]) # hi = 6 : "h"ybrid "i"ndex
+# hi = index of gene flow edge (minor hybrid) in net: horizontal segment
+edf = res[:edge_data]
+R"text"(edf[hi,:x]-0.3, edf[hi,:y]-0.1, edf[hi,:gam],
+        col="deepskyblue", cex=0.75); # add the γ value
 R"dev.off"(); # hide
 nothing # hide
 ```
