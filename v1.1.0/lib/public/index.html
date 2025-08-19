@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>public · PhyloTraits.jl</title><meta name="title" content="public · PhyloTraits.jl"/><meta property="og:title" content="public · PhyloTraits.jl"/><meta property="twitter:title" content="public · PhyloTraits.jl"/><meta name="description" content="Documentation for PhyloTraits.jl."/><meta property="og:description" content="Documentation for PhyloTraits.jl."/><meta property="twitter:description" content="Documentation for PhyloTraits.jl."/><meta property="og:url" content="https://JuliaPhylo.github.io/PhyloTraits.jl/lib/public/"/><meta property="twitter:url" content="https://JuliaPhylo.github.io/PhyloTraits.jl/lib/public/"/><link rel="canonical" href="https://JuliaPhylo.github.io/PhyloTraits.jl/lib/public/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img class="docs-light-only" src="../../assets/logo.png" alt="PhyloTraits.jl logo"/><img class="docs-dark-only" src="../../assets/logo-dark.png" alt="PhyloTraits.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">PhyloTraits.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../../man/phyloregression/">Continuous trait analysis</a></li><li><a class="tocitem" href="../../man/simulate_continuous/">Continuous trait simulation</a></li><li><a class="tocitem" href="../../man/fitDiscrete/">Discrete trait analysis</a></li><li><a class="tocitem" href="../../man/fitdiscreteDNA/">DNA evolutionary models</a></li><li><a class="tocitem" href="../../man/simulate_discrete/">Discrete trait simulation</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../man/example_fishes/">Xiphophorus fishes</a></li></ul></li><li><span class="tocitem">Library</span><ul><li class="is-active"><a class="tocitem" href>public</a><ul class="internal"><li><a class="tocitem" href="#functions-and-types"><span>functions &amp; types</span></a></li><li><a class="tocitem" href="#index"><span>index</span></a></li></ul></li><li><a class="tocitem" href="../internal/">internals</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Library</a></li><li class="is-active"><a href>public</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>public</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaPhylo/PhyloTraits.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/main/docs/src/lib/public.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="public-documentation"><a class="docs-heading-anchor" href="#public-documentation">public documentation</a><a id="public-documentation-1"></a><a class="docs-heading-anchor-permalink" href="#public-documentation" title="Permalink"></a></h1><p>Documentation for <code>PhyloTraits</code>&#39;s public (exported) functions. Most functions are internal (not exported).</p><h2 id="functions-and-types"><a class="docs-heading-anchor" href="#functions-and-types">functions &amp; types</a><a id="functions-and-types-1"></a><a class="docs-heading-anchor-permalink" href="#functions-and-types" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="Base.rand" href="#Base.rand"><code>Base.rand</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">rand([rng::AbstractRNG,]
+      net::HybridNetwork,
+      params::ParamsProcess,
+      checkpreorder::Bool=true)</code></pre><p>Simulate traits on <code>net</code> using the parameters <code>params</code>. For now, only parameters of type <a href="#PhyloTraits.ParamsBM"><code>ParamsBM</code></a> (univariate Brownian Motion) and <a href="#PhyloTraits.ParamsMultiBM"><code>ParamsMultiBM</code></a> (multivariate Brownian motion) are accepted.</p><p>The simulation using a recursion from the root to the tips of the network, therefore, a pre-ordering of nodes is needed. If <code>checkpreorder=true</code> (default), <a href="https://juliaphylo.github.io/PhyloNetworks.jl/stable/lib/public/#PhyloNetworks.preorder%21-Tuple%7BHybridNetwork%7D"><code>PhyloNetworks.preorder!</code></a> is called on the network beforehand. Otherwise, it is assumed that the preordering has already been calculated.</p><p>Returns an object of type <a href="#PhyloTraits.TraitSimulation"><code>TraitSimulation</code></a>, which has a matrix with the trait expectations and simulated trait values at all the nodes.</p><p>See examples below for accessing expectations and simulated trait values.</p><p><strong>Examples</strong></p><p><strong>Univariate</strong></p><pre><code class="language-julia-repl hljs">julia&gt; phy = readnewick(&quot;(A:2.5,((U:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);&quot;);
+
+julia&gt; par = ParamsBM(1, 0.1) # BM with expectation 1 and variance 0.1.
+ParamsBM:
+Parameters of a BM with fixed root:
+mu: 1.0
+Sigma2: 0.1
+
+
+julia&gt; sim = rand(phy, par) # simulate along the network
+TraitSimulation:
+Trait simulation results on a network with 4 tips, using a BM model, with parameters:
+mu: 1.0
+Sigma2: 0.1</code></pre><p>Below, we re-run the same simulation but with our own fixed random number generator for reproducibility.</p><pre><code class="language-julia-repl hljs">julia&gt; # using Pkg; Pkg.add(&quot;StableRNGs&quot;) # to install StableRNGs if not done earlier
+
+julia&gt; using StableRNGs; rng = StableRNG(791); # for reproducibility
+
+julia&gt; sim = rand(rng, phy, par); # re-simulate
+
+julia&gt; traits = sim[:tips] # extract simulated values at the tips.
+4-element Vector{Float64}:
+ 0.5991561486238962
+ 0.861066346792992
+ 1.367634062992289
+ 1.6439310845929571
+
+julia&gt; tiplabels(sim) # name of tips, in the same order as values above
+4-element Vector{String}:
+ &quot;A&quot;
+ &quot;U&quot;
+ &quot;C&quot;
+ &quot;D&quot;</code></pre><p>So, for example, the simulated trait value for taxon U (listed second) is ~0.86. For some purposes, we might want to access the values simulated at internal nodes, or at all nodes at once:</p><pre><code class="language-julia-repl hljs">julia&gt; traits = sim[:internalnodes] # extract simulated values at internal nodes. Order: as in sim.M.internalnodenumbers
+5-element Vector{Float64}:
+ 1.0716684901027937
+ 1.6007823049044083
+ 1.6756374575490327
+ 1.2194286026283034
+ 1.0
+
+julia&gt; traits = sim[:all] # simulated values at all nodes, ordered as in sim.M.nodenumbers_toporder
+9-element Vector{Float64}:
+ 1.0
+ 1.2194286026283034
+ 1.6756374575490327
+ 1.367634062992289
+ 1.0716684901027937
+ 1.6007823049044083
+ 1.6439310845929571
+ 0.861066346792992
+ 0.5991561486238962</code></pre><p>We might also want to extract the expected mean values (without noise). This is not very interesting under a standard BM model, but may become interesting under more complex models (e.g. with shifts). We can do so with an extra <code>:exp</code> index:</p><pre><code class="language-julia-repl hljs">julia&gt; traits = sim[:tips, :exp] # expected values at the tips (also works for sim[:all, :exp] and sim[:internalnodes, :exp]).
+4-element Vector{Float64}:
+ 1.0
+ 1.0
+ 1.0
+ 1.0</code></pre><p><strong>Multivariate</strong></p><pre><code class="language-julia-repl hljs">julia&gt; phy = readnewick(&quot;(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(V:0.5)#H1:0.5::0.6):1):0.5);&quot;);
+
+julia&gt; par = ParamsMultiBM([1.0, 2.0], [1.0 0.5; 0.5 1.0]) # BM with expectation [1.0, 2.0] and variance [1.0 0.5; 0.5 1.0].
+ParamsMultiBM:
+Parameters of a MBD with fixed root:
+mu: [1.0, 2.0]
+Sigma: [1.0 0.5; 0.5 1.0]
+
+julia&gt; using StableRNGs; rng = StableRNG(9851); # for reproducibility
+
+julia&gt; sim = rand(rng, phy, par) # simulate on the phylogeny
+TraitSimulation:
+Trait simulation results on a network with 4 tips, using a MBD model, with parameters:
+mu: [1.0, 2.0]
+Sigma: [1.0 0.5; 0.5 1.0]
+
+
+julia&gt; traits = sim[:tips] # extract simulated values at the tips (each column contains the simulated traits for one node).
+2×4 Matrix{Float64}:
+ 3.8013    0.839485  0.346092  1.91131
+ 5.91725  -0.59143   0.458569  0.629048</code></pre><p>The 2 rows to the 2 correlated traits and the columns correspond to the 4 taxa (tips). The order in which taxa are listed is obtained with <code>tiplabels</code>:</p><pre><code class="language-julia-repl hljs">julia&gt; tiplabels(sim)
+4-element Vector{String}:
+ &quot;A&quot;
+ &quot;B&quot;
+ &quot;C&quot;
+ &quot;V&quot;</code></pre><p>As in the univariate case, we can also extract the values simulated at internal nodes, or all nodes (but listed in preorder), or expected mean values.</p><pre><code class="language-julia-repl hljs">julia&gt; sim[:internalnodes] # simulated values at internal nodes. order: same as in sim.M.internalnodenumbers
+2×5 Matrix{Float64}:
+ -0.604224  0.755722  2.14755  0.484292  1.0
+ -0.338922  0.373921  1.15174  0.695561  2.0
+
+julia&gt; traits = sim[:all]; # 2×9 Matrix: values at all nodes, ordered as in sim.M.nodenumbers_toporder
+
+julia&gt; sim[:tips, :exp] # expected values (also works for sim[:all, :exp] and sim[:internalnodes, :exp])
+2×4 Matrix{Float64}:
+ 1.0  1.0  1.0  1.0
+ 2.0  2.0  2.0  2.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/simulate_continuous.jl#L28-L187">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="Base.rand-Tuple{PhyloTraits.SubstitutionModel, Float64, AbstractVector{Int64}}" href="#Base.rand-Tuple{PhyloTraits.SubstitutionModel, Float64, AbstractVector{Int64}}"><code>Base.rand</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">rand([rng::AbstractRNG,]
+      model::TraitSubstitutionModel,
+      t::Float64,
+      start::AbstractVector{Int})</code></pre><p>Simulate discrete traits along one edge of length t. A random number generator <code>rng</code> is optional. <code>start</code> must be a vector of integers, each representing the starting value of one trait.</p><p><strong>examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; m1 = BinaryTraitSubstitutionModel(1.0, 2.0)
+Binary Trait Substitution Model:
+rate 0→1 α=1.0
+rate 1→0 β=2.0
+
+julia&gt; using StableRNGs; rng = StableRNG(135);
+
+julia&gt; rand(rng, m1, 0.2, [1,2,1,2,1])
+5-element Vector{Int64}:
+ 2
+ 2
+ 1
+ 2
+ 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/simulate_substitutions.jl#L1-L29">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="Base.rand-Tuple{PhyloTraits.SubstitutionModel, PhyloNetworks.HybridNetwork}" href="#Base.rand-Tuple{PhyloTraits.SubstitutionModel, PhyloNetworks.HybridNetwork}"><code>Base.rand</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">rand([rng::AbstractRNG,]
+      model::TraitSubstitutionModel,
+      net::HybridNetwork;
+      ntraits=1,
+      keepinternal=true,
+      checkpreorder=true)</code></pre><p>Simulate evolution of discrete traits on a rooted evolutionary network based on the supplied evolutionary model. Trait sampling is uniform at the root.</p><p>optional arguments:</p><ul><li><code>ntraits</code>: number of traits to be simulated (default: 1 trait).</li><li><code>keepinternal</code>: if true, export character states at all nodes, including internal nodes. if false, export character states at tips only.</li></ul><p>output:</p><ul><li>matrix of character states with one row per trait, one column per node; these states are <em>indices</em> in <code>model.label</code>, not the trait labels themselves.</li><li>vector of node labels (for tips) or node numbers (for internal nodes) in the same order as columns in the character state matrix</li></ul><p><strong>examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; m1 = BinaryTraitSubstitutionModel(1.0, 2.0, [&quot;low&quot;,&quot;high&quot;]);
+
+julia&gt; net = readnewick(&quot;(((A:4.0,(B:1.0)#H1:1.1::0.9):0.5,(C:0.6,#H1:1.0::0.1):1.0):3.0,D:5.0);&quot;);
+
+julia&gt; using Random; Random.seed!(95);
+
+julia&gt; trait, lab = rand(m1, net)
+([1 2 … 1 1], [&quot;-2&quot;, &quot;D&quot;, &quot;-3&quot;, &quot;-6&quot;, &quot;C&quot;, &quot;-4&quot;, &quot;H1&quot;, &quot;B&quot;, &quot;A&quot;])
+
+julia&gt; trait
+1×9 Matrix{Int64}:
+ 1  2  1  1  2  2  1  1  1
+
+julia&gt; lab
+9-element Vector{String}:
+ &quot;-2&quot; 
+ &quot;D&quot;  
+ &quot;-3&quot; 
+ &quot;-6&quot; 
+ &quot;C&quot;  
+ &quot;-4&quot; 
+ &quot;H1&quot;
+ &quot;B&quot;  
+ &quot;A&quot;  </code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/simulate_substitutions.jl#L70-L122">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.Q-Tuple{BinaryTraitSubstitutionModel}" href="#PhyloTraits.Q-Tuple{BinaryTraitSubstitutionModel}"><code>PhyloTraits.Q</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><p>For a BinaryTraitSubstitutionModel, the rate matrix Q is of the form:</p><pre><code class="nohighlight hljs">-α  α
+ β -β</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L322-L327">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.Q-Tuple{PhyloTraits.SubstitutionModel}" href="#PhyloTraits.Q-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.Q</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">Q(model)</code></pre><p>Substitution rate matrix for a given substitution model: Q[i,j] is the rate of transitioning from state i to state j.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L138-L143">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.ancestralreconstruction" href="#PhyloTraits.ancestralreconstruction"><code>PhyloTraits.ancestralreconstruction</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ancestralreconstruction(obj::SSM, trait::Integer = 1)</code></pre><p>Estimate the marginal probability of ancestral states for discrete character number <code>trait</code> (first trait by default). The parameters of the <a href="../internal/#PhyloTraits.StatisticalSubstitutionModel"><code>StatisticalSubstitutionModel</code></a> object <code>obj</code> must first be fitted using <a href="#PhyloTraits.fitdiscrete-Tuple{PhyloNetworks.HybridNetwork, PhyloTraits.SubstitutionModel, Dict}"><code>fitdiscrete</code></a>, and ancestral state reconstruction is conditional on the estimated parameters. If these parameters were estimated using all traits, they are used as is, to do ancestral state reconstruction of the particular <code>trait</code> of interest.</p><p><strong>output</strong>: data frame with a first column for the node numbers, a second column for the node labels, and a column for each possible state: the entries in these columns give the marginal probability that a given node has a given state.</p><p>warnings:</p><ul><li>node numbers and node labels refer to those in <code>obj.net</code>, which might have a different internal representation of nodes than the original network used to build <code>obj</code>.</li><li><code>obj</code> is modified: its likelihood fields (forward, directional &amp; backward) are updated to make sure that they correspond to the current parameter values in <code>obj.model</code>, and to the <code>trait</code> of interest.</li></ul><p>limitations: the following are not checked.</p><ul><li>Assumes that every node in the large network is also present (with descendant leaves) in each displayed tree. This is not true if the network is not tree-child...</li><li>Assumes that the root is also in each displayed tree, which may not be the case if the root had a hybrid child edge.</li></ul><p>See also <a href="../internal/#PhyloTraits.posterior_logtreeweight"><code>posterior_logtreeweight</code></a> and <a href="../internal/#PhyloTraits.discrete_backwardlikelihood_trait!-Tuple{PhyloTraits.StatisticalSubstitutionModel, Integer, Integer}"><code>discrete_backwardlikelihood_trait!</code></a> to update <code>obj.backwardlik</code>.</p><p><strong>examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; net = readnewick(&quot;(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);&quot;);
+
+julia&gt; m1 = BinaryTraitSubstitutionModel([0.1, 0.1], [&quot;lo&quot;, &quot;hi&quot;]);
+
+julia&gt; using DataFrames
+
+julia&gt; dat = DataFrame(species=[&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;D&quot;], trait=[&quot;hi&quot;,&quot;lo&quot;,&quot;lo&quot;,&quot;hi&quot;]);
+
+julia&gt; fit1 = fitdiscrete(net, m1, dat);
+
+julia&gt; asr = ancestralreconstruction(fit1)
+9×4 DataFrame
+ Row │ nodenumber  nodelabel  lo        hi
+     │ Int64       String     Float64   Float64
+─────┼───────────────────────────────────────────
+   1 │          1  A          1.0       0.0
+   2 │          2  B          1.0       0.0
+   3 │          3  C          0.0       1.0
+   4 │          4  D          0.0       1.0
+   5 │          5  5          0.286021  0.713979
+   6 │          6  6          0.319456  0.680544
+   7 │          7  7          0.16855   0.83145
+   8 │          8  8          0.767359  0.232641
+   9 │          9  H1         0.782776  0.217224
+
+julia&gt; using PhyloPlots
+
+julia&gt; plot(fit1.net, nodelabel = asr[!,[:nodenumber, :lo]], tipoffset=0.2); # pp for &quot;lo&quot; state</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/ancestral_posterior_discrete.jl#L104-L169">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.ancestralreconstruction-Tuple{DataFrames.AbstractDataFrame, PhyloNetworks.HybridNetwork}" href="#PhyloTraits.ancestralreconstruction-Tuple{DataFrames.AbstractDataFrame, PhyloNetworks.HybridNetwork}"><code>PhyloTraits.ancestralreconstruction</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ancestralreconstruction(fr::AbstractDataFrame, net::HybridNetwork; kwargs...)</code></pre><p>Estimate the ancestral traits on a network, given some data at the tips. Uses function <a href="#PhyloTraits.phylolm"><code>phylolm</code></a> to perform a phylogenetic regression of the data against an intercept (amounts to fitting an evolutionary model on the network).</p><p>See documentation on <a href="#PhyloTraits.phylolm"><code>phylolm</code></a> and <code>ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])</code> for further details.</p><p>Returns an object of type <a href="#PhyloTraits.ReconstructedStates"><code>ReconstructedStates</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/ancestral_continuous.jl#L505-L516">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.ancestralreconstruction-Tuple{PhyloNetworkLinearModel}" href="#PhyloTraits.ancestralreconstruction-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.ancestralreconstruction</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])</code></pre><p>Function to find the ancestral traits reconstruction on a network, given an object fitted by function <a href="#PhyloTraits.phylolm"><code>phylolm</code></a>. By default, the function assumes that the regressor is just an intercept. If the value of the regressor for all the ancestral states is known, it can be entered in X_n, a matrix with as many columns as the number of predictors used, and as many lines as the number of unknown nodes or tips.</p><p>Returns an object of type <a href="#PhyloTraits.ReconstructedStates"><code>ReconstructedStates</code></a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; using DataFrames, CSV # to read data file
+
+julia&gt; phy = readnewick(joinpath(dirname(pathof(PhyloTraits)), &quot;..&quot;, &quot;examples&quot;, &quot;carnivores_tree.txt&quot;));
+
+julia&gt; dat = CSV.read(joinpath(dirname(pathof(PhyloTraits)), &quot;..&quot;, &quot;examples&quot;, &quot;carnivores_trait.txt&quot;), DataFrame);
+
+julia&gt; using StatsModels # for statistical model formulas
+
+julia&gt; fitBM = phylolm(@formula(trait ~ 1), dat, phy);
+
+julia&gt; ancStates = ancestralreconstruction(fitBM) # Should produce a warning, as variance is unknown.
+┌ Warning: These prediction intervals show uncertainty in ancestral values,
+│ assuming that the estimated variance rate of evolution is correct.
+│ Additional uncertainty in the estimation of this variance rate is
+│ ignored, so prediction intervals should be larger.
+└ @ PhyloTraits ~/build/JuliaPhylo/PhyloTraits.jl/src/traits_continuous.jl:2601
+ReconstructedStates:
+───────────────────────────────────────────────
+  Node index      Pred.        Min.  Max. (95%)
+───────────────────────────────────────────────
+        -5.0   1.32139   -0.33824      2.98102
+        -8.0   1.03258   -0.589695     2.65485
+        -7.0   1.41575   -0.140705     2.97221
+        -6.0   1.39417   -0.107433     2.89577
+        -4.0   1.39961   -0.102501     2.90171
+        -3.0   1.51341   -0.220523     3.24733
+       -13.0   5.3192     3.92279      6.71561
+       -12.0   4.51176    2.89222      6.13131
+       -16.0   1.50947   -0.0186118    3.03755
+       -15.0   1.67425    0.196069     3.15242
+       -14.0   1.80309    0.309992     3.29618
+       -11.0   2.7351     1.17608      4.29412
+       -10.0   2.73217    1.12361      4.34073
+        -9.0   2.41132    0.603932     4.21871
+        -2.0   2.04138   -0.0340955    4.11686
+        14.0   1.64289    1.64289      1.64289
+         8.0   1.67724    1.67724      1.67724
+         5.0   0.331568   0.331568     0.331568
+         2.0   2.27395    2.27395      2.27395
+         4.0   0.275237   0.275237     0.275237
+         6.0   3.39094    3.39094      3.39094
+        13.0   0.355799   0.355799     0.355799
+        15.0   0.542565   0.542565     0.542565
+         7.0   0.773436   0.773436     0.773436
+        10.0   6.94985    6.94985      6.94985
+        11.0   4.78323    4.78323      4.78323
+        12.0   5.33016    5.33016      5.33016
+         1.0  -0.122604  -0.122604    -0.122604
+        16.0   0.73989    0.73989      0.73989
+         9.0   4.84236    4.84236      4.84236
+         3.0   1.0695     1.0695       1.0695
+───────────────────────────────────────────────
+
+julia&gt; using StatsBase # for predict function
+
+julia&gt; predict(ancStates)
+31×2 DataFrame
+ Row │ nodenumber  prediction 
+     │ Int64       Float64    
+─────┼────────────────────────
+   1 │         -5    1.32139
+   2 │         -8    1.03258
+   3 │         -7    1.41575
+   4 │         -6    1.39417
+   5 │         -4    1.39961
+   6 │         -3    1.51341
+   7 │        -13    5.3192
+   8 │        -12    4.51176
+  ⋮  │     ⋮           ⋮
+  25 │         10    6.94985
+  26 │         11    4.78323
+  27 │         12    5.33016
+  28 │          1   -0.122604
+  29 │         16    0.73989
+  30 │          9    4.84236
+  31 │          3    1.0695
+               16 rows omitted
+
+julia&gt; predict(ancStates, interval = :prediction)
+31×4 DataFrame
+ Row │ nodenumber  prediction  lower       upper     
+     │ Int64       Float64     Float64     Float64   
+─────┼───────────────────────────────────────────────
+   1 │         -5    1.32139   -0.33824     2.98102
+   2 │         -8    1.03258   -0.589695    2.65485
+   3 │         -7    1.41575   -0.140705    2.97221
+   4 │         -6    1.39417   -0.107433    2.89577
+   5 │         -4    1.39961   -0.102501    2.90171
+   6 │         -3    1.51341   -0.220523    3.24733
+   7 │        -13    5.3192     3.92279     6.71561
+   8 │        -12    4.51176    2.89222     6.13131
+  ⋮  │     ⋮           ⋮           ⋮           ⋮
+  25 │         10    6.94985    6.94985     6.94985
+  26 │         11    4.78323    4.78323     4.78323
+  27 │         12    5.33016    5.33016     5.33016
+  28 │          1   -0.122604  -0.122604   -0.122604
+  29 │         16    0.73989    0.73989     0.73989
+  30 │          9    4.84236    4.84236     4.84236
+  31 │          3    1.0695     1.0695      1.0695
+                                      16 rows omitted
+
+julia&gt; using PhyloPlots # next: plot ancestral states on the tree
+
+julia&gt; plot(phy, nodelabel = predict(ancStates));
+
+julia&gt; pred = predict(ancStates, interval = :prediction, text = true);
+
+julia&gt; plot(phy, nodelabel = pred[!,[:nodenumber,:interval]]);
+
+julia&gt; allowmissing!(dat, :trait);
+
+julia&gt; dat[[2, 5], :trait] .= missing; # missing values allowed to fit model
+
+julia&gt; fitBM = phylolm(@formula(trait ~ 1), dat, phy);
+
+julia&gt; ancStates = ancestralreconstruction(fitBM);
+┌ Warning: These prediction intervals show uncertainty in ancestral values,
+│ assuming that the estimated variance rate of evolution is correct.
+│ Additional uncertainty in the estimation of this variance rate is
+│ ignored, so prediction intervals should be larger.
+└ @ PhyloTraits ~/build/JuliaPhylo/PhyloTraits.jl/src/traits_continuous.jl:2601
+
+julia&gt; first(predict(ancStates), 3) # looking at first 3 nodes only
+3×2 DataFrame
+ Row │ nodenumber  prediction 
+     │ Int64       Float64    
+─────┼────────────────────────
+   1 │         -5     1.42724
+   2 │         -8     1.35185
+   3 │         -7     1.61993
+
+julia&gt; first(predict(ancStates, interval=:prediction), 3)
+3×4 DataFrame
+ Row │ nodenumber  prediction  lower      upper   
+     │ Int64       Float64     Float64    Float64 
+─────┼────────────────────────────────────────────
+   1 │         -5     1.42724  -0.373749  3.22824
+   2 │         -8     1.35185  -0.698432  3.40214
+   3 │         -7     1.61993  -0.17179   3.41165
+
+julia&gt; plot(phy, nodelabel = predict(ancStates, text=true));
+
+julia&gt; pred = predict(ancStates, interval = :prediction, text = true);
+
+julia&gt; plot(phy, nodelabel = pred[!,[:nodenumber,:interval]]);</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/ancestral_continuous.jl#L330-L491">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.ancestralreconstruction-Tuple{PhyloNetworks.HybridNetwork, Vector, ParamsBM}" href="#PhyloTraits.ancestralreconstruction-Tuple{PhyloNetworks.HybridNetwork, Vector, ParamsBM}"><code>PhyloTraits.ancestralreconstruction</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ancestralreconstruction(net::HybridNetwork, Y::Vector, params::ParamsBM)</code></pre><p>Compute the conditional expectations and variances of the ancestral (un-observed) traits values at the internal nodes of the phylogenetic network (<code>net</code>), given the values of the traits at the tips of the network (<code>Y</code>) and some known parameters of the process used for trait evolution (<code>params</code>, only BM with fixed root works for now).</p><p>This function assumes that the parameters of the process are known. For a more general function, see <code>ancestralreconstruction(obj::PhyloNetworkLinearModel[, X_n::Matrix])</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/ancestral_continuous.jl#L193-L205">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.descendencedataframe-Tuple{PhyloNetworks.HybridNetwork, Vector{PhyloNetworks.Node}}" href="#PhyloTraits.descendencedataframe-Tuple{PhyloNetworks.HybridNetwork, Vector{PhyloNetworks.Node}}"><code>PhyloTraits.descendencedataframe</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">descendencedataframe(net::HybridNetwork, which=:allhybrids; checkpreorder=true)
+descendencedataframe(net::HybridNetwork, node::Vector{Node}; checkpreorder=true)
+descendencedataframe(net::HybridNetwork, edge::Vector{Edge}; checkpreorder=true)</code></pre><p>Data frame containing the genomic proportion inherited by each taxon in <code>net</code>, from each hybrid node by default in the first method, or from each node or edge in the input vector in the second and third methods. The data frame has 1 row per tip (taxon) in the network and the following columns:</p><ul><li>1 column per edge or node, with columns named according to the pattern shift<em>{edge</em>number}&quot; where <code>edge_number</code> is the number of the edge associated with an input edge or node (in which case the parent edge is used)</li><li>1 additional column labeled <code>tipnames</code>, containing the tip labels.</li></ul><p>The <code>shift_*</code> columns in this data frame can be used as regressor vectors associated with shifts on input <code>edge</code>s or on edges that are above input <code>node</code>s. With option <code>which=:allhybrids</code> in last method, each shift column is associated with a hybrid node in <code>net</code>, to model a shift on the edge that is immediately below the hybrid node. This can be used to test for transgressive evolution: see examples below.</p><p>These methods use <a href="https://juliaphylo.github.io/PhyloNetworks.jl/stable/lib/public/#PhyloNetworks.descendencematrix-Tuple%7BHybridNetwork%7D"><code>PhyloNetworks.descendencematrix</code></a>, so <code>net</code> might be modified to store a vector of its nodes sorted in a pre-order.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; net = readnewick(&quot;(A:2.5,((B:1,#H1:0.5::0.4):1,(C:1,(D:0.5)#H1:0.5::0.6):1):0.5);&quot;);
+
+julia&gt; preorder!(net)
+
+julia&gt; using PhyloPlots
+
+julia&gt; plot(net, shownodenumber=true); # to locate nodes
+
+julia&gt; nodes_shifts = indexin([1,-5], [n.number for n in net.node]) # Put a shift on edges ending at nodes 1 and -5
+2-element Vector{Union{Nothing, Int64}}:
+ 1
+ 7
+
+julia&gt; params = ParamsBM(10, 0.1, ShiftNet(net.node[nodes_shifts], [3.0, -3.0],  net))
+ParamsBM:
+Parameters of a BM with fixed root:
+mu: 10.0
+Sigma2: 0.1
+
+There are 2 shifts on the network:
+──────────────────────────
+  Edge Number  Shift Value
+──────────────────────────
+          8.0         -3.0
+          1.0          3.0
+──────────────────────────
+
+julia&gt; using Random; Random.seed!(2468); # sets the seed for reproducibility
+
+julia&gt; sim = rand(net, params); # simulate a dataset with shifts
+
+julia&gt; using DataFrames # to handle data frames
+
+julia&gt; dat = DataFrame(trait = sim[:tips], tipnames = sim.M.tipnames);
+
+julia&gt; dat = DataFrame(trait = [13.391976856737717, 9.55741491696386, 7.17703734817448, 7.889062527849697],
+        tipnames = [&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;D&quot;]) # hard-coded, to be independent of random number generator
+4×2 DataFrame
+ Row │ trait     tipnames 
+     │ Float64   String   
+─────┼────────────────────
+   1 │ 13.392    A
+   2 │  9.55741  B
+   3 │  7.17704  C
+   4 │  7.88906  D
+
+julia&gt; dfr_shift = descendencedataframe(net, net.node[nodes_shifts]) # the regressors matching the shifts.
+4×3 DataFrame
+ Row │ shift_1  shift_8  tipnames 
+     │ Float64  Float64  String   
+─────┼────────────────────────────
+   1 │     1.0      0.0  A
+   2 │     0.0      0.0  B
+   3 │     0.0      1.0  C
+   4 │     0.0      0.6  D
+
+julia&gt; dfr = innerjoin(dat, dfr_shift, on=:tipnames); # join data and regressors in a single dataframe
+
+julia&gt; using StatsModels # for statistical model formulas
+
+julia&gt; fitBM = phylolm(@formula(trait ~ shift_1 + shift_8), dfr, net; reml=false) # actual fit
+PhyloNetworkLinearModel
+
+Formula: trait ~ 1 + shift_1 + shift_8
+
+Model: Brownian motion
+
+Parameter Estimates, using ML:
+phylogenetic variance rate: 0.0112618
+
+Coefficients:
+────────────────────────────────────────────────────────────────────────
+                Coef.  Std. Error      t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+────────────────────────────────────────────────────────────────────────
+(Intercept)   9.48238    0.327089  28.99    0.0220    5.32632   13.6384
+shift_1       3.9096     0.46862    8.34    0.0759   -2.04479    9.86399
+shift_8      -2.4179     0.422825  -5.72    0.1102   -7.7904     2.95461
+────────────────────────────────────────────────────────────────────────
+Log Likelihood: 1.8937302027
+AIC: 4.2125395947</code></pre><p>Next we illustrate the model with heterosis, aka transgressive evolution: with a shift in the trait after successful hybridization. First how to simulated according to this model:</p><pre><code class="language-julia-repl hljs">julia&gt; nodes_hybrids = indexin([5], [n.number for n in net.node]); # Put a shift on edges below hybrids
+
+julia&gt; params = ParamsBM(10, 0.1, ShiftNet(net.node[nodes_hybrids], [3.0],  net));
+
+julia&gt; using Random; Random.seed!(2468); # sets the seed for reproducibility
+
+julia&gt; sim = rand(net, params); # simulate a dataset with shifts
+
+julia&gt; dat = DataFrame(trait = sim[:tips], tipnames = sim.M.tipnames);</code></pre><p>and next how to analyze data under a transgressive evolution model. Below we hard-code data values for more reproducibility.</p><pre><code class="language-julia-repl hljs">julia&gt; dat = DataFrame(trait = [10.391976856737717, 9.55741491696386, 10.17703734817448, 12.689062527849698],
+          tipnames = [&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;D&quot;])
+4×2 DataFrame
+ Row │ trait     tipnames 
+     │ Float64   String   
+─────┼────────────────────
+   1 │ 10.392    A
+   2 │  9.55741  B
+   3 │ 10.177    C
+   4 │ 12.6891   D
+
+julia&gt; dfr_hybrid = descendencedataframe(net) # the regressors matching the hybrids (all of them)
+4×3 DataFrame
+ Row │ shift_6  tipnames  sum     
+     │ Float64  String    Float64 
+─────┼────────────────────────────
+   1 │     0.0  A             0.0
+   2 │     0.0  B             0.0
+   3 │     0.0  C             0.0
+   4 │     1.0  D             1.0
+
+julia&gt; dfr = innerjoin(dat, dfr_hybrid, on=:tipnames); # join data and regressors in a single dataframe
+
+julia&gt; using StatsModels
+
+julia&gt; fitBM = phylolm(@formula(trait ~ shift_6), dfr, net; reml=false) # actual fit
+PhyloNetworkLinearModel
+
+Formula: trait ~ 1 + shift_6
+
+Model: Brownian motion
+
+Parameter Estimates, using ML:
+phylogenetic variance rate: 0.041206
+
+Coefficients:
+────────────────────────────────────────────────────────────────────────
+                Coef.  Std. Error      t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+────────────────────────────────────────────────────────────────────────
+(Intercept)  10.064      0.277959  36.21    0.0008    8.86805   11.26
+shift_6       2.72526    0.315456   8.64    0.0131    1.36796    4.08256
+────────────────────────────────────────────────────────────────────────
+Log Likelihood: -0.7006021946
+AIC: 7.4012043891</code></pre><p><strong>See also</strong></p><p><a href="#PhyloTraits.phylolm"><code>phylolm</code></a>, <a href="https://juliaphylo.github.io/PhyloNetworks.jl/stable/lib/public/#PhyloNetworks.descendencematrix-Tuple%7BHybridNetwork%7D"><code>PhyloNetworks.descendencematrix</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/fit_phylolm_continuous.jl#L1143-L1321">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.empiricalDNAfrequencies" href="#PhyloTraits.empiricalDNAfrequencies"><code>PhyloTraits.empiricalDNAfrequencies</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">empiricalDNAfrequencies(DNAdata::AbstractDataFrame, DNAweights,
+                        correction=true, useambiguous=true)</code></pre><p>Estimate base frequencies in DNA data <code>DNAdata</code>, ordered ACGT.</p><ul><li><code>DNAdata</code>: data frame. All columns are used. If the first column gives species names, find a way to ignore it before calculating empirical frequencies, e.g. <code>empiricalDNAfrequencies(view(DNAdata, :, 2:size(DNAdata, 2)))</code>. Data type must be <code>BioSymbols.DNA</code> or <code>Char</code> or <code>String</code>. WARNING: this is checked on the first column only.</li><li><code>DNAweights</code>: vector of weights, to weigh each column in <code>DNAdata</code>.</li><li><code>correction</code>: if <code>true</code>, add 1 to each count and 4 to the denominator for a more stable estimator, similar to Bayes prior of 1/4 and the Agresti-Coull interval in binomial estimation.</li><li><code>useambiguous</code>: if <code>true</code>, ambiguous bases are used (except gaps and Ns). For example, <code>Y</code> adds 0.5 weight to <code>C</code> and 0.5 weight to <code>T</code>.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L1184-L1201">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.fitdiscrete-Tuple{PhyloNetworks.HybridNetwork, PhyloTraits.SubstitutionModel, Dict}" href="#PhyloTraits.fitdiscrete-Tuple{PhyloNetworks.HybridNetwork, PhyloTraits.SubstitutionModel, Dict}"><code>PhyloTraits.fitdiscrete</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">fitdiscrete(net, model, tipdata)
+fitdiscrete(net, model, RateVariationAcrossSites, tipdata)
+fitdiscrete(net, model, species, traits)
+fitdiscrete(net, model, RateVariationAcrossSites, species, traits)
+fitdiscrete(net, model, dnadata, dnapatternweights)
+fitdiscrete(net, model, RateVariationAcrossSites, dnadata, dnapatternweights)
+fitdiscrete(net, modSymbol, species, traits)
+fitdiscrete(net, modSymbol, dnadata, dnapatternweights)</code></pre><p>Calculate the maximum likelihood (ML) score of a network or tree given one or more discrete characters at the tips. Along each edge, transitions are modelled with a continous time Markov <code>model</code>, whose parameters are estimated (by maximizing the likelihood). At each hybrid node, the trait is assumed to be inherited from either of the two immediate parents according to the parents&#39; average genetic contributions (inheritance γ). The model ignores incomplete lineage sorting. The algorithm extracts all trees displayed in the network.</p><p>Data can given in one of the following:</p><ul><li><code>tipdata</code>: dictionary taxon =&gt; state label, for a single trait.</li><li><code>tipdata</code>: data frame for a single trait, in which case the taxon names are to appear in column 1 or in a column named &quot;taxon&quot; or &quot;species&quot;, and trait <em>labels</em> are to appear in column 2 or in a column named &quot;trait&quot;. Here, trait labels should be as they appear in <code>getlabels(model)</code>.</li><li><code>species</code>: vector of strings, and <code>traits</code>: DataFrame of traits, with rows in the order corresponding to the order of species names. Again, trait labels should be as they appear in <code>getlabels(model)</code>. All traits are assumed to follow the same model, with same parameters.</li><li><code>dnadata</code>: the first part of the output of readfastatodna, a dataframe of BioSequence DNA sequences, with taxon in column 1 and a column for each site.</li><li><code>dnapatternweights</code>: the second part of the output of readfastatodna, an array of weights, one weights for each of the site columns. The length of the weight is equal to nsites. If using dnapatternweights, must provide dnadata.</li><li>RateVariationAcrossSites: model for rate variation (optional)</li></ul><p>Optional arguments (default):</p><ul><li><code>optimizeQ</code> (true): should model rate parameters be fixed, or should they be optimized?</li><li><code>optimizeRVAS</code> (true): should the model optimize the parameters for the variability of rates across sites (α and/or p_invariable)?</li><li><code>NLoptMethod</code> (<code>:LN_COBYLA</code>, derivative-free) for the optimization algorithm. For other options, see the <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/">NLopt</a>.</li><li>tolerance values to control when the optimization is stopped: <code>ftolRel</code> (1e-12), <code>ftolAbs</code> (1e-10) on the likelihood, and <code>xtolRel</code> (1e-10), <code>xtolAbs</code> (1e-10) on the model parameters.</li><li>bounds for the alpha parameter of the Gamma distribution of rates across sites: <code>alphamin=0.05</code>, <code>alphamax=50</code>.</li><li><code>verbose</code> (false): if true, more information is output.</li><li><code>suppresswarnings</code> (false): if true, warnings from <a href="../internal/#PhyloTraits.check_matchtaxonnames!-Tuple{AbstractVector, AbstractVector, PhyloNetworks.HybridNetwork}"><code>check_matchtaxonnames!</code></a> are suppressed.</li></ul><p><strong>examples:</strong></p><pre><code class="language-julia-repl hljs">julia&gt; net = readnewick(&quot;(((A:2.0,(B:1.0)#H1:0.1::0.9):1.5,(C:0.6,#H1:1.0::0.1):1.0):0.5,D:2.0);&quot;);
+
+julia&gt; m1 = BinaryTraitSubstitutionModel([0.1, 0.1], [&quot;lo&quot;, &quot;hi&quot;]);
+
+julia&gt; using DataFrames
+
+julia&gt; dat = DataFrame(species=[&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;D&quot;], trait=[&quot;hi&quot;,&quot;lo&quot;,&quot;lo&quot;,&quot;hi&quot;]);
+
+julia&gt; fit1 = fitdiscrete(net, m1, dat)
+PhyloTraits.StatisticalSubstitutionModel:
+Binary Trait Substitution Model:
+  rate lo→hi α=0.27222
+  rate hi→lo β=0.34981
+on a network with 1 reticulations
+data:
+  4 species
+  1 trait
+log-likelihood: -2.7277
+
+julia&gt; tips = Dict(&quot;A&quot; =&gt; &quot;lo&quot;, &quot;B&quot; =&gt; &quot;lo&quot;, &quot;C&quot; =&gt; &quot;hi&quot;, &quot;D&quot; =&gt; &quot;hi&quot;);
+
+julia&gt; fit2 = fitdiscrete(net, m1, tips; xtolRel=1e-16, xtolAbs=1e-16, ftolRel=1e-16)
+PhyloTraits.StatisticalSubstitutionModel:
+Binary Trait Substitution Model:
+  rate lo→hi α=0.27222
+  rate hi→lo β=0.34981
+on a network with 1 reticulations
+data:
+  4 species
+  1 trait
+log-likelihood: -2.7277</code></pre><p>Note that a copy of the network is stored in the fitted object, but the internal representation of the network may be different in <code>fit1.net</code> and in the original network <code>net</code>:</p><pre><code class="language-julia-repl hljs">julia&gt; net = readnewick(&quot;(sp1:3.0,(sp2:2.0,(sp3:1.0,sp4:1.0):1.0):1.0);&quot;);
+
+julia&gt; using BioSymbols
+
+julia&gt; tips = Dict(&quot;sp1&quot; =&gt; BioSymbols.DNA_A, &quot;sp2&quot; =&gt; BioSymbols.DNA_A, &quot;sp3&quot; =&gt; BioSymbols.DNA_G, &quot;sp4&quot; =&gt; BioSymbols.DNA_G);
+
+julia&gt; mJC69 = JC69([0.25], false);
+
+julia&gt; fitJC69 = fitdiscrete(net, mJC69, tips)
+PhyloTraits.StatisticalSubstitutionModel:
+Jukes and Cantor 69 Substitution Model,
+  absolute rate version
+  off-diagonal rates equal to 0.29233/3.
+  rate matrix Q:
+                 A       C       G       T
+         A       *  0.0974  0.0974  0.0974
+         C  0.0974       *  0.0974  0.0974
+         G  0.0974  0.0974       *  0.0974
+         T  0.0974  0.0974  0.0974       *
+on a network with 0 reticulations
+data:
+  4 species
+  1 trait
+log-likelihood: -4.99274
+
+julia&gt; rv = RateVariationAcrossSites(alpha=1.0, ncat=4)
+Rate variation across sites: discretized Gamma
+alpha: 1.0
+categories for Gamma discretization: 4
+rates: [0.146, 0.513, 1.071, 2.27]
+
+julia&gt; fitdiscrete(net, mJC69, rv, tips; optimizeQ=false, optimizeRVAS=false)
+PhyloTraits.StatisticalSubstitutionModel:
+Jukes and Cantor 69 Substitution Model,
+  absolute rate version
+  off-diagonal rates equal to 0.25/3.
+  rate matrix Q:
+                 A       C       G       T
+         A       *  0.0833  0.0833  0.0833
+         C  0.0833       *  0.0833  0.0833
+         G  0.0833  0.0833       *  0.0833
+         T  0.0833  0.0833  0.0833       *
+Rate variation across sites: discretized Gamma
+  alpha: 1.0
+  categories for Gamma discretization: 4
+  rates: [0.146, 0.513, 1.071, 2.27]
+on a network with 0 reticulations
+data:
+  4 species
+  1 trait
+log-likelihood: -5.2568
+</code></pre><p>fixit: add option to allow users to specify root prior, using either equal frequencies or stationary frequencies for trait models.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/fit_discrete.jl#L268-L419">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.getlabels-Tuple{PhyloTraits.NucleicAcidSubstitutionModel}" href="#PhyloTraits.getlabels-Tuple{PhyloTraits.NucleicAcidSubstitutionModel}"><code>PhyloTraits.getlabels</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><p>for a given <a href="../internal/#PhyloTraits.NucleicAcidSubstitutionModel"><code>NucleicAcidSubstitutionModel</code></a>, labels are symbols from <a href="https://github.com/BioJulia/BioSymbols.jl">BioSymbols</a>. For now, only ACGTs are allowed. (When fitting data, any ambiguity code in the data would be treated as missing value).</p><p><strong>examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; getlabels(JC69([0.03], false))
+4-element Vector{BioSymbols.DNA}:
+ DNA_A
+ DNA_C
+ DNA_G
+ DNA_T
+
+julia&gt; getlabels(HKY85([.5], repeat([0.25], 4)))
+4-element Vector{BioSymbols.DNA}:
+ DNA_A
+ DNA_C
+ DNA_G
+ DNA_T
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L109-L133">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.getlabels-Tuple{PhyloTraits.SubstitutionModel}" href="#PhyloTraits.getlabels-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.getlabels</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">getlabels(model)</code></pre><p>State labels of a substitution model.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L74-L78">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.getshiftedgenumber-Tuple{ShiftNet}" href="#PhyloTraits.getshiftedgenumber-Tuple{ShiftNet}"><code>PhyloTraits.getshiftedgenumber</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">getshiftedgenumber(shift::ShiftNet)</code></pre><p>Get the edge numbers where the shifts are located, for an object <a href="#PhyloTraits.ShiftNet"><code>ShiftNet</code></a>. If a shift is placed at the root node with no parent edge, the edge number of a shift is set to -1 (as if missing).</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L121-L127">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.getshiftvalue-Tuple{ShiftNet}" href="#PhyloTraits.getshiftvalue-Tuple{ShiftNet}"><code>PhyloTraits.getshiftvalue</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">getshiftvalue(shift::ShiftNet)</code></pre><p>Get the values of the shifts, for an object <a href="#PhyloTraits.ShiftNet"><code>ShiftNet</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L154-L158">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.lambda_estim-Tuple{PhyloNetworkLinearModel}" href="#PhyloTraits.lambda_estim-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.lambda_estim</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">lambda_estim(m::PhyloNetworkLinearModel)</code></pre><p>Estimated lambda parameter for a fitted object.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L922-L926">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.mu_phylo-Tuple{PhyloNetworkLinearModel}" href="#PhyloTraits.mu_phylo-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.mu_phylo</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">mu_phylo(m::PhyloNetworkLinearModel)</code></pre><p>Estimated root value for a fitted object.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L886-L890">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.nparams-Tuple{HKY85}" href="#PhyloTraits.nparams-Tuple{HKY85}"><code>PhyloTraits.nparams</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><p>for <code>HKY85</code> model: 1 if relative, 2 if absolute</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L697-L699">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.nparams-Tuple{JC69}" href="#PhyloTraits.nparams-Tuple{JC69}"><code>PhyloTraits.nparams</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><p>for <code>JC69</code> model: 0 if relative, 1 if absolute</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L690-L692">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.nparams-Tuple{PhyloTraits.SubstitutionModel}" href="#PhyloTraits.nparams-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.nparams</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">nparams(model)</code></pre><p>Number of parameters for a given trait evolution model (length of field <code>model.rate</code>).</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L43-L48">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.nstates-Tuple{BinaryTraitSubstitutionModel}" href="#PhyloTraits.nstates-Tuple{BinaryTraitSubstitutionModel}"><code>PhyloTraits.nstates</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><p>for a <code>BinaryTraitSubstitutionModel</code>, this is 2:</p><pre><code class="language-julia-repl hljs">julia&gt; m1 = BinaryTraitSubstitutionModel([1.0,2.0], [&quot;low&quot;,&quot;high&quot;])
+Binary Trait Substitution Model:
+rate low→high α=1.0
+rate high→low β=2.0
+
+julia&gt; nstates(m1)
+2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L303-L315">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.nstates-Tuple{PhyloTraits.NucleicAcidSubstitutionModel}" href="#PhyloTraits.nstates-Tuple{PhyloTraits.NucleicAcidSubstitutionModel}"><code>PhyloTraits.nstates</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><p>For example, this is 4 for a <code>NucleicAcidSubstitutionModel</code>.</p><pre><code class="language-julia-repl hljs">julia&gt; nstates(JC69([0.03], false))
+4
+
+julia&gt; nstates(HKY85([.5], [0.25, 0.25, 0.25, 0.25]))
+4</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L90-L100">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.nstates-Tuple{PhyloTraits.SubstitutionModel}" href="#PhyloTraits.nstates-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.nstates</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">nstates(model)</code></pre><p>Number of character states for a given evolution model.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L83-L87">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.phylolm" href="#PhyloTraits.phylolm"><code>PhyloTraits.phylolm</code></a> — <span class="docstring-category">Function</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">phylolm(X::Matrix, Y::Vector, net::HybridNetwork, model::ContinuousTraitEM=BM(); kwargs...)</code></pre><p>Return a <a href="#PhyloTraits.PhyloNetworkLinearModel"><code>PhyloNetworkLinearModel</code></a> object. This method is called by <code>phylolm(formula, data, network; kwargs...)</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/fit_phylolm_continuous.jl#L27-L32">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.phylolm-Tuple{StatsModels.FormulaTerm, DataFrames.AbstractDataFrame, PhyloNetworks.HybridNetwork}" href="#PhyloTraits.phylolm-Tuple{StatsModels.FormulaTerm, DataFrames.AbstractDataFrame, PhyloNetworks.HybridNetwork}"><code>PhyloTraits.phylolm</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">phylolm(f::StatsModels.FormulaTerm, fr::AbstractDataFrame, net::HybridNetwork; kwargs...)</code></pre><p>Fit a phylogenetic linear regression model to data. Return an object of type <a href="#PhyloTraits.PhyloNetworkLinearModel"><code>PhyloNetworkLinearModel</code></a>. It contains a linear model from the GLM package, in <code>object.lm</code>, of type <a href="https://juliastats.org/GLM.jl/stable/api/#GLM.LinearModel">GLM.LinearModel</a>.</p><p><strong>Arguments</strong></p><ul><li><code>f</code>: formula to use for the regression, see <a href="https://juliastats.org/StatsModels.jl/stable/">StatsModels</a></li><li><code>fr</code>: DataFrame containing the response values, predictor values, species/tip labels for each observation/row.</li><li><code>net</code>: phylogenetic network to use. Should have labelled tips.</li></ul><p>Keyword arguments</p><ul><li><code>model=&quot;BM&quot;</code>: model for trait evolution (as a string) &quot;lambda&quot; (Pagel&#39;s lambda), &quot;scalinghybrid&quot; are other possible values (see <a href="../internal/#PhyloTraits.ContinuousTraitEM"><code>ContinuousTraitEM</code></a>)</li><li><code>tipnames=:tipnames</code>: column name for species/tip-labels, represented as a symbol. For example, if the column containing the species/tip labels in <code>fr</code> is named &quot;Species&quot;, then do <code>tipnames=:Species</code>.</li><li><code>no_names=false</code>: If <code>true</code>, force the function to ignore the tips names. The data is then assumed to be in the same order as the tips of the network. Default is false, setting it to true is dangerous, and strongly discouraged.</li><li><code>reml=true</code>: if <code>true</code>, use REML criterion (&quot;restricted maximum likelihood&quot;) for estimating variance components, else use ML criterion.</li><li><code>suppresswarnings=false</code>: if <code>true</code>, PhyloTraits-specific warnings are suppressed. Currently, only Pagel&#39;s lambda model may throw a warning (if the network is not time-consistent).</li></ul><p>The following tolerance parameters control the optimization of lambda if <code>model=&quot;lambda&quot;</code> or <code>model=&quot;scalinghybrid&quot;</code>, and control the optimization of the variance components if <code>model=&quot;BM&quot;</code> and <code>withinspecies_var=true</code>.</p><ul><li><p><code>fTolRel=1e-10</code>: relative tolerance on the likelihood value</p></li><li><p><code>fTolAbs=1e-10</code>: absolute tolerance on the likelihood value</p></li><li><p><code>xTolRel=1e-10</code>: relative tolerance on the parameter value</p></li><li><p><code>xTolAbs=1e-10</code>: absolute tolerance on the parameter value</p></li><li><p><code>startingValue=0.5</code>: If <code>model</code>=&quot;lambda&quot; or &quot;scalinghybrid&quot;, this provides the starting value for the optimization in lambda.</p></li><li><p><code>fixedValue=missing</code>: If <code>model</code>=&quot;lambda&quot; or &quot;scalinghybrid&quot;, and <code>fixedValue</code> is a number, then lambda is set to this number and is not optimized.</p></li><li><p><code>withinspecies_var=false</code>: If <code>true</code>, fits a within-species variation model. Currently only implemented for <code>model</code>=&quot;BM&quot;.</p></li><li><p><code>y_mean_std::Bool=false</code>: If <code>true</code>, and <code>withinspecies_var=true</code>, then accounts for within-species variation, using species-level statistics provided in <code>fr</code>.</p></li></ul><p><strong>Methods applied to fitted models</strong></p><p>To access the response values, do <code>response(object)</code>. To access the model matrix, do <code>modelmatrix(object)</code>. To access the model formula, do <code>formula(object)</code>.</p><p><strong>Within-species variation</strong></p><p>For a high-level description, see <a href="#PhyloTraits.PhyloNetworkLinearModel"><code>PhyloNetworkLinearModel</code></a>. To fit a model with within-species variation in the response variable, either of the following must be provided in the data frame <code>fr</code>:</p><p>(1) Individual-level data: There should be columns for response, predictors, and species/tip-labels. Every row should correspond to an individual observation. At least one species must be represented by two or more individuals.</p><p>(2) Species-level statistics: There should be columns for mean response, predictors, species/tip-labels, species sample-sizes (number of individuals for each species), and species standard deviations (standard deviations of the response values by species). Every row should correspond to a species: each species should be represented by a unique row. The column names for species sample-sizes and species standard deviations are expected to be &quot;[response column name]_n&quot; and &quot;[response column name]_sd&quot;. For example, if the response column name is &quot;y&quot;, then the column names should be &quot;y_n&quot; and &quot;y_sd&quot; for the sample-sizes and standard deviations.</p><p>Regardless of whether the data provided follows (1) or (2), <code>withinspecies_var</code> should be set to true. If the data provided follows (2), then <code>y_mean_std</code> should be set to false.</p><p><strong>Within-species variation in predictors</strong></p><p>The model assumes <em>no</em> within-species variation in predictors, because it aims to capture the evolutionary (historical, phylogenetic) relationship between the predictors and the response, not the within-species (present-day, or phenotypic) relationship.</p><p>If a within-species variation model is fitted on individual-level data, and if there are individuals within the same species with different values for the same predictor, these values are all replaced by the mean predictor value for all the individuals in that species. For example, suppose there are 3 individuals in a given species, and that their predictor values are (x₁=3, x₂=6), (x₁=4, x₂=8) and (x₁=2, x₂=1). Then the predictor values for these 3 individuals are each replaced by (x₁=(3+4+2)/3, x₂=(6+8+1)/3) before model fitting. If a fourth individual had data (x₁=10, x₂=missing), then that individual would be ignored for any model using x₂, and would not contribute any information to its species data for these models.</p><p><strong>Missing data</strong></p><p>Rows with missing data for either the response or the predictors are omitted from the model-fitting. There should minimally be columns for response, predictors, species/tip-labels. As detailed above, additional columns may be required for fitting within-species variation. Missing data in the columns for species names, species standard deviation / sample sizes (if used) will throw an error.</p><p><strong>See also</strong></p><p><a href="#Base.rand"><code>rand</code></a>, <a href="#PhyloTraits.ancestralreconstruction"><code>ancestralreconstruction</code></a>, <a href="https://juliaphylo.github.io/PhyloNetworks.jl/stable/lib/public/#PhyloNetworks.vcv-Tuple%7BHybridNetwork%7D"><code>PhyloNetworks.vcv</code></a></p><p><strong>Examples: Without within-species variation</strong></p><p>We first load data from the package and fit the default BM model.</p><pre><code class="language-julia-repl hljs">julia&gt; phy = readnewick(joinpath(dirname(pathof(PhyloTraits)), &quot;..&quot;, &quot;examples&quot;, &quot;caudata_tree.txt&quot;));
+
+julia&gt; using DataFrames, CSV # to read data file, next
+
+julia&gt; dat = CSV.read(joinpath(dirname(pathof(PhyloTraits)), &quot;..&quot;, &quot;examples&quot;, &quot;caudata_trait.txt&quot;), DataFrame);
+
+julia&gt; using StatsModels # for stat model formulas
+
+julia&gt; fitBM = phylolm(@formula(trait ~ 1), dat, phy; reml=false);
+
+julia&gt; fitBM # Shows a summary
+PhyloNetworkLinearModel
+
+Formula: trait ~ 1
+
+Model: Brownian motion
+
+Parameter Estimates, using ML:
+phylogenetic variance rate: 0.00294521
+
+Coefficients:
+─────────────────────────────────────────────────────────────────────
+             Coef.  Std. Error      t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+─────────────────────────────────────────────────────────────────────
+(Intercept)  4.679    0.330627  14.15    &lt;1e-31    4.02696    5.33104
+─────────────────────────────────────────────────────────────────────
+Log Likelihood: -78.9611507833
+AIC: 161.9223015666</code></pre><p>We can extra parameters, likelihood, AIC etc.</p><pre><code class="language-julia-repl hljs">julia&gt; round(sigma2_phylo(fitBM), digits=6) # rounding for jldoctest convenience
+0.002945
+
+julia&gt; round(mu_phylo(fitBM), digits=4)
+4.679
+
+julia&gt; using StatsBase # for aic() stderror() loglikelihood() etc.
+
+julia&gt; round(loglikelihood(fitBM), digits=10)
+-78.9611507833
+
+julia&gt; round(aic(fitBM), digits=10)
+161.9223015666
+
+julia&gt; round(aicc(fitBM), digits=10)
+161.9841572367
+
+julia&gt; round(bic(fitBM), digits=10)
+168.4887090241
+
+julia&gt; round.(coef(fitBM), digits=4)
+1-element Vector{Float64}:
+ 4.679
+
+julia&gt; confint(fitBM) # 95% (default) confidence interval for the coefficient(s)
+1×2 Matrix{Float64}:
+ 4.02696  5.33104
+
+julia&gt; abs(round(r2(fitBM), digits=10)) # absolute value for jldoctest convenience
+0.0
+
+julia&gt; abs(round(adjr2(fitBM), digits=10))
+0.0
+
+julia&gt; round.(vcov(fitBM), digits=6) # variance-covariance of estimated parameters: squared standard error
+1×1 Matrix{Float64}:
+ 0.109314</code></pre><p>The residuals are the variance not explained by predictors. The phylogenetic correlation modelled by the BM is about them. The trait may have 2 sources of phylogenetic signal: from the predictor with which it the response may be associated, and from the residuals.</p><pre><code class="language-julia-repl hljs">julia&gt; round.(residuals(fitBM), digits=6)
+197-element Vector{Float64}:
+ -0.237648
+ -0.357937
+ -0.159387
+ -0.691868
+ -0.323977
+ -0.270452
+ -0.673486
+ -0.584654
+ -0.279882
+ -0.302175
+  ⋮
+ -0.777026
+ -0.385121
+ -0.443444
+ -0.327303
+ -0.525953
+ -0.673486
+ -0.603158
+ -0.211712
+ -0.439833
+
+julia&gt; round.(response(fitBM), digits=5)
+197-element Vector{Float64}:
+ 4.44135
+ 4.32106
+ 4.51961
+ 3.98713
+ 4.35502
+ 4.40855
+ 4.00551
+ 4.09434
+ 4.39912
+ 4.37682
+ ⋮
+ 3.90197
+ 4.29388
+ 4.23555
+ 4.3517
+ 4.15305
+ 4.00551
+ 4.07584
+ 4.46729
+ 4.23917
+
+julia&gt; round.(predict(fitBM), digits=5)
+197-element Vector{Float64}:
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ ⋮
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679
+ 4.679</code></pre><p><strong>Examples: With within-species variation (two different input formats shown)</strong></p><p>We use a smaller network here. We can input data as 1 row per individual, multiple rows per species:</p><pre><code class="language-julia-repl hljs">julia&gt; net = readnewick(&quot;((((D:0.4,C:0.4):4.8,((A:0.8,B:0.8):2.2)#H1:2.2::0.7):4.0,(#H1:0::0.3,E:3.0):6.2):2.0,O:11.2);&quot;);
+
+julia&gt; df = DataFrame( # individual-level observations
+           species = repeat([&quot;D&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;E&quot;,&quot;O&quot;],inner=3),
+           trait1 = [4.08298,4.08298,4.08298,3.10782,3.10782,3.10782,2.17078,2.17078,2.17078,1.87333,1.87333,
+              1.87333,2.8445,2.8445,2.8445,5.88204,5.88204,5.88204],
+           trait2 = [-7.34186,-7.34186,-7.34186,-7.45085,-7.45085,-7.45085,-3.32538,-3.32538,-3.32538,-4.26472,
+              -4.26472,-4.26472,-5.96857,-5.96857,-5.96857,-1.99388,-1.99388,-1.99388],
+           trait3 = [18.8101,18.934,18.9438,17.0687,17.0639,17.0732,14.4818,14.1112,14.2817,13.0842,12.9562,
+              12.9019,15.4373,15.4075,15.4317,24.2249,24.1449,24.1302]);
+
+julia&gt; m1 = phylolm(@formula(trait3 ~ trait1), df, net;
+                    tipnames=:species, withinspecies_var=true)
+PhyloNetworkLinearModel
+
+Formula: trait3 ~ 1 + trait1
+
+Model: Brownian motion
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.156188
+within-species variance: 0.0086343
+
+Coefficients:
+──────────────────────────────────────────────────────────────────────
+               Coef.  Std. Error     t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────────────
+(Intercept)  9.65347    1.3066    7.39    0.0018    6.02577   13.2812
+trait1       2.30358    0.276163  8.34    0.0011    1.53683    3.07033
+──────────────────────────────────────────────────────────────────────
+Log Likelihood: 1.9446255188
+AIC: 4.1107489623</code></pre><p>Alternatively, we can input the data as 1 row per species and 2 extra columns: standard deviation of the response trait among individuals in the same species, and number of individuals per species for which we calculated this SD. The result is the same.</p><pre><code class="language-julia-repl hljs">julia&gt; df_r = DataFrame( # species-level statistics (sample means, standard deviations)
+           species = [&quot;D&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;E&quot;,&quot;O&quot;],
+           trait1 = [4.08298,3.10782,2.17078,1.87333,2.8445,5.88204],
+           trait2 = [-7.34186,-7.45085,-3.32538,-4.26472,-5.96857,-1.99388],
+           trait3 = [18.896,17.0686,14.2916,12.9808,15.4255,24.1667],
+           trait3_sd = [0.074524,0.00465081,0.185497,0.0936,0.0158379,0.0509643],
+           trait3_n = [3, 3, 3, 3, 3, 3]);
+
+julia&gt; m2 = phylolm(@formula(trait3 ~ trait1), df_r, net;
+                tipnames=:species, withinspecies_var=true, y_mean_std=true)
+PhyloNetworkLinearModel
+
+Formula: trait3 ~ 1 + trait1
+
+Model: Brownian motion
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.15618
+within-species variance: 0.0086343
+
+Coefficients:
+──────────────────────────────────────────────────────────────────────
+               Coef.  Std. Error     t  Pr(&gt;|t|)  Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────────────
+(Intercept)  9.65342    1.30657   7.39    0.0018    6.02582   13.281
+trait1       2.30359    0.276156  8.34    0.0011    1.53686    3.07032
+──────────────────────────────────────────────────────────────────────
+Log Likelihood: 1.9447243714
+AIC: 4.1105512573</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/fit_phylolm_continuous.jl#L392-L728">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.shiftathybrids-Tuple{VecOrMat{T} where T&lt;:Real, PhyloNetworks.HybridNetwork}" href="#PhyloTraits.shiftathybrids-Tuple{VecOrMat{T} where T&lt;:Real, PhyloNetworks.HybridNetwork}"><code>PhyloTraits.shiftathybrids</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">shiftathybrids(value::Vector{T} where T&lt;:Real, net::HybridNetwork; checkpreorder::Bool=true)</code></pre><p>Construct an object <a href="#PhyloTraits.ShiftNet"><code>ShiftNet</code></a> with shifts on all the edges below hybrid nodes, with values provided. The vector of values must have the same length as the number of hybrids in the network.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L99-L106">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.sigma2_phylo-Tuple{PhyloNetworkLinearModel}" href="#PhyloTraits.sigma2_phylo-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.sigma2_phylo</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">sigma2_phylo(m::PhyloNetworkLinearModel)</code></pre><p>Estimated between-species variance-rate for a fitted object.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L864-L868">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.sigma2_within-Tuple{PhyloNetworkLinearModel}" href="#PhyloTraits.sigma2_within-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.sigma2_within</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">sigma2_within(m::PhyloNetworkLinearModel)</code></pre><p>Estimated within-species variance for a fitted object.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L879-L883">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.stationary-Tuple{PhyloTraits.SubstitutionModel}" href="#PhyloTraits.stationary-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.stationary</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">stationary(substitutionmodel)</code></pre><p>Stationary distribution of a Markov model</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L1274-L1278">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="Random.rand!-Tuple{Random.AbstractRNG, AbstractVector{Int64}, PhyloTraits.SubstitutionModel, Float64, AbstractVector{Int64}}" href="#Random.rand!-Tuple{Random.AbstractRNG, AbstractVector{Int64}, PhyloTraits.SubstitutionModel, Float64, AbstractVector{Int64}}"><code>Random.rand!</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">rand!(rng::AbstractRNG,
+      end::AbstractVector{Int},
+      model::TraitSubstitutionModel,
+      t::Float64,
+      start::AbstractVector{Int})</code></pre><p>Simulate discrete traits along one edge of length <code>t</code> like <a href="#Base.rand"><code>rand</code></a>, but modifying <code>end</code> in place to store the simulated values.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/simulate_substitutions.jl#L43-L53">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.BinaryTraitSubstitutionModel" href="#PhyloTraits.BinaryTraitSubstitutionModel"><code>PhyloTraits.BinaryTraitSubstitutionModel</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">BinaryTraitSubstitutionModel(α, β [, label])</code></pre><p>Model for binary traits, that is, with 2 states. Default labels are &quot;0&quot; and &quot;1&quot;. α is the rate of transition from &quot;0&quot; to &quot;1&quot;, and β from &quot;1&quot; to &quot;0&quot;.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L262-L267">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.EqualRatesSubstitutionModel" href="#PhyloTraits.EqualRatesSubstitutionModel"><code>PhyloTraits.EqualRatesSubstitutionModel</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">EqualRatesSubstitutionModel(numberStates, α, labels)</code></pre><p><a href="#PhyloTraits.TraitSubstitutionModel"><code>TraitSubstitutionModel</code></a> for traits with any number of states and equal substitution rates α between all states. Default labels are &quot;1&quot;,&quot;2&quot;,...</p><p><strong>example</strong></p><pre><code class="language-julia-repl hljs">julia&gt; m1 = EqualRatesSubstitutionModel(2, [1.0], [&quot;low&quot;,&quot;high&quot;])
+Equal Rates Substitution Model with k=2,
+all rates equal to α=1.0.
+rate matrix Q:
+             low    high
+     low       *  1.0000
+    high  1.0000       *</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L415-L433">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.HKY85" href="#PhyloTraits.HKY85"><code>PhyloTraits.HKY85</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">HKY85(rate, pi, relative)</code></pre><p>A nucleic acid substitution model based on Hasegawa et al. 1985 substitution model. <code>rate</code> should be a vector of 1 or 2 rates, and <code>pi</code> a vector of 4 probabilities summing to 1.</p><p>If <code>relative</code> is false, the 2 rates represent the transition rate and the transversion rate, α and β. If <code>relative</code> is true (default), only the first rate is used and represents the transition/transversion ratio: κ=α/β. The rate transition matrix Q is normalized to have 1 change / unit of time on average, i.e. the absolute version of Q is divided by <code>2(piT*piC + piA*piG)α + 2(piY*piR)β</code>.</p><p><code>nparams</code> returns 1 or 2. In other words: the stationary distribution is not counted in the number of parameters (and <code>fitdiscrete</code> does not optimize the pi values at the moment).</p><p><strong>examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; m1 = HKY85([.5], [0.20, 0.30, 0.30, 0.20])
+HKY85 Substitution Model base frequencies: [0.2, 0.3, 0.3, 0.2]
+relative rate version with transition/tranversion ratio kappa = 0.5,
+ scaled so that there is one substitution per unit time
+rate matrix Q:
+               A       C       G       T
+       A       *  0.4839  0.2419  0.3226
+       C  0.3226       *  0.4839  0.1613
+       G  0.1613  0.4839       *  0.3226
+       T  0.3226  0.2419  0.4839       *
+
+julia&gt; nstates(m1)
+4
+
+julia&gt; m2 = HKY85([0.5, 0.5], [0.20, 0.30, 0.30, 0.20], false)
+HKY85 Substitution Model base frequencies: [0.2, 0.3, 0.3, 0.2]
+absolute rate version with transition/transversion ratio kappa = a/b = 1.0
+ with rates a = 0.5 and b = 0.5
+rate matrix Q:
+               A       C       G       T
+       A       *  0.1500  0.1500  0.1000
+       C  0.1000       *  0.1500  0.1000
+       G  0.1000  0.1500       *  0.1000
+       T  0.1000  0.1500  0.1500       *
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L579-L624">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.JC69" href="#PhyloTraits.JC69"><code>PhyloTraits.JC69</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">JC69(rate, relative)</code></pre><p>Jukes Cantor (1969) nucleic acid substitution model, which has a single rate parameter. <code>rate</code> corresponds to the absolute diagonal elements, that is, the rate of change (to any of the other 2 states). Individual rates are <code>rate</code>/3. If <code>relative</code> is true (default), the transition matrix <a href="#PhyloTraits.Q-Tuple{BinaryTraitSubstitutionModel}"><code>Q</code></a> is normalized to an average of 1 transition per unit of time: in which case <code>rate</code> is set to 1.0.</p><p><strong>examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; m1 = JC69([0.25], false)
+Jukes and Cantor 69 Substitution Model,
+absolute rate version
+off-diagonal rates equal to 0.25/3.
+rate matrix Q:
+               A       C       G       T
+       A       *  0.0833  0.0833  0.0833
+       C  0.0833       *  0.0833  0.0833
+       G  0.0833  0.0833       *  0.0833
+       T  0.0833  0.0833  0.0833       *
+
+julia&gt; nstates(m1)
+4
+
+julia&gt; nparams(m1)
+1
+
+julia&gt; m2 = JC69([0.5])
+Jukes and Cantor 69 Substitution Model,
+relative rate version
+off-diagonal rates equal to 1/3
+rate matrix Q:
+               A       C       G       T
+       A       *  0.3333  0.3333  0.3333
+       C  0.3333       *  0.3333  0.3333
+       G  0.3333  0.3333       *  0.3333
+       T  0.3333  0.3333  0.3333       *
+
+julia&gt; nparams(m2)
+0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L489-L532">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.ParamsBM" href="#PhyloTraits.ParamsBM"><code>PhyloTraits.ParamsBM</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ParamsBM &lt;: ParamsProcess</code></pre><p>Type for a BM process on a network. Fields are <code>mu</code> (expectation), <code>sigma2</code> (variance), <code>randomRoot</code> (whether the root is random, default to <code>false</code>), and <code>varRoot</code> (if the root is random, the variance of the root, default to <code>NaN</code>).</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L206-L212">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.ParamsMultiBM" href="#PhyloTraits.ParamsMultiBM"><code>PhyloTraits.ParamsMultiBM</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ParamsMultiBM &lt;: ParamsProcess</code></pre><p>Type for a multivariate Brownian diffusion (MBD) process on a network. Fields are <code>mu</code> (expectation), <code>sigma</code> (covariance matrix), <code>randomRoot</code> (whether the root is random, default to <code>false</code>), <code>varRoot</code> (if the root is random, the covariance matrix of the root, default to <code>[NaN]</code>), <code>shift</code> (a ShiftNet type, default to <code>missing</code>), and <code>L</code> (the lower triangular of the cholesky decomposition of <code>sigma</code>, computed automatically)</p><p><strong>examples and constructors</strong></p><pre><code class="language-julia-repl hljs">julia&gt; ParamsMultiBM([1.0, -0.5], [2.0 0.3; 0.3 1.0]) # no shifts
+ParamsMultiBM:
+Parameters of a MBD with fixed root:
+mu: [1.0, -0.5]
+Sigma: [2.0 0.3; 0.3 1.0]
+
+julia&gt; net = readnewick(&quot;((A:1,B:1):1,C:2);&quot;);
+
+julia&gt; shifts = ShiftNet(net.node[2], [-1.0, 2.0], net);
+
+julia&gt; ParamsMultiBM([1.0, -0.5], [2.0 0.3; 0.3 1.0], shifts) # with shifts
+ParamsMultiBM:
+Parameters of a MBD with fixed root:
+mu: [1.0, -0.5]
+Sigma: [2.0 0.3; 0.3 1.0]
+
+There are 2 shifts on the network:
+───────────────────────────────────────────
+  Edge Number  Shift Value 1  Shift Value 2
+───────────────────────────────────────────
+          2.0           -1.0            2.0
+───────────────────────────────────────────
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L276-L312">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.PhyloNetworkLinearModel" href="#PhyloTraits.PhyloNetworkLinearModel"><code>PhyloTraits.PhyloNetworkLinearModel</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">PhyloNetworkLinearModel &lt;: GLM.LinPredModel</code></pre><p>Phylogenetic linear model representation.</p><p><strong>Fields</strong></p><p><code>lm</code>, <code>V</code>, <code>Vy</code>, <code>RL</code>, <code>Y</code>, <code>X</code>, <code>logdetVy</code>, <code>reml</code>, <code>ind</code>, <code>nonmissing</code>, <code>evomodel</code>, <code>model_within</code> and <code>formula</code>. The following syntax pattern can be used to get more information on a specific field: e.g. to find out about the <code>lm</code> field, do <code>?PhyloNetworkLinearModel.lm</code>.</p><p><strong>Methods applied to fitted models</strong></p><p>The following StatsAPI / StatsBase functions can be applied: <code>coef</code>, <code>nobs</code>, <code>vcov</code>, <code>stderror</code>, <code>confint</code>, <code>coeftable</code>, <code>dof_residual</code>, <code>dof</code>, <code>deviance</code>, <code>residuals</code>, <code>response</code>, <code>predict</code>, <code>loglikelihood</code>, <code>nulldeviance</code>, <code>nullloglikelihood</code>, <code>r2</code>, <code>adjr2</code>, <code>aic</code>, <code>aicc</code>, <code>bic</code>, <code>ftest</code>, <code>lrtest</code> etc.</p><p>The estimated variance-rate and estimated mean of the species-level trait model (see <a href="../internal/#PhyloTraits.ContinuousTraitEM"><code>ContinuousTraitEM</code></a>) can be retrieved using <a href="#PhyloTraits.sigma2_phylo-Tuple{PhyloNetworkLinearModel}"><code>sigma2_phylo</code></a> and <a href="#PhyloTraits.mu_phylo-Tuple{PhyloNetworkLinearModel}"><code>mu_phylo</code></a> respectively.</p><p>If relevant, the estimated individual-level/within-species variance can be retrieved using <a href="#PhyloTraits.sigma2_within-Tuple{PhyloNetworkLinearModel}"><code>sigma2_within</code></a>.</p><p>The optimized λ parameter for Pagel&#39;s λ model (see <a href="../internal/#PhyloTraits.PagelLambda"><code>PagelLambda</code></a>) can be retrieved using <a href="#PhyloTraits.lambda_estim-Tuple{PhyloNetworkLinearModel}"><code>lambda_estim</code></a>.</p><p>An ancestral state reconstruction can be performed using <a href="#PhyloTraits.ancestralreconstruction"><code>ancestralreconstruction</code></a>.</p><p><strong>Within-species variation</strong></p><p>The true species/population means for the response trait/variable (or the residuals: conditional on the predictors) are jointly modeled as 𝒩(·, σ²ₛV) where V depends on the trait model (see <a href="../internal/#PhyloTraits.ContinuousTraitEM"><code>ContinuousTraitEM</code></a>) and on the species network. σ²ₛ is the between-species variance-rate.</p><p>Within-species variation is modeled by assuming that the individual-level responses are iid 𝒩(0, σ²ₑ) about the true species means, so that the species-level sample means (conditional on the predictors) are jointly modeled as 𝒩(·, σ²ₛV + σ²ₑD⁻¹), where σ²ₑ is the within-species variance and D⁻¹ is a diagonal matrix whose entries are the inverse sample-sizes (see <a href="../internal/#PhyloTraits.WithinSpeciesCTM"><code>WithinSpeciesCTM</code></a>).</p><p>Although the above two models can be expressed in terms of a joint distribution for the species-level sample means (or residuals conditional on the predictors), more data are required to fit a model accounting for within-species variation, that is, a model recognizing that the sample means are estimates of the true population means. To fit a model <em>without</em> within-species variation, data on the species means are sufficient. To fit a model <em>with</em> within-species variation, we need to have the species means and the standard deviations of the response variable for each species.</p><p><code>phylolm</code> can fit a model with within-species variation either from species-level statistics (&quot;mean response&quot; and &quot;standard deviation in response&quot;) or from individual-level data (in which case the species-level statistics are computed internally). See <a href="#PhyloTraits.phylolm"><code>phylolm</code></a> for more details on these two input choices.</p><p>In the object, <code>obj.Y</code> and <code>obj.X</code> are the observed species means. <code>predict</code>, <code>residuals</code> and <code>response</code> return the values at the species level.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L509-L570">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.RateVariationAcrossSites" href="#PhyloTraits.RateVariationAcrossSites"><code>PhyloTraits.RateVariationAcrossSites</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">RateVariationAcrossSites(rvsymbol::Symbol, ncategories::Int=4)</code></pre><p>Default model for rate variation across site, specified by a symbol:</p><ul><li><code>:noRV</code> for no rate variation</li><li><code>:G</code> or <code>:Gamma</code> for gamma-distributed rates</li><li><code>:I</code> or <code>:Inv</code> for two categories: invariable and variable</li><li><code>:GI</code> or <code>:GI</code> for both.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L944-L952">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.RateVariationAcrossSites-Tuple{}" href="#PhyloTraits.RateVariationAcrossSites-Tuple{}"><code>PhyloTraits.RateVariationAcrossSites</code></a> — <span class="docstring-category">Method</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">RateVariationAcrossSites(; pinv=0.0, alpha=Inf, ncat=4)</code></pre><p>Model for variable substitution rates across sites (or across traits) using the discrete Gamma model (+G, Yang 1994, Journal of Molecular Evolution) or the invariable-sites model (+I, Hasegawa, Kishino &amp; Yano 1985 J Mol Evol). Both types of rate variation can be combined (+G+I, Gu, Fu &amp; Li 1995, Mol Biol Evol) but this is discouraged (Jia, Lo &amp; Ho 2014 PLOS One). Using rate variation increases the number of parameters by one (+G or +I) or by two (+G+I).</p><p>Because the mean of the desired distribution or rates is 1, we use a Gamma distribution with shape α and scale θ=1/α (rate β=α) if no invariable sites, or scale θ=1/(α(1-pinv)), that is rate β=α(1-pinv) with a proportion pinv of invariable sites. The shape parameter is referred to as alpha here. The Gamma distribution is discretized into <code>ncat</code> categories. In each category, the category&#39;s rate multiplier is a normalized quantile of the gamma distribution.</p><pre><code class="language-julia-repl hljs">julia&gt; rv = RateVariationAcrossSites()
+Rate variation across sites: discretized Gamma
+categories for Gamma discretization: 1
+rates: [1.0]
+
+julia&gt; nparams(rv)
+0
+
+julia&gt; typeof(rv)
+PhyloTraits.RVASGamma{1}
+
+julia&gt; rv = RateVariationAcrossSites(alpha=1.0, ncat=4)
+Rate variation across sites: discretized Gamma
+alpha: 1.0
+categories for Gamma discretization: 4
+rates: [0.146, 0.513, 1.071, 2.27]
+
+julia&gt; typeof(rv)
+PhyloTraits.RVASGamma{4}
+
+julia&gt; PhyloTraits.setalpha!(rv, 2.0)
+Rate variation across sites: discretized Gamma
+alpha: 2.0
+categories for Gamma discretization: 4
+rates: [0.319, 0.683, 1.109, 1.889]
+
+julia&gt; nparams(rv)
+1
+
+julia&gt; rv = RateVariationAcrossSites(pinv=0.3)
+Rate variation across sites: +I (invariable sites)
+pinv: 0.3
+rates: [0.0, 1.429]
+
+julia&gt; nparams(rv)
+1
+
+julia&gt; typeof(rv)
+PhyloTraits.RVASInv
+
+julia&gt; PhyloTraits.setpinv!(rv, 0.05)
+Rate variation across sites: +I (invariable sites)
+pinv: 0.05
+rates: [0.0, 1.053]
+
+julia&gt; rv = RateVariationAcrossSites(pinv=0.3, alpha=2.0, ncat=4)
+Rate variation across sites: discretized Gamma+I
+pinv: 0.3
+alpha: 2.0
+categories for Gamma discretization: 4
+rates: [0.0, 0.456, 0.976, 1.584, 2.698]
+probabilities: [0.3, 0.175, 0.175, 0.175, 0.175]
+
+julia&gt; nparams(rv)
+2
+
+julia&gt; typeof(rv)
+PhyloTraits.RVASGammaInv{5}
+
+julia&gt; PhyloTraits.setalpha!(rv, 3.0)
+Rate variation across sites: discretized Gamma+I
+pinv: 0.3
+alpha: 3.0
+categories for Gamma discretization: 4
+rates: [0.0, 0.6, 1.077, 1.584, 2.454]
+probabilities: [0.3, 0.175, 0.175, 0.175, 0.175]
+
+julia&gt; PhyloTraits.setpinv!(rv, 0.05)
+Rate variation across sites: discretized Gamma+I
+pinv: 0.05
+alpha: 3.0
+categories for Gamma discretization: 4
+rates: [0.0, 0.442, 0.793, 1.167, 1.808]
+probabilities: [0.05, 0.238, 0.238, 0.238, 0.238]
+
+julia&gt; PhyloTraits.setpinvalpha!(rv, 0.1, 5.0)
+Rate variation across sites: discretized Gamma+I
+pinv: 0.1
+alpha: 5.0
+categories for Gamma discretization: 4
+rates: [0.0, 0.593, 0.91, 1.221, 1.721]
+probabilities: [0.1, 0.225, 0.225, 0.225, 0.225]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L823-L926">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.ReconstructedStates" href="#PhyloTraits.ReconstructedStates"><code>PhyloTraits.ReconstructedStates</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ReconstructedStates</code></pre><p>Type containing the inferred information about the law of the ancestral states given the observed tips values. The missing tips are considered as ancestral states.</p><p>Reconstructed states and prediction intervals can be recovered with function <code>predict</code>, and the standard error can be obtained with <code>stderror</code>.</p><p>The <code>ReconstructedStates</code> object has fields: <code>traits_nodes</code>, <code>variances_nodes</code>, <code>nodenumbers</code>, <code>traits_tips</code>, <code>tipnumbers</code>, <code>model</code>. Type in &quot;?ReconstructedStates.field&quot; to get help on a specific field.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/ancestral_continuous.jl#L4-L15">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.ShiftNet" href="#PhyloTraits.ShiftNet"><code>PhyloTraits.ShiftNet</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">ShiftNet</code></pre><p>Shifts mapped to tree nodes and their (unique) parent edge on a <a href="https://juliaphylo.github.io/PhyloNetworks.jl/stable/lib/public/#PhyloNetworks.HybridNetwork"><code>PhyloNetworks.HybridNetwork</code></a> sorted in topological order. Its <code>shift</code> field is a vector of shift values, one for each node, corresponding to the shift on the parent edge of the node (which makes sense for tree nodes only: they have a single parent edge).</p><p>Two <code>ShiftNet</code> objects on the same network can be concatened with <code>*</code>.</p><p><code>ShiftNet(node::Vector{Node}, value::AbstractVector, net::HybridNetwork; checkpreorder::Bool=true)</code></p><p>Constructor from a vector of nodes and associated values. The shifts are located on the edges above the nodes provided. Warning, shifts on hybrid edges are not allowed.</p><p><code>ShiftNet(edge::Vector{Edge}, value::AbstractVector, net::HybridNetwork; checkpreorder::Bool=true)</code></p><p>Constructor from a vector of edges and associated values. Warning, shifts on hybrid edges are not allowed.</p><p>Extractors: <a href="#PhyloTraits.getshiftedgenumber-Tuple{ShiftNet}"><code>getshiftedgenumber</code></a>, <a href="#PhyloTraits.getshiftvalue-Tuple{ShiftNet}"><code>getshiftvalue</code></a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_continuous.jl#L2-L25">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.TraitSimulation" href="#PhyloTraits.TraitSimulation"><code>PhyloTraits.TraitSimulation</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">TraitSimulation</code></pre><p>Result of a trait simulation on an <code>PhyloNetworks.HybridNetwork</code> with <a href="#Base.rand"><code>rand</code></a>.</p><p>The following functions and extractors can be applied to it: <a href="https://juliaphylo.github.io/PhyloNetworks.jl/stable/lib/public/#PhyloNetworks.tiplabels-Tuple%7BHybridNetwork%7D"><code>tiplabels</code></a>, <code>obj[:tips]</code>, <code>obj[:internalnodes]</code> (see documentation for function <a href="../internal/#Base.getindex"><code>getindex(::TraitSimulation, ::Symbol)</code></a>).</p><p>The <code>TraitSimulation</code> object has fields: <code>M</code>, <code>params</code>, <code>evomodel</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/simulate_continuous.jl#L1-L12">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.TraitSubstitutionModel" href="#PhyloTraits.TraitSubstitutionModel"><code>PhyloTraits.TraitSubstitutionModel</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">TraitSubstitutionModel</code></pre><p>For subtypes, see <a href="#PhyloTraits.BinaryTraitSubstitutionModel"><code>BinaryTraitSubstitutionModel</code></a>, <a href="#PhyloTraits.EqualRatesSubstitutionModel"><code>EqualRatesSubstitutionModel</code></a>, <a href="#PhyloTraits.TwoBinaryTraitSubstitutionModel"><code>TwoBinaryTraitSubstitutionModel</code></a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L21-L27">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="PhyloTraits.TwoBinaryTraitSubstitutionModel" href="#PhyloTraits.TwoBinaryTraitSubstitutionModel"><code>PhyloTraits.TwoBinaryTraitSubstitutionModel</code></a> — <span class="docstring-category">Type</span><span class="is-flex-grow-1 docstring-article-toggle-button" title="Collapse docstring"></span></header><section><div><pre><code class="language-julia hljs">TwoBinaryTraitSubstitutionModel(rate [, label])</code></pre><p><a href="#PhyloTraits.TraitSubstitutionModel"><code>TraitSubstitutionModel</code></a> for two binary traits, possibly correlated. Default labels are &quot;x0&quot;, &quot;x1&quot; for trait 1, and &quot;y0&quot;, &quot;y1&quot; for trait 2. If provided, <code>label</code> should be a vector of size 4, listing labels for trait 1 first then labels for trait 2. <code>rate</code> should be a vector of substitution rates of size 8. rate[1],...,rate[4] describe rates of changes in trait 1. rate[5],...,rate[8] describe rates of changes in trait 2. In the transition matrix, trait combinations are listed in the following order: x0-y0, x0-y1, x1-y0, x1-y1.</p><p><strong>example</strong></p><pre><code class="language-julia hljs">model = TwoBinaryTraitSubstitutionModel([2.0,1.2,1.1,2.2,1.0,3.1,2.0,1.1],
+        [&quot;carnivory&quot;, &quot;noncarnivory&quot;, &quot;wet&quot;, &quot;dry&quot;]);
+model
+using PhyloPlots
+plot(model) # to visualize states and rates. not supported with PhyloPlots v2.0.0. requires PhyloPlots v1.0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaPhylo/PhyloTraits.jl/blob/d937dd8d105cf3e29d275bc87e9e21e58be62225/src/models_substitutions.jl#L350-L372">source</a></section></article><h2 id="index"><a class="docs-heading-anchor" href="#index">index</a><a id="index-1"></a><a class="docs-heading-anchor-permalink" href="#index" title="Permalink"></a></h2><ul><li><a href="#PhyloTraits.BinaryTraitSubstitutionModel"><code>PhyloTraits.BinaryTraitSubstitutionModel</code></a></li><li><a href="#PhyloTraits.EqualRatesSubstitutionModel"><code>PhyloTraits.EqualRatesSubstitutionModel</code></a></li><li><a href="#PhyloTraits.HKY85"><code>PhyloTraits.HKY85</code></a></li><li><a href="#PhyloTraits.JC69"><code>PhyloTraits.JC69</code></a></li><li><a href="#PhyloTraits.ParamsBM"><code>PhyloTraits.ParamsBM</code></a></li><li><a href="#PhyloTraits.ParamsMultiBM"><code>PhyloTraits.ParamsMultiBM</code></a></li><li><a href="#PhyloTraits.PhyloNetworkLinearModel"><code>PhyloTraits.PhyloNetworkLinearModel</code></a></li><li><a href="#PhyloTraits.RateVariationAcrossSites-Tuple{}"><code>PhyloTraits.RateVariationAcrossSites</code></a></li><li><a href="#PhyloTraits.RateVariationAcrossSites"><code>PhyloTraits.RateVariationAcrossSites</code></a></li><li><a href="#PhyloTraits.ReconstructedStates"><code>PhyloTraits.ReconstructedStates</code></a></li><li><a href="#PhyloTraits.ShiftNet"><code>PhyloTraits.ShiftNet</code></a></li><li><a href="#PhyloTraits.TraitSimulation"><code>PhyloTraits.TraitSimulation</code></a></li><li><a href="#PhyloTraits.TraitSubstitutionModel"><code>PhyloTraits.TraitSubstitutionModel</code></a></li><li><a href="#PhyloTraits.TwoBinaryTraitSubstitutionModel"><code>PhyloTraits.TwoBinaryTraitSubstitutionModel</code></a></li><li><a href="#Base.rand-Tuple{PhyloTraits.SubstitutionModel, PhyloNetworks.HybridNetwork}"><code>Base.rand</code></a></li><li><a href="#Base.rand"><code>Base.rand</code></a></li><li><a href="#Base.rand-Tuple{PhyloTraits.SubstitutionModel, Float64, AbstractVector{Int64}}"><code>Base.rand</code></a></li><li><a href="#PhyloTraits.Q-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.Q</code></a></li><li><a href="#PhyloTraits.Q-Tuple{BinaryTraitSubstitutionModel}"><code>PhyloTraits.Q</code></a></li><li><a href="#PhyloTraits.ancestralreconstruction-Tuple{PhyloNetworks.HybridNetwork, Vector, ParamsBM}"><code>PhyloTraits.ancestralreconstruction</code></a></li><li><a href="#PhyloTraits.ancestralreconstruction-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.ancestralreconstruction</code></a></li><li><a href="#PhyloTraits.ancestralreconstruction"><code>PhyloTraits.ancestralreconstruction</code></a></li><li><a href="#PhyloTraits.ancestralreconstruction-Tuple{DataFrames.AbstractDataFrame, PhyloNetworks.HybridNetwork}"><code>PhyloTraits.ancestralreconstruction</code></a></li><li><a href="#PhyloTraits.descendencedataframe-Tuple{PhyloNetworks.HybridNetwork, Vector{PhyloNetworks.Node}}"><code>PhyloTraits.descendencedataframe</code></a></li><li><a href="#PhyloTraits.empiricalDNAfrequencies"><code>PhyloTraits.empiricalDNAfrequencies</code></a></li><li><a href="#PhyloTraits.fitdiscrete-Tuple{PhyloNetworks.HybridNetwork, PhyloTraits.SubstitutionModel, Dict}"><code>PhyloTraits.fitdiscrete</code></a></li><li><a href="#PhyloTraits.getlabels-Tuple{PhyloTraits.NucleicAcidSubstitutionModel}"><code>PhyloTraits.getlabels</code></a></li><li><a href="#PhyloTraits.getlabels-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.getlabels</code></a></li><li><a href="#PhyloTraits.getshiftedgenumber-Tuple{ShiftNet}"><code>PhyloTraits.getshiftedgenumber</code></a></li><li><a href="#PhyloTraits.getshiftvalue-Tuple{ShiftNet}"><code>PhyloTraits.getshiftvalue</code></a></li><li><a href="#PhyloTraits.lambda_estim-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.lambda_estim</code></a></li><li><a href="#PhyloTraits.mu_phylo-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.mu_phylo</code></a></li><li><a href="#PhyloTraits.nparams-Tuple{JC69}"><code>PhyloTraits.nparams</code></a></li><li><a href="#PhyloTraits.nparams-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.nparams</code></a></li><li><a href="#PhyloTraits.nparams-Tuple{HKY85}"><code>PhyloTraits.nparams</code></a></li><li><a href="#PhyloTraits.nstates-Tuple{BinaryTraitSubstitutionModel}"><code>PhyloTraits.nstates</code></a></li><li><a href="#PhyloTraits.nstates-Tuple{PhyloTraits.NucleicAcidSubstitutionModel}"><code>PhyloTraits.nstates</code></a></li><li><a href="#PhyloTraits.nstates-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.nstates</code></a></li><li><a href="#PhyloTraits.phylolm-Tuple{StatsModels.FormulaTerm, DataFrames.AbstractDataFrame, PhyloNetworks.HybridNetwork}"><code>PhyloTraits.phylolm</code></a></li><li><a href="#PhyloTraits.phylolm"><code>PhyloTraits.phylolm</code></a></li><li><a href="#PhyloTraits.shiftathybrids-Tuple{VecOrMat{T} where T&lt;:Real, PhyloNetworks.HybridNetwork}"><code>PhyloTraits.shiftathybrids</code></a></li><li><a href="#PhyloTraits.sigma2_phylo-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.sigma2_phylo</code></a></li><li><a href="#PhyloTraits.sigma2_within-Tuple{PhyloNetworkLinearModel}"><code>PhyloTraits.sigma2_within</code></a></li><li><a href="#PhyloTraits.stationary-Tuple{PhyloTraits.SubstitutionModel}"><code>PhyloTraits.stationary</code></a></li><li><a href="#Random.rand!-Tuple{Random.AbstractRNG, AbstractVector{Int64}, PhyloTraits.SubstitutionModel, Float64, AbstractVector{Int64}}"><code>Random.rand!</code></a></li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../man/example_fishes/">« Xiphophorus fishes</a><a class="docs-footer-nextpage" href="../internal/">internals »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.9.0 on <span class="colophon-date" title="Monday 17 March 2025 19:47">Monday 17 March 2025</span>. Using Julia version 1.11.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
