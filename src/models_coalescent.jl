@@ -65,11 +65,11 @@ end
 function init_gaussiancoalmatrix(nodes::Vector{Node}, params...)
     n = length(nodes)
     M = zeros(Float64,n,n) # (co)variances of species means
-    V = zeros(Float64,n)   # within-species variances
+    V = zeros(Float64,n)   # expected within-species variances
     return([M,V])
 end
 function updateroot_gaussiancoalmatrix!(MV::Vector, i::Int, bsp_var,v0)
-    MV[1][i,i] = v0
+    MV[2][i] = v0
     return true
 end
 
@@ -93,7 +93,7 @@ function updatetree_gaussiancoalmatrix!(
     u = edge.length
     p2 = coal_noevent(u)
     p1 = 1-p2
-    M[i,i] = σ2 * coal_sharedtime(u) + M[parentind,parentind] + V[i,i] * p1
+    M[i,i] = σ2 * coal_sharedtime(u) + M[parentind,parentind] + V[parentind] * p1
     V[i] = M[parentind,parentind] * p2  +  σ2 * p1
     return true
 end
