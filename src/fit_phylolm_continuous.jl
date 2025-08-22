@@ -205,6 +205,9 @@ function pgls(
     Vy = V[:tips] # extract tips matrix
     if (ind != [0]) Vy = Vy[ind, ind] end # re-order if necessary
     Vy = Vy[nonmissing, nonmissing]
+    return pgls(X,Y,Vy)
+end
+function pgls(X::Matrix, Y::Vector, Vy::Matrix)
     R = cholesky(Vy)
     RL = R.L
     # Fit with GLM.lm, and return quantities needed downstream
@@ -394,7 +397,8 @@ function phylolm_scalinghybrid(
 end
 
 """
-    phylolm(f::StatsModels.FormulaTerm, fr::AbstractDataFrame, net::HybridNetwork; kwargs...)
+    phylolm(f::StatsModels.FormulaTerm, fr::AbstractDataFrame,
+        net::HybridNetwork; kwargs...)
 
 Fit a phylogenetic linear regression model to data.
 Return an object of type [`PhyloNetworkLinearModel`](@ref).
@@ -410,7 +414,8 @@ It contains a linear model from the GLM package, in `object.lm`, of type
 Keyword arguments
 
 * `model="BM"`: model for trait evolution (as a string)
-  "lambda" (Pagel's lambda), "scalinghybrid" are other possible values
+  "lambda" (Pagel's lambda), "scalinghybrid" and "gaussiancoalescent"
+  are other possible values
   (see [`ContinuousTraitEM`](@ref))
 * `tipnames=:tipnames`: column name for species/tip-labels, represented
   as a symbol. For example, if the column containing the species/tip labels in
@@ -783,8 +788,9 @@ function phylolm(
             error("""for within-species variation, at least 1 species must have at least 2 individuals.
                   did you mean to use option "y_mean_std=true" perhaps?""")
         else
-            (!withinspecies_var || y_mean_std) &&
-            error("""Some tips have data on multiple rows.""")
+            (withinspecies_var && !y_mean_std) ||
+                model == "gaussiancoalescent" ||
+                error("""Some tips have data on multiple rows.""")
         end
     end
     # Find the regression matrix and response vector
@@ -824,9 +830,13 @@ function phylolm(
 
     withinspecies_var && model != "BM" &&
         error("within-species variation is not implemented for non-BM models")
-    modeldic = Dict("BM" => BM(),
-                    "lambda" => PagelLambda(),
-                    "scalinghybrid" => ScalingHybrid())
+    modeldic = Dict(
+        "BM" => BM(),
+        "lambda" => PagelLambda(),
+        "scalinghybrid" => ScalingHybrid(),
+        "gaussiancoalescent" => GaussianCoalescent(
+            (ismissing(fixedValue) ? 1.0 : fixedValue), # v0 required fixed
+            startingValue,)) # σ2 per coalescent unit, because default Ne=1
     haskey(modeldic, model) || error("phylolm is not defined for model $model.")
     modelobj = modeldic[model]
 

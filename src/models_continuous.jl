@@ -422,7 +422,8 @@ end
 Abstract type for evolutionary models for continuous traits, using a continuous-time
 stochastic process on a phylogeny.
 
-For subtypes, see [`BM`](@ref), [`PagelLambda`](@ref), [`ScalingHybrid`](@ref).
+For subtypes, see [`BM`](@ref), [`PagelLambda`](@ref), [`ScalingHybrid`](@ref),
+[`GaussianCoalescent`](@ref).
 
 Each of these subtypes/models has the field `lambda`, whose default value is 1.0.
 However, the interpretation of this field differs across models.

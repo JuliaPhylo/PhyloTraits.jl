@@ -35,44 +35,72 @@ struct GaussianCoalescent <: ContinuousTraitEM
     "λ = v0/(Ne σ²). This is 1 if the root population is at equilibrium"
     lambda::Float64
 end
-GaussianCoalescent(v0,s2,Ne=1.0) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*bsp_var))
+GaussianCoalescent(v0,s2,Ne=1.0) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*s2))
 evomodelname(::GaussianCoalescent) = "Gaussian with coalescent"
 
+# check edge parameters, preorder the network, grabs memory for M & V
+function gaussiancoalescent_covariancematrix_init(
+    net::HybridNetwork,
+    checkedges::Bool,
+    preorder::Bool,
+)
+    if checkedges
+        PN.check_nonmissing_nonnegative_edgelengths(net,
+        "The Gaussian with coalescent needs ≥ 0 edge lengths.")
+        PN.check_valid_gammas(net,
+        "The Gaussian with coalescent needs valid γ inheritances.")
+    end
+    preorder && preorder!(net)
+    MV = init_gaussiancoalmatrix(net.vec_node)
+    return MV
+end
+
+"""
+`[cM,eV]` of `MatrixTopologicalOrder` objects, where `cM` is the matrix of
+(co)variances of population means, and `eV` is the expected within-population
+variance, under the Gaussian model with coalescence.
+
+**Warning**: assumes that edge lengths in `net` are in coalescent units
+(number of generations / haploid effective population size), and that
+`σ2` is the variance rate per coal unit, which is also the
+equilibrium within-species variance.
+"""
 function gaussiancoalescent_covariancematrix(
     net::HybridNetwork,
-    v0::Float64,
-    σ2::Float64;
-    Ne::Number=1.0,
-    checkpreorder::Bool=true,
+    v0::Real,
+    σ2::Real;
+    checkedges::Bool=true,
+    preorder::Bool=true,
 )
-    PN.check_nonmissing_nonnegative_edgelengths(net,
-        "The Gaussian with coalescent needs ≥ 0 edge lengths.")
-    PN.check_valid_gammas(net,
-        "The Gaussian with coalescent needs valid γ inheritances.")
-    checkpreorder && preorder!(net)
-    # todo: divide edge lengths by Ne to have them in coalescent units
-    σ2eq = σ2 * Ne # rate per coal unit = equilibrium within-species variance
-    MV = PN.traversal_preorder(net.vec_node,
-        init_gaussiancoalmatrix,
+    MV = gaussiancoalescent_covariancematrix_init(net, checkedges, preorder)
+    # σ2eq = σ2_pergen * Ne # equilibrium within-species variance
+    return gaussiancoalescent_covariancematrix!(MV, net, v0, σ2)
+end
+function gaussiancoalescent_covariancematrix!(
+    MV::Array,
+    net::HybridNetwork, # nodes::Vector{Node},
+    v0::Real,
+    σ2::Real,
+)
+    fill!(MV[1], 0); fill!(MV[2], 0)
+    PN.traversal_preorder!(net.vec_node, MV,
         updateroot_gaussiancoalmatrix!,
         updatetree_gaussiancoalmatrix!,
         updatehybrid_gaussiancoalmatrix!,
-        σ2eq, v0)
+        σ2, v0)
     M = MatrixTopologicalOrder(MV[1], net, :b) # nodes in both columns & rows
-    # below: transform V from a vector to a 1-column matrix
-    # todo: consider modifying PN.MatrixTopologicalOrder to take an `Array`
-    #       more generally, not just matrices?
+    # below: transform V from a vector to a 1-column matrix, but shared memory
     V = MatrixTopologicalOrder(reshape(MV[2], (length(net.node),1)), net, :r)
     return M, V
 end
 
-function init_gaussiancoalmatrix(nodes::Vector{Node}, params...)
+function init_gaussiancoalmatrix(nodes::Vector{Node})
     n = length(nodes)
-    M = zeros(Float64,n,n) # (co)variances of species Means
-    V = zeros(Float64,n)   # expected within-species Variances
+    M = Matrix{Float64}(undef, n,n) # (co)variances of species Means
+    V = Vector{Float64}(undef, n)   # expected within-species Variances
     return([M,V])
 end
-function updateroot_gaussiancoalmatrix!(MV::Vector, i::Int, bsp_var,v0)
+function updateroot_gaussiancoalmatrix!(MV::Vector, i::Int, _, v0)
     MV[2][i] = v0
     return true
 end
