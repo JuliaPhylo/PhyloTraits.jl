@@ -33,4 +33,5 @@ end
     include("test_traits_discrete.jl")
     include("test_simulate.jl")
     include("test_simulate_mbd.jl")
+    include("test_coalescent.jl")
 end

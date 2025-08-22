@@ -8,7 +8,7 @@ The model assumes that X is controlled by a large number L of loci, each
 locus l having an infinitesimally small effect Yl on the trait,
 acting additively across loci: `X = (sum_l Y_l)/√L`.
 The normalization by √L is to simplify notations: the effect of locus l is
-`Y_l/√L`, and becomes infinitesimmally small as L grows to infinity.
+`Y_l/√L`, and becomes infinitesimally small as L grows to infinity.
 
 `v0` is the variance of each `Y_l`, and of `X` in the root population.
 Each `Y_l` evolves along each own gene tree, arising from the population
@@ -29,7 +29,7 @@ struct GaussianCoalescent <: ContinuousTraitEM
     "variance at the root population"
     v0::Float64
     "variance rate σ² per generation for the polygenic trait (rate σ²/L for each of L loci)"
-    bsp_var::Float64 # between-species variance rate
+    sigma2::Float64 # between-species variance rate
     "haploid effective population size, shared across all populations"
     Ne::Float64
     "λ = v0/(Ne σ²). This is 1 if the root population is at equilibrium"
@@ -41,9 +41,9 @@ evomodelname(::GaussianCoalescent) = "Gaussian with coalescent"
 function gaussiancoalescent_covariancematrix(
     net::HybridNetwork,
     v0::Float64,
-    bsp_var::Float64;
-    Ne::Float64=1.0,
-    checkpreorder::Bool=false,
+    σ2::Float64;
+    Ne::Number=1.0,
+    checkpreorder::Bool=true,
 )
     PN.check_nonmissing_nonnegative_edgelengths(net,
         "The Gaussian with coalescent needs ≥ 0 edge lengths.")
@@ -51,21 +51,25 @@ function gaussiancoalescent_covariancematrix(
         "The Gaussian with coalescent needs valid γ inheritances.")
     checkpreorder && preorder!(net)
     # todo: divide edge lengths by Ne to have them in coalescent units
-    σ2 = bsp_var * Ne # rate per coal unit = equilibrium within-species variance
+    σ2eq = σ2 * Ne # rate per coal unit = equilibrium within-species variance
     MV = PN.traversal_preorder(net.vec_node,
         init_gaussiancoalmatrix,
         updateroot_gaussiancoalmatrix!,
         updatetree_gaussiancoalmatrix!,
         updatehybrid_gaussiancoalmatrix!,
-        σ2, v0)
+        σ2eq, v0)
     M = MatrixTopologicalOrder(MV[1], net, :b) # nodes in both columns & rows
-    return M, MV[2]
+    # below: transform V from a vector to a 1-column matrix
+    # todo: consider modifying PN.MatrixTopologicalOrder to take an `Array`
+    #       more generally, not just matrices?
+    V = MatrixTopologicalOrder(reshape(MV[2], (length(net.node),1)), net, :r)
+    return M, V
 end
 
 function init_gaussiancoalmatrix(nodes::Vector{Node}, params...)
     n = length(nodes)
-    M = zeros(Float64,n,n) # (co)variances of species means
-    V = zeros(Float64,n)   # expected within-species variances
+    M = zeros(Float64,n,n) # (co)variances of species Means
+    V = zeros(Float64,n)   # expected within-species Variances
     return([M,V])
 end
 function updateroot_gaussiancoalmatrix!(MV::Vector, i::Int, bsp_var,v0)
@@ -94,7 +98,7 @@ function updatetree_gaussiancoalmatrix!(
     p2 = coal_noevent(u)
     p1 = 1-p2
     M[i,i] = σ2 * coal_sharedtime(u) + M[parentind,parentind] + V[parentind] * p1
-    V[i] = M[parentind,parentind] * p2  +  σ2 * p1
+    V[i] = V[parentind] * p2  +  σ2 * p1
     return true
 end
 function updatehybrid_gaussiancoalmatrix!(
@@ -102,8 +106,7 @@ function updatehybrid_gaussiancoalmatrix!(
     i::Int,
     parindx::AbstractVector{Int},
     paredge::AbstractVector{Edge},
-    bsp_var,
-    Ne,
+    σ2,
     args...
 )
     M, V = MV
@@ -111,17 +114,21 @@ function updatehybrid_gaussiancoalmatrix!(
         for (pi,pe) in zip(parindx, paredge)
             M[i,j] += pe.gamma * M[pi,j]
         end
-        M[j,i] = V[i,j]
+        M[j,i] = M[i,j]
     end
-    # fixit: from BM below. implement correct formula
     for k1 in eachindex(paredge)
         p1i = parindx[k1]
         p1e = paredge[k1]
-        V[i,i] +=  p1e.gamma^2 * (V[p1i,p1i] + p1e.length)
+        p1u = p1e.length
+        p1γ = p1e.gamma
+        q1 = 1-coal_noevent(p1u)
+        r1 = coal_sharedtime(p1u)
+        M[i,i] +=  p1γ^2 * (σ2 * r1 + M[p1i,p1i] + V[p1i] * q1)
         for k2 in (k1+1):length(paredge)
-            V[i,i] += 2 * p1e.gamma * paredge[k2].gamma * V[p1i,parindx[k2]]
+            M[i,i] += 2 * p1γ * paredge[k2].gamma * M[p1i,parindx[k2]]
         end
+        V[i] += p1γ * (σ2 * p1u + M[p1i,p1i] + V[p1i])
     end
-    # fixit: implement formulas for V
+    V[i] -= M[i,i]
     return true
 end

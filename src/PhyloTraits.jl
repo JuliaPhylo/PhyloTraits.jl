@@ -85,5 +85,7 @@ include("models_substitutions.jl")
 include("simulate_substitutions.jl")
 include("fit_discrete.jl")
 include("ancestral_posterior_discrete.jl")
+include("models_coalescent.jl")
+include("fit_coalescent.jl")
 
 end
