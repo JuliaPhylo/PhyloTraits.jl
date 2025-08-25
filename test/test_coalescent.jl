@@ -38,6 +38,6 @@ Y = [8.60,10.56,11.3,9.96,11.24,]
 X = ones(5, 1)
 df = DataFrame(trait = Y, tipnames = ["B","C","A","D","A",])
 f0 = phylolm(@formula(trait ~ 1), df, net; model="gaussiancoalescent",
-        reml=false, startingValue=1.0, fixedValue=0.1)
+        reml=false, Dict(:lambda => (start=0.1, fixed=true)))
 
 end

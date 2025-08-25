@@ -42,9 +42,7 @@ function phylolm(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing,
-    withinspecies_var::Bool=false,
+    paramlist::Dict=Dict{Symbol,Any}(),
     counts::Union{Nothing, Vector}=nothing,
     ySD::Union{Nothing, Vector}=nothing,
     suppresswarnings::Bool=false,
@@ -56,7 +54,7 @@ function phylolm(
     else
         phylolm(model, X,Y,net, reml; nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            startingValue=startingValue, fixedValue=fixedValue,
+            paramlist,
             suppresswarnings=suppresswarnings)
     end
 end
@@ -91,8 +89,7 @@ function phylolm(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing,
+    paramlist::Dict=Dict{Symbol,Any}(),
     suppresswarnings::Bool=false
 )
     # BM variance covariance
@@ -108,10 +105,11 @@ function phylolm(
         """
         times = getnodeheights_majortree(net, false; warn=false)
     end
+    lamspec = paramspec(paramlist, :lambda, start=0.5, fixed=false)
     phylolm_lambda(X,Y,V,reml, gammas, times;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            startingValue=startingValue, fixedValue=fixedValue)
+            lamspec)
 end
 
 
@@ -179,16 +177,16 @@ function phylolm(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing,
+    paramlist::Dict=Dict{Symbol,Any}(),
     kwargs...
 )
     preorder!(net)
     gammas = getGammas(net)
+    lamspec = paramspec(paramlist, :lambda, start=0.5, fixed=false)
     phylolm_scalinghybrid(X, Y, net, reml, gammas;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            startingValue=startingValue, fixedValue=fixedValue)
+            lamspec)
 end
 
 ###############################################################################
@@ -275,10 +273,9 @@ function phylolm_lambda(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing
+    lambdaspec::ParamSpec,
 )
-    if ismissing(fixedValue)
+    if !lambdaspec.fixed
         # Find Best lambda using optimize from package NLopt
         opt = NLopt.Opt(:LN_BOBYQA, 1)
         NLopt.ftol_rel!(opt, ftolRel) # relative criterion
@@ -301,11 +298,11 @@ function phylolm_lambda(
             return res
         end
         NLopt.min_objective!(opt, fun)
-        fmin, xmin, ret = NLopt.optimize(opt, [startingValue])
+        fmin, xmin, ret = NLopt.optimize(opt, [getvalue(lambdaspec)])
         # Best value dans result
         res_lam = xmin[1]
     else
-        res_lam = fixedValue
+        res_lam = getvalue(lambdaspec)
     end
     transform_matrix_lambda!(V, res_lam, gammas, times)
     linmod, Vy, RL, logdetVy = pgls(X,Y,V; nonmissing=nonmissing, ind=ind)
@@ -357,10 +354,9 @@ function phylolm_scalinghybrid(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing
+    lambdaspec::ParamSpec,
 )
-    if ismissing(fixedValue)
+    if !lambdaspec.fixed
         # Find Best lambda using optimize from package NLopt
         opt = NLopt.Opt(:LN_BOBYQA, 1)
         NLopt.ftol_rel!(opt, ftolRel) # relative criterion
@@ -384,10 +380,10 @@ function phylolm_scalinghybrid(
             return res
         end
         NLopt.min_objective!(opt, fun)
-        fmin, xmin, ret = NLopt.optimize(opt, [startingValue])
+        fmin, xmin, ret = NLopt.optimize(opt, [getvalue(lambdaspec)])
         res_lam = xmin[1]
     else
-        res_lam = fixedValue
+        res_lam = getvalue(lambdaspec)
     end
     V = matrix_scalinghybrid(net, res_lam, gammas)
     linmod, Vy, RL, logdetVy = pgls(X,Y,V; nonmissing=nonmissing, ind=ind)
@@ -437,10 +433,16 @@ variance components if `model="BM"` and `withinspecies_var=true`.
 * `xTolRel=1e-10`: relative tolerance on the parameter value
 * `xTolAbs=1e-10`: absolute tolerance on the parameter value
 
-* `startingValue=0.5`: If `model`="lambda" or "scalinghybrid", this
-  provides the starting value for the optimization in lambda.
-* `fixedValue=missing`: If `model`="lambda" or "scalinghybrid", and
-  `fixedValue` is a number, then lambda is set to this number and is not optimized.
+* `paramlist`: dictionary to list the specification for parameters that may
+  be fixed or optimized. For each parameter, specifications are given as
+  a named tuple, with names in `start` (for the starting or fixed value),
+  `upper` and `lower` (for bounds if the parameter is optimized),
+  and `fixed` (true or false to fix or optimize the parameter).
+  For models "lambda" or "scalinghybrid" that use a λ parameter,
+  the default corresponds to: `Dict(:lambda => (start=0.5, fixed=false))`.
+  To fix the λ parameter to λ=0.8, say, use:
+  `Dict(:lambda => (start=0.8, fixed=false))`.
+
 * `withinspecies_var=false`: If `true`, fits a within-species variation model.
   Currently only implemented for `model`="BM".
 * `y_mean_std::Bool=false`: If `true`, and `withinspecies_var=true`, then accounts for
@@ -511,11 +513,13 @@ species standard deviation / sample sizes (if used) will throw an error.
 We first load data from the package and fit the default BM model.
 
 ```jldoctest phylolmdoc
-julia> phy = readnewick(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "caudata_tree.txt"));
+julia> exdir = joinpath(dirname(pathof(PhyloTraits)), "..", "examples");
+
+julia> phy = readnewick(joinpath(exdir, "caudata_tree.txt"));
 
 julia> using DataFrames, CSV # to read data file, next
 
-julia> dat = CSV.read(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "caudata_trait.txt"), DataFrame);
+julia> dat = CSV.read(joinpath(exdir, "caudata_trait.txt"), DataFrame);
 
 julia> using StatsModels # for stat model formulas
 
@@ -747,8 +751,8 @@ function phylolm(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing,
+    paramlist::Dict=Dict{Symbol,Any}(),
+    # name?? alternatives: params paramvalues paramdict
     withinspecies_var::Bool=false,
     y_mean_std::Bool=false,
     suppresswarnings::Bool=false
@@ -834,15 +838,13 @@ function phylolm(
         "BM" => BM(),
         "lambda" => PagelLambda(),
         "scalinghybrid" => ScalingHybrid(),
-        "gaussiancoalescent" => GaussianCoalescent(
-            (ismissing(fixedValue) ? 1.0 : fixedValue), # v0 required fixed
-            startingValue,)) # σ2 per coalescent unit, because default Ne=1
+        "gaussiancoalescent" => GaussianCoalescent(paramlist))
     haskey(modeldic, model) || error("phylolm is not defined for model $model.")
     modelobj = modeldic[model]
 
     res = phylolm(mm.m, Y, net, modelobj; reml=reml, nonmissing=nonmissing, ind=ind,
                   ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-                  startingValue=startingValue, fixedValue=fixedValue,
+                  paramlist,
                   withinspecies_var=withinspecies_var, counts=counts, ySD=ySD,
                   suppresswarnings=suppresswarnings)
     res.formula = f

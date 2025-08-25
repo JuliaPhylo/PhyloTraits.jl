@@ -1,6 +1,6 @@
 
 """
-    GaussianCoalescent(v0,σ²,Ne)
+    GaussianCoalescent(v0,σ²,Ne,lambda)
 
 [`ContinuousTraitEM`](@ref) type to model the evolution of a polygenic trait X
 with variance v0 at the root population, and variance rate σ².
@@ -36,6 +36,13 @@ struct GaussianCoalescent <: ContinuousTraitEM
     lambda::Float64
 end
 GaussianCoalescent(v0,s2,Ne=1.0) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*s2))
+
+function GaussianCoalescent(paramlist::Dict)
+    v0 = getvalue(paramspec(paramlist, :v0)) # default: 1
+    λ  = getvalue(paramspec(paramlist, :lambda))
+    s2 = v0 / λ
+    return GaussianCoalescent(v0,s2,λ)
+end
 evomodelname(::GaussianCoalescent) = "Gaussian with coalescent"
 
 # check edge parameters, preorder the network, grabs memory for M & V
@@ -58,7 +65,11 @@ end
 """
 `[cM,eV]` of `MatrixTopologicalOrder` objects, where `cM` is the matrix of
 (co)variances of population means, and `eV` is the expected within-population
-variance, under the Gaussian model with coalescence.
+variance, under the Gaussian model with coalescence, under:
+`σ2=1` per coalescent unit and variance `v0 = λ*σ2` within the root population.
+
+For a general value of `σ2`, all (co)variances simply need to be multiplied
+by `σ2`.
 
 **Warning**: assumes that edge lengths in `net` are in coalescent units
 (number of generations / haploid effective population size), and that
@@ -67,27 +78,28 @@ equilibrium within-species variance.
 """
 function gaussiancoalescent_covariancematrix(
     net::HybridNetwork,
-    v0::Real,
-    σ2::Real;
+    # v0::Real, σ2::Real,
+    lambda::Real;
     checkedges::Bool=true,
     preorder::Bool=true,
 )
     MV = gaussiancoalescent_covariancematrix_init(net, checkedges, preorder)
     # σ2eq = σ2_pergen * Ne # equilibrium within-species variance
-    return gaussiancoalescent_covariancematrix!(MV, net, v0, σ2)
+    return gaussiancoalescent_covariancematrix!(MV, net, lambda) # v0, σ2
 end
 function gaussiancoalescent_covariancematrix!(
     MV::Array,
     net::HybridNetwork, # nodes::Vector{Node},
-    v0::Real,
-    σ2::Real,
+    # v0::Real, σ2::Real,
+    lambda::Real
 )
     fill!(MV[1], 0); fill!(MV[2], 0)
     PN.traversal_preorder!(net.vec_node, MV,
         updateroot_gaussiancoalmatrix!,
         updatetree_gaussiancoalmatrix!,
         updatehybrid_gaussiancoalmatrix!,
-        σ2, v0)
+        # σ2, v0
+        lambda)
     M = MatrixTopologicalOrder(MV[1], net, :b) # nodes in both columns & rows
     # below: transform V from a vector to a 1-column matrix, but shared memory
     V = MatrixTopologicalOrder(reshape(MV[2], (length(net.node),1)), net, :r)
@@ -100,8 +112,8 @@ function init_gaussiancoalmatrix(nodes::Vector{Node})
     V = Vector{Float64}(undef, n)   # expected within-species Variances
     return([M,V])
 end
-function updateroot_gaussiancoalmatrix!(MV::Vector, i::Int, _, v0)
-    MV[2][i] = v0
+function updateroot_gaussiancoalmatrix!(MV::Vector, i::Int, lambda) # _, v0
+    MV[2][i] = lambda
     return true
 end
 
@@ -114,7 +126,7 @@ function updatetree_gaussiancoalmatrix!(
     i::Int,
     parentind::Int,
     edge::Edge,
-    σ2, # per coalescent unit: assumes Ne=1 and edge lengths in coalescent units
+    # σ2, # per coalescent unit: assumes Ne=1 and edge lengths in coalescent units
     args...
 )
     M, V = MV
@@ -125,8 +137,10 @@ function updatetree_gaussiancoalmatrix!(
     u = edge.length
     p2 = coal_noevent(u)
     p1 = 1-p2
-    M[i,i] = σ2 * coal_sharedtime(u) + M[parentind,parentind] + V[parentind] * p1
-    V[i] = V[parentind] * p2  +  σ2 * p1
+    M[i,i] = coal_sharedtime(u) + M[parentind,parentind] + V[parentind] * p1
+    # σ2 * coal_sharedtime(u) + M[parentind,parentind] + V[parentind] * p1
+    V[i] = V[parentind] * p2  +  p1
+    # V[parentind] * p2  +  σ2 * p1
     return true
 end
 function updatehybrid_gaussiancoalmatrix!(
@@ -134,7 +148,7 @@ function updatehybrid_gaussiancoalmatrix!(
     i::Int,
     parindx::AbstractVector{Int},
     paredge::AbstractVector{Edge},
-    σ2,
+    # σ2,
     args...
 )
     M, V = MV
@@ -151,11 +165,13 @@ function updatehybrid_gaussiancoalmatrix!(
         p1γ = p1e.gamma
         q1 = 1-coal_noevent(p1u)
         r1 = coal_sharedtime(p1u)
-        M[i,i] +=  p1γ^2 * (σ2 * r1 + M[p1i,p1i] + V[p1i] * q1)
+        M[i,i] +=  p1γ^2 * (     r1 + M[p1i,p1i] + V[p1i] * q1)
+                 # p1γ^2 * (σ2 * r1 + M[p1i,p1i] + V[p1i] * q1)
         for k2 in (k1+1):length(paredge)
             M[i,i] += 2 * p1γ * paredge[k2].gamma * M[p1i,parindx[k2]]
         end
-        V[i] += p1γ * (σ2 * p1u + M[p1i,p1i] + V[p1i])
+        V[i] += p1γ * (     p1u + M[p1i,p1i] + V[p1i])
+        #       p1γ * (σ2 * p1u + M[p1i,p1i] + V[p1i])
     end
     V[i] -= M[i,i]
     return true
