@@ -14,19 +14,22 @@ function phylolm(
     xargs...
 )
     MV = gaussiancoalescent_covariancematrix_init(net, true, true)
-    if gc.Ne != 1
+    Ne = gc.Ne
+    if Ne != 1
         net = deepcopy(net)
         for e in net.edge  e.length /= Ne; end
     end
-    v0spec = paramspec(paramlist, :v0, lower=0.0)
-    !v0spec.fixed ||
-        error("for now, the Gaussian-Coalescent model cannot fix v0")
-    λspec = paramspec(paramlist, :lambda, lower=0.0)
-    # fixit: synchronize σ2eqm, v0spec and λspec later, when several are used
-    phylolm_gcoal_lambda(X,Y,net,reml, MV,λspec,v0spec,
+    λspec  = paramspec(paramlist, :lambda, lower=0.0)
+    v0spec = paramspec(paramlist, :v0, lower=0.0, fixed=false)
+    !v0spec.fixed || !λspec.fixed ||
+        error("please estimate either λ or v0, for the Gaussian-Coalescent")
+    res = phylolm_gcoal_lambda(X,Y,net,reml, MV,λspec,v0spec,
             nonmissing, ind,
-            ftolRel, xtolRel, ftolAbs, xtolAbs,
-            fix_v0)
+            ftolRel, xtolRel, ftolAbs, xtolAbs)
+    if Ne != 1
+        netNe!(res.evomodel, Ne)
+    end
+    return res
 end
 
 function phylolm_gcoal_lambda(
@@ -36,7 +39,7 @@ function phylolm_gcoal_lambda(
     reml::Bool,
     MV::Array,
     λspec::ParamSpec,
-    v0spec::Float64,
+    v0spec::ParamSpec, # fixit: not used for now. implement method to fix it
     nonmissing::BitArray{1},
     ind::Vector{Int},
     ftolRel::AbstractFloat,
@@ -44,54 +47,53 @@ function phylolm_gcoal_lambda(
     ftolAbs::AbstractFloat,
     xtolAbs::AbstractFloat,
 )
+    reml && error("ML implemented only so far. Use reml=false")
+    (v0spec.fixed && !λspec.fixed) &&
+        error("optimization of λ under a fixed v0 has yet to be implemented")
     M, V = gaussiancoalescent_covariancematrix!(MV, net, getvalue(λspec))
     ind_nm = ind[nonmissing] # same length as Y
-    Vind = M[:tips][ind_nm,ind_nm]
-    @show Vind
-    Vind += Diagonal(V[:tips][ind_nm,1])
-    @show Vind
-    if λspec.fixed
+    Vλ = M[:tips][ind_nm,ind_nm] + Diagonal(V[:tips][ind_nm,1])
+    Ndof = length(ind_nm) # fixit: adjust for reml
+    if λspec.fixed # for (each) fixed λ, optimize σ2 = λ*v0 analytically
         λ = getvalue(λspec)
-        @warn "fixed lambda=$λ for now"
-        linmod, Vy, RL, logdetVy = pgls(X,Y,Vind)
-        res = PhyloNetworkLinearModel(linmod, M, Vy, RL, Y, X, logdetVy,
-            reml, ind, nonmissing, GaussianCoalescent(v0, σ2eq))
-        return res
-
-        opt = NLopt.Opt(:LN_BOBYQA, 1)
-        NLopt.ftol_rel!(opt, ftolRel) # relative, objective
-        NLopt.ftol_abs!(opt, ftolAbs) # absolute, objective
-        NLopt.xtol_rel!(opt, xtolRel) # relative, parameter
-        NLopt.xtol_abs!(opt, xtolAbs) # absolute, parameter
-        NLopt.maxeval!(opt, 1000) # max number of iterations
-        NLopt.lower_bounds!(opt, 1e-100) # constraint λ≥0 but avoid <0 trials
+    else
+        optsum = OptSummary([getvalue(λspec)],
+          [1e-100], # constraint λ≥0 but avoid <0 trials
+          :LN_BOBYQA; initial_step=[0.01],
+          ftol_rel=ftolRel, ftol_abs=ftolAbs, xtol_rel=xtolRel, xtol_abs=[xtolAbs])
+        optsum.maxfeval = 1000 # max number of iterations
         # no upper bound theoretically
+        opt = Opt(optsum)
         function fun(x::Vector{Float64}, g::Vector{Float64})
-            x = convert(AbstractFloat, x[1])
-            res = loglik_gcoal_lambda(x, X,Y,V, reml, gammas, times; nonmissing=nonmissing, ind=ind)
-            # count =+ 1
-            #println("f_$count: $(round(res, digits=5)), x: $(x)")
+            λ = x[1]
+            M, V = gaussiancoalescent_covariancematrix!(MV, net, λ)
+            Vλ .= M[:tips][ind_nm,ind_nm] .+ Diagonal(V[:tips][ind_nm,1])
+            res = loglik_gcoal_lambda(X,Y,Vλ,reml)
             return res
         end
         NLopt.min_objective!(opt, fun)
-        fmin, xmin, ret = NLopt.optimize(opt, [startingValue])
-        # Best value dans result
-        res_lam = xmin[1]
-
+        fmin, xmin, ret = NLopt.optimize(opt, optsum.initial)
+        λ = xmin[1]
     end
-    error("optimization of v0 has yet to be implemented")
+    M, V = gaussiancoalescent_covariancematrix!(MV, net, λ)
+    Vλ .= M[:tips][ind_nm,ind_nm] .+ Diagonal(V[:tips][ind_nm,1])
+    linmod, Vy, RL, logdetVy = pgls(X,Y,Vλ)
+    σ2eq = deviance(linmod) / Ndof
+    v0 = λ * σ2eq
+    res = PhyloNetworkLinearModel(linmod, M, Vy, RL, Y, X, logdetVy,
+        reml, ind, nonmissing, GaussianCoalescent(v0,σ2eq,1.0,λ))
+    return res
 end
 
 function loglik_gcoal_lambda(
-    lam::AbstractFloat,
     X::Matrix,
     Y::Vector,
-    Vind::Matrix,
+    Vλ::Matrix,
     reml::Bool;
 )
-    reml && error("ML implemented only so far. Use reml=false")
-    linmod, Vy, RL, logdetVy = pgls(X,Y,Vind)
+    linmod, Vy, RL, logdetVy = pgls(X,Y,Vλ)
     n = nobs(linmod)
+    # fixit: implement reml
     # n = (reml ? dof_residual(linmod) : nobs(linmod))
     res = n*log(deviance(linmod)) + logdetVy
     # if reml res += logdet(linmod.pp.chol); end

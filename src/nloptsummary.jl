@@ -33,12 +33,16 @@ mutable struct OptSummary{T<:AbstractFloat}
     "return value, as a `Symbol`"
     returnvalue::Symbol
 end
-function OptSummary(initial::Vector{T}, lowerbd::Vector{T}, algorithm::Symbol;
-        ftol_rel::T = zero(T),
-        ftol_abs::T = zero(T),
-        xtol_rel::T = zero(T),
-        xtol_abs::Vector{T} = fill(zero, length(initial)),
-        initial_step::Vector{T} = T[]) where {T<:AbstractFloat}
+function OptSummary(
+    initial::Vector{T},
+    lowerbd::Vector{T},
+    algorithm::Symbol;
+    ftol_rel::T = zero(T),
+    ftol_abs::T = zero(T),
+    xtol_rel::T = zero(T),
+    xtol_abs::Vector{T} = fill(zero, length(initial)),
+    initial_step::Vector{T} = T[]
+) where {T<:AbstractFloat}
     OptSummary(initial, lowerbd,
         ftol_rel, ftol_abs, xtol_rel, xtol_abs,
         initial_step,

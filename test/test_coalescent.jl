@@ -5,7 +5,7 @@ v0=0.1
 # 1-taxon network with 1 hybrid (2 parallel edges)
 ell = 2.0; # in coalescent units
 net = readnewick("((t:0.0)#H1:$ell::0.6,#H1:$ell)r;")
-cM, eV = PhyloTraits.gaussiancoalescent_covariancematrix(net,v0,1)
+cM, eV = PhyloTraits.gaussiancoalescent_covariancematrix(net,v0/1) # λ = v0/σ2eq
 #= theoretically:
 v = ell + v0 = 2.1 # variance at the tip t
 q = 1-exp(-ell) = 0.8646647167633873 # prob(coalescence) along each hybrid edge
@@ -20,7 +20,7 @@ v1 = 2.1 - c # expected within-species variance = total variance - cov(2 ind.)
 # 5 taxa, level-2, subnet on A,B,C is a tree, d1 below 1 hybrid, d2 below 2
 net = readnewick("(((C:2,#H1:.1):0.3,(((d1:1,#H2:.1):.8)#H1:.7::.6,(d2:.5)#H2:1::.7):.4):.3,(B:1,A:.5):2);");
 # plot(net, showedgelength=true, showgamma=true);
-cM, eV = PhyloTraits.gaussiancoalescent_covariancematrix(net,v0,1)
+cM, eV = PhyloTraits.gaussiancoalescent_covariancematrix(net,v0/1)
 @test tiplabels(eV) == tiplabels(cM) == ["C","d1","d2","B","A"]
 @test eV[:tips] + diag(cM[:tips]) ≈ [2.7,3.02,2.396,3.1,2.6]
 v11=1.7668462203929007; v12=0.11761402816197718; v13=0.08199968747807541
@@ -34,10 +34,24 @@ end
 
 nwk = "(A:2.5,((B:1,#H1:0.5::0.1):1,(C:1,(D:0.5)#H1:0.5::0.9):1):0.5);"
 net = readnewick(nwk)
-Y = [8.60,10.56,11.3,9.96,11.24,]
+Y = [8.60,10.56,11.9,9.96,11.24,]
 X = ones(5, 1)
 df = DataFrame(trait = Y, tipnames = ["B","C","A","D","A",])
-f0 = phylolm(@formula(trait ~ 1), df, net; model="gaussiancoalescent",
-        reml=false, Dict(:lambda => (start=0.1, fixed=true)))
+f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
+        paramlist=Dict(:lambda => (start=0.1, fixed=true)))
+@test f0.evomodel.Ne == 1
+@test f0.evomodel.lambda == 0.1
+@test f0.evomodel.sigma2 ≈ 0.4376286067942036
+@test f0.evomodel.v0 ≈ 0.04376286067942036
+@test loglikelihood(f0) ≈ -7.104286363142209
+# fixit: get aic using only 1 df for parameters, bc fixed lambda
+f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
+        paramlist=Dict(:lambda => (start=0.1,)))
+@test f0.evomodel.Ne == 1
+@test f0.evomodel.lambda == 13.525028685269309
+@test f0.evomodel.sigma2 ≈ 0.08974694768102379
+@test f0.evomodel.v0 ≈ 1.2138300418012107
+@test loglikelihood(f0) ≈ -6.907945500519682
+@test aic(f0) ≈ 21.815891001039365
 
 end

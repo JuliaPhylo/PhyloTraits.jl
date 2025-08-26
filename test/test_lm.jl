@@ -94,7 +94,7 @@ tmp = (@test_logs (:warn, r"^You fitted the data against a custom matrix") mu_ph
 
 ## fixed values parameters
 fitlam = phylolm(@formula(trait ~ 1), dfr, net, model="lambda",
-    Dict(:lambda => (fixed=true, start=1.0)), reml=false)
+    paramlist=Dict(:lambda => (fixed=true, start=1.0)), reml=false)
 @test_logs show(devnull, fitlam)
 
 @test lambda_estim(fitlam) ≈ 1.0
@@ -122,7 +122,7 @@ fitlam = phylolm(@formula(trait ~ 1), dfr, net, model="lambda",
 @test hasintercept(fitlam)
 
 fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalinghybrid",
-    Dict(:lambda => (fixed=true, start=1.0)), reml=false)
+    paramlist=Dict(:lambda => (fixed=true, start=1.0)), reml=false)
 @test loglikelihood(fitlam) ≈ loglikelihood(fitSH)
 @test aic(fitlam) ≈ aic(fitSH)
 
@@ -180,7 +180,7 @@ fitShift = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net; reml=false)
 fitlam = (@test_logs (:warn,
     r"^The network is not time consistent") phylolm(
         @formula(trait ~ shift_8 + shift_17), dfr, net, model="lambda",
-            Dict(:lambda => (fixed=true, start=1.0)),  reml=false)
+            paramlist=Dict(:lambda => (fixed=true, start=1.0)),  reml=false)
 )
 @test lambda_estim(fitlam) ≈ 1.0
 @test coef(fitlam) ≈ coef(fitShift)
@@ -206,8 +206,8 @@ fitlam = (@test_logs (:warn,
 @test mu_phylo(fitlam)  ≈ mu_phylo(fitShift)
 @test hasintercept(fitlam)
 
-fitSH = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net,
-    model="scalinghybrid", Dict(:lambda => (fixed=true, start=1.0)), reml=false)
+fitSH = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net; reml=false,
+    model="scalinghybrid", paramlist=Dict(:lambda => (fixed=true, start=1.0)))
 @test loglikelihood(fitlam) ≈ loglikelihood(fitSH)
 @test aic(fitlam) ≈ aic(fitSH)
 
@@ -481,7 +481,7 @@ fitnabis = phylolm(@formula(trait ~ pred), dfr, net)
 fitlam = (@test_logs (:warn,
     r"^The network is not time consistent") phylolm(
         @formula(trait ~ pred), dfr, net, model="lambda",
-        Dict(:lambda => (fixed=true, start=1.0)))
+        paramlist=Dict(:lambda => (fixed=true, start=1.0)))
 )
 @test lambda_estim(fitlam) ≈ 1.0
 @test coef(fitlam) ≈ coef(fitnabis)
@@ -507,7 +507,7 @@ fitlam = (@test_logs (:warn,
 @test mu_phylo(fitlam) ≈ mu_phylo(fitnabis)
 
 fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid",
-    Dict(:lambda => (fixed=true, start=1.0)))
+    paramlist=Dict(:lambda => (fixed=true, start=1.0)))
 @test loglikelihood(fitlam) ≈ loglikelihood(fitSH)
 @test aic(fitlam) ≈ aic(fitSH)
 
@@ -639,9 +639,9 @@ phynetlm = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm
 lmtree = phylolm(@formula(trait ~ pred), dfr, tree, model = "BM")
 lmnet = phylolm(@formula(trait ~ pred), dfr, net, model = "BM")
 lmSHzero = phylolm(@formula(trait ~ pred), dfr, net, model = "scalinghybrid",
-    Dict(:lambda => (fixed=true, start=0.0)))
+    paramlist=Dict(:lambda => (fixed=true, start=0.0)))
 lmSHone = phylolm(@formula(trait ~ pred), dfr, net, model = "scalinghybrid",
-    Dict(:lambda => (fixed=true, start=1.0)))
+    paramlist=Dict(:lambda => (fixed=true, start=1.0)))
 
 @test loglikelihood(lmtree) ≈ loglikelihood(lmSHzero)
 @test loglikelihood(lmnet) ≈ loglikelihood(lmSHone)

@@ -25,7 +25,7 @@ species phylogeny, and interpreting σ² as a variance rate per coalescent unit.
 
 Ne and σ² are assumed constant across populations.
 """
-struct GaussianCoalescent <: ContinuousTraitEM
+mutable struct GaussianCoalescent <: ContinuousTraitEM
     "variance at the root population"
     v0::Float64
     "variance rate σ² per generation for the polygenic trait (rate σ²/L for each of L loci)"
@@ -36,14 +36,46 @@ struct GaussianCoalescent <: ContinuousTraitEM
     lambda::Float64
 end
 GaussianCoalescent(v0,s2,Ne=1.0) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*s2))
-
+ # below: no param specification for Ne, using Ne=1
 function GaussianCoalescent(paramlist::Dict)
     v0 = getvalue(paramspec(paramlist, :v0)) # default: 1
     λ  = getvalue(paramspec(paramlist, :lambda))
     s2 = v0 / λ
-    return GaussianCoalescent(v0,s2,λ)
+    return GaussianCoalescent(v0,s2,1.0,λ)
 end
 evomodelname(::GaussianCoalescent) = "Gaussian with coalescent"
+function Base.show(io::IO, m::GaussianCoalescent)
+    println(io, evomodelname(m), ":\n", showparams(m))
+end
+function showparams(m::GaussianCoalescent)
+    s2eq = m.sigma2 * m.Ne
+    res = "v0: " * @sprintf("%.6g", m.v0) *
+        "\nσ2: " * @sprintf("%.6g", m.sigma2) *
+        "\nNe: " * @sprintf("%.6g", m.Ne) *
+        "\nσ2 equilibrium (within pop): " * @sprintf("%.6g",s2eq) *
+        "\nλ: " * @sprintf("%.6g", m.lambda)
+    return res
+end
+
+"""
+For a GaussianCoalescent model, assign new λ value, keeping v0 fixed and
+adjusting σ2 = v0/λ (using the new λ)
+"""
+function lambda!(m::GaussianCoalescent, λ)
+    m.sigma2 = m.v0 / λ
+    m.lambda = λ
+    return m
+end
+"""
+For a GaussianCoalescent model, assign new Ne value, keeping v0 fixed
+and adjusting σ2 = old σ2 * old Ne / new Ne  to maintain the same
+equilibrium within-population variance and same λ.
+"""
+function setNe!(m::GaussianCoalescent, Ne)
+    m.sigma2 .*= m.Ne / Ne
+    m.Ne = Ne
+    return m
+end
 
 # check edge parameters, preorder the network, grabs memory for M & V
 function gaussiancoalescent_covariancematrix_init(

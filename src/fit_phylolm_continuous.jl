@@ -7,10 +7,11 @@ with or without within-species variation:
 - phylolm(X,Y,net, model::ContinuousTraitEM; kwargs...)
   calls a function with or without within-species variation.
 
-1. no measurement error in species means:
+1. no measurement error in tip values (=species means most often):
    - phylolm(model, X,Y,net, reml; kwargs...) dispatches based on model type
    - phylolm_lambda(X,Y,V,reml, gammas,times; ...)
    - phylolm_scalinghybrid(X,Y,net,reml, gammas; ...)
+   - phylolm_gcoal_lambda(X,Y,net,reml, MV,...)
 
    helpers:
    - pgls(X,Y,V; ...) for vanilla BM, but called by others with fixed V_theta
@@ -43,6 +44,7 @@ function phylolm(
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
     paramlist::Dict=Dict{Symbol,Any}(),
+    withinspecies_var::Bool=false,
     counts::Union{Nothing, Vector}=nothing,
     ySD::Union{Nothing, Vector}=nothing,
     suppresswarnings::Bool=false,
@@ -109,7 +111,7 @@ function phylolm(
     phylolm_lambda(X,Y,V,reml, gammas, times;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            lamspec)
+            lambdaspec=lamspec)
 end
 
 
@@ -186,7 +188,7 @@ function phylolm(
     phylolm_scalinghybrid(X, Y, net, reml, gammas;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            lamspec)
+            lambdaspec=lamspec)
 end
 
 ###############################################################################
@@ -314,8 +316,11 @@ end
 ###############################################################################
 ## Fit scaling hybrid
 
-function matrix_scalinghybrid(net::HybridNetwork, lam::AbstractFloat,
-                              gammas::Vector)
+function matrix_scalinghybrid(
+    net::HybridNetwork,
+    lam::AbstractFloat,
+    gammas::Vector
+)
     setGammas!(net, 1.0 .- lam .* (1. .- gammas))
     V = sharedpathmatrix(net)
     setGammas!(net, gammas)
@@ -439,9 +444,9 @@ variance components if `model="BM"` and `withinspecies_var=true`.
   `upper` and `lower` (for bounds if the parameter is optimized),
   and `fixed` (true or false to fix or optimize the parameter).
   For models "lambda" or "scalinghybrid" that use a λ parameter,
-  the default corresponds to: `Dict(:lambda => (start=0.5, fixed=false))`.
+  the default corresponds to: `Dict(:lambda => (start=0.5,))`.
   To fix the λ parameter to λ=0.8, say, use:
-  `Dict(:lambda => (start=0.8, fixed=false))`.
+  `Dict(:lambda => (start=0.8, fixed=true))`.
 
 * `withinspecies_var=false`: If `true`, fits a within-species variation model.
   Currently only implemented for `model`="BM".
@@ -581,7 +586,7 @@ julia> abs(round(r2(fitBM), digits=10)) # absolute value for jldoctest convenien
 julia> abs(round(adjr2(fitBM), digits=10))
 0.0
 
-julia> round.(vcov(fitBM), digits=6) # variance-covariance of estimated parameters: squared standard error
+julia> round.(vcov(fitBM), digits=6) # (co)variances of estimated parameters: squared standard error
 1×1 Matrix{Float64}:
  0.109314
 ```
@@ -844,7 +849,7 @@ function phylolm(
 
     res = phylolm(mm.m, Y, net, modelobj; reml=reml, nonmissing=nonmissing, ind=ind,
                   ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-                  paramlist,
+                  paramlist=paramlist,
                   withinspecies_var=withinspecies_var, counts=counts, ySD=ySD,
                   suppresswarnings=suppresswarnings)
     res.formula = f

@@ -19,15 +19,15 @@ function ParamSpec(
     if !ismissing(l) && !ismissing(u) && l==u
         f = true
     end
-    if ismissing(l) l = d.l; end
-    if ismissing(u) u = d.u; end
+    if ismissing(l) l = d.lower; end
+    if ismissing(u) u = d.upper; end
     l ≤ u || error("lower bound $l should be ≤ upper bound $u")
     if ismissing(s)
-        s = max(d.s, l) # start = lower if 'start' not provided but 'lower' is
+        s = max(d.start, l) # start = lower if 'start' not provided but 'lower' is
     end
     (l ≤ s ≤ u) ||
         error("starting value $s needs to be in between bounds [$l,$u]")
-    if ismissing(f) f = d.f; end
+    if ismissing(f) f = d.fixed; end
     return ParamSpec{T}(s,l,u,f)
 end
 

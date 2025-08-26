@@ -686,6 +686,9 @@ function StatsAPI.dof(m::PhyloNetworkLinearModel)
     if any(typeof(m.evomodel) .== [PagelLambda, ScalingHybrid])
         res += 1 # lambda is one parameter
     end
+    if typeof(m.evomodel) == GaussianCoalescent
+        res += 2 # v0 and λ
+    end
     if !isnothing(m.model_within)
         res += 1 # within-species variance
     end
@@ -948,6 +951,9 @@ function paramstable(m::PhyloNetworkLinearModel)
     if any(typeof(m.evomodel) .== [PagelLambda, ScalingHybrid])
         Lamb = lambda_estim(m)
         res = res*"\nLambda: " * @sprintf("%.6g", Lamb)
+    end
+    if typeof(m.evomodel) == GaussianCoalescent
+        res *= "\n" * showparams(m.evomodel)
     end
     mw = m.model_within
     if !isnothing(mw)
