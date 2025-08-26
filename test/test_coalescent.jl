@@ -40,7 +40,7 @@ df = DataFrame(trait = Y, tipnames = ["B","C","A","D","A",])
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=true, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0.1, fixed=true)))
 @test f0.evomodel.Ne == 1
-@test f0.evomodel.lambda == 0.1
+@test labmda_estim(f0) == 0.1
 @test f0.evomodel.sigma2 ≈ 0.5470357584927545
 @test f0.evomodel.v0 ≈ 0.05470357584927545
 @test loglikelihood(f0) ≈ -6.704652757076957
