@@ -40,8 +40,8 @@ df = DataFrame(trait = Y, tipnames = ["B","C","A","D","A",])
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=true, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0.1, fixed=true)))
 @test f0.evomodel.Ne == 1
-@test labmda_estim(f0) == 0.1
-@test f0.evomodel.sigma2 ≈ 0.5470357584927545
+@test lambda_estim(f0) == 0.1
+@test sigma2_phylo(f0) ≈ 0.5470357584927545
 @test f0.evomodel.v0 ≈ 0.05470357584927545
 @test loglikelihood(f0) ≈ -6.704652757076957
 # fixit: get aic using only 1 df for parameters, bc fixed lambda
@@ -49,8 +49,8 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=true, model="gaussiancoalescent",
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0.1,)))
 @test f0.evomodel.Ne == 1
-@test f0.evomodel.lambda == 13.525028685269309
-@test f0.evomodel.sigma2 ≈ 0.08974694768102379
+@test lambda_estim(f0) == 13.525028685269309
+@test sigma2_phylo(f0) ≈ 0.08974694768102379
 @test f0.evomodel.v0 ≈ 1.2138300418012107
 @test loglikelihood(f0) ≈ -6.907945500519682
 @test aic(f0) ≈ 19.815891001039365
@@ -58,8 +58,8 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0, fixed=true)))
 @test f0.evomodel.Ne == 1
-@test f0.evomodel.lambda == 0.0
-@test f0.evomodel.sigma2 ≈ 0.4539365904733537
+@test lambda_estim(f0) == 0.0
+@test sigma2_phylo(f0) ≈ 0.4539365904733537
 @test f0.evomodel.v0 == 0.0
 @test loglikelihood(f0) ≈ -7.116223253873285
 
