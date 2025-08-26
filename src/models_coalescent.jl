@@ -38,9 +38,14 @@ end
 GaussianCoalescent(v0,s2,Ne=1.0) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*s2))
  # below: no param specification for Ne, using Ne=1
 function GaussianCoalescent(paramlist::Dict)
-    v0 = getvalue(paramspec(paramlist, :v0)) # default: 1
     λ  = getvalue(paramspec(paramlist, :lambda))
-    s2 = v0 / λ
+    v0 = getvalue(paramspec(paramlist, :v0)) # default v0=1
+    if λ == 0 # then ignore v0
+        s2 = 1.0 # default σ2eq = 1
+        v0 = 0.0
+    else
+        s2 = v0 / λ
+    end
     return GaussianCoalescent(v0,s2,1.0,λ)
 end
 evomodelname(::GaussianCoalescent) = "Gaussian with coalescent"
@@ -58,11 +63,11 @@ function showparams(m::GaussianCoalescent)
 end
 
 """
-For a GaussianCoalescent model, assign new λ value, keeping v0 fixed and
-adjusting σ2 = v0/λ (using the new λ)
+For a GaussianCoalescent model, assign new λ value, keeping σ2 fixed and
+adjusting v0 = new λ * (Ne σ2)
 """
 function lambda!(m::GaussianCoalescent, λ)
-    m.sigma2 = m.v0 / λ
+    m.v0 = λ * m.sigma2 * m.Ne
     m.lambda = λ
     return m
 end

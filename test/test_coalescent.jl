@@ -54,4 +54,12 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
 @test loglikelihood(f0) ≈ -6.907945500519682
 @test aic(f0) ≈ 21.815891001039365
 
+f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
+        paramlist=Dict(:lambda => (start=0, fixed=true)))
+@test f0.evomodel.Ne == 1
+@test f0.evomodel.lambda == 0.0
+@test f0.evomodel.sigma2 ≈ 0.4539365904733537
+@test f0.evomodel.v0 == 0.0
+@test loglikelihood(f0) ≈ -7.116223253873285
+
 end
