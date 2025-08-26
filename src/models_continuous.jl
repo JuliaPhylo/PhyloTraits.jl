@@ -926,7 +926,7 @@ end
 Value assigned to the lambda parameter, if appropriate.
 """
 lambda(m::PhyloNetworkLinearModel) = lambda(m.evomodel)
-lambda(m::Union{BM,PagelLambda,ScalingHybrid,GaussianCoalescent}) = m.lambda
+lambda(m::ContinuousTraitEM) = m.lambda
 
 """
     lambda!(m::PhyloNetworkLinearModel, newlambda)
