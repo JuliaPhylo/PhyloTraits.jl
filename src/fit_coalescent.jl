@@ -47,13 +47,11 @@ function phylolm_gcoal_lambda(
     ftolAbs::AbstractFloat,
     xtolAbs::AbstractFloat,
 )
-    reml && error("ML implemented only so far. Use reml=false")
     (v0spec.fixed && !λspec.fixed) &&
         error("optimization of λ under a fixed v0 has yet to be implemented")
     M, V = gaussiancoalescent_covariancematrix!(MV, net, getvalue(λspec))
     ind_nm = ind[nonmissing] # same length as Y
     Vλ = M[:tips][ind_nm,ind_nm] + Diagonal(V[:tips][ind_nm,1])
-    Ndof = length(ind_nm) # fixit: adjust for reml
     if λspec.fixed # for (each) fixed λ, optimize σ2 = λ*v0 analytically
         λ = getvalue(λspec)
     else
@@ -78,6 +76,7 @@ function phylolm_gcoal_lambda(
     M, V = gaussiancoalescent_covariancematrix!(MV, net, λ)
     Vλ .= M[:tips][ind_nm,ind_nm] .+ Diagonal(V[:tips][ind_nm,1])
     linmod, Vy, RL, logdetVy = pgls(X,Y,Vλ)
+    Ndof = (reml ? dof_residual(linmod) : nobs(linmod))
     σ2eq = deviance(linmod) / Ndof
     v0 = λ * σ2eq
     res = PhyloNetworkLinearModel(linmod, M, Vy, RL, Y, X, logdetVy,
@@ -92,10 +91,8 @@ function loglik_gcoal_lambda(
     reml::Bool;
 )
     linmod, Vy, RL, logdetVy = pgls(X,Y,Vλ)
-    n = nobs(linmod)
-    # fixit: implement reml
-    # n = (reml ? dof_residual(linmod) : nobs(linmod))
+    n = (reml ? dof_residual(linmod) : nobs(linmod))
     res = n*log(deviance(linmod)) + logdetVy
-    # if reml res += logdet(linmod.pp.chol); end
+    if reml res += logdet(linmod.pp.chol); end
     return res
 end

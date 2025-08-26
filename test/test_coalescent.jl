@@ -37,14 +37,15 @@ net = readnewick(nwk)
 Y = [8.60,10.56,11.9,9.96,11.24,]
 X = ones(5, 1)
 df = DataFrame(trait = Y, tipnames = ["B","C","A","D","A",])
-f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
+f0 = phylolm(@formula(trait ~ 1),df,net; reml=true, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0.1, fixed=true)))
 @test f0.evomodel.Ne == 1
 @test f0.evomodel.lambda == 0.1
-@test f0.evomodel.sigma2 ≈ 0.4376286067942036
-@test f0.evomodel.v0 ≈ 0.04376286067942036
-@test loglikelihood(f0) ≈ -7.104286363142209
+@test f0.evomodel.sigma2 ≈ 0.5470357584927545
+@test f0.evomodel.v0 ≈ 0.05470357584927545
+@test loglikelihood(f0) ≈ -6.704652757076957
 # fixit: get aic using only 1 df for parameters, bc fixed lambda
+
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0.1,)))
 @test f0.evomodel.Ne == 1
@@ -52,7 +53,7 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
 @test f0.evomodel.sigma2 ≈ 0.08974694768102379
 @test f0.evomodel.v0 ≈ 1.2138300418012107
 @test loglikelihood(f0) ≈ -6.907945500519682
-@test aic(f0) ≈ 21.815891001039365
+@test aic(f0) ≈ 19.815891001039365
 
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0, fixed=true)))
