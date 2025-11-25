@@ -687,7 +687,7 @@ function StatsAPI.dof(m::PhyloNetworkLinearModel)
         res += 1 # lambda is one parameter
     end
     if typeof(m.evomodel) == GaussianCoalescent
-        res += 1 # v0, λ, σ2 are linked, and σ2 already counted
+        res += dof(m.evomodel)-1 # -1 bc σ2 already counted. v0,σ2,Ne,λ are linked.
     end
     if !isnothing(m.model_within)
         res += 1 # within-species variance

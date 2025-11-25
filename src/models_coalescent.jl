@@ -34,19 +34,25 @@ mutable struct GaussianCoalescent <: ContinuousTraitEM
     Ne::Float64
     "λ = v0/(Ne σ²). This is 1 if the root population is at equilibrium"
     lambda::Float64
+    "free number of parameters, to be optimized. Since λ = v0/(Ne σ²), this is at most 3."
+    dof::Int
 end
-GaussianCoalescent(v0,s2,Ne=1.0) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*s2))
+GaussianCoalescent(v0,s2,Ne=1.0) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*s2), 2) # dof=2 for v0,s2
 function GaussianCoalescent(paramlist::Dict)
-    λ  = getvalue(paramspec(paramlist, :lambda))
-    v0 = getvalue(paramspec(paramlist, :v0)) # default v0=1
-    Ne = getvalue(paramspec(paramlist, :Ne)) # default 1.0
+    λ_s  = paramspec(paramlist, :lambda)
+    v0_s = paramspec(paramlist, :v0) # default v0=1
+    Ne_s = paramspec(paramlist, :Ne) # default 1.0
+    λ  = getvalue(λ_s)
+    v0 = getvalue(v0_s)
+    Ne = getvalue(Ne_s)
     if λ == 0 # then ignore v0
         s2 = 1.0 # default σ2eq = 1
         v0 = 0.0
     else
         s2 = v0 / λ
     end
-    return GaussianCoalescent(v0,s2,Ne,λ)
+    d = !λ_s.fixed + !v0_s.fixed + !Ne_s.fixed
+    return GaussianCoalescent(v0,s2,Ne,λ, d)
 end
 evomodelname(::GaussianCoalescent) = "Gaussian with coalescent"
 function Base.show(io::IO, m::GaussianCoalescent)
@@ -61,6 +67,8 @@ function showparams(m::GaussianCoalescent)
         "\nλ: " * @sprintf("%.6g", m.lambda)
     return res
 end
+
+StatsAPI.dof(m::GaussianCoalescent) = m.dof
 
 """
 For a GaussianCoalescent model, assign new λ value, keeping σ2 fixed and

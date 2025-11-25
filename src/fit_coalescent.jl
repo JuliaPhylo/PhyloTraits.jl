@@ -23,6 +23,8 @@ function phylolm(
     v0spec = paramspec(paramlist, :v0, lower=0.0, fixed=false)
     !v0spec.fixed || !λspec.fixed ||
         error("please estimate either λ or v0, for the Gaussian-Coalescent")
+    Nespec = paramspec(paramlist, :Ne, lower=0.0, fixed=true)
+    Nespec.fixed || error("estimation of Ne is not implemented yet")
     res = phylolm_gcoal_lambda(X,Y,net,reml, MV,λspec,v0spec,
             nonmissing, ind,
             ftolRel, xtolRel, ftolAbs, xtolAbs)
@@ -53,9 +55,11 @@ function phylolm_gcoal_lambda(
     M, V = gaussiancoalescent_covariancematrix!(MV, net, getvalue(λspec))
     ind_nm = ind[nonmissing] # same length as Y
     Vλ = M[:tips][ind_nm,ind_nm] + Diagonal(V[:tips][ind_nm,1])
+    gc_dof = 1     # optimize σ2
     if λspec.fixed # for (each) fixed λ, optimize σ2 = λ*v0 analytically
         λ = getvalue(λspec)
     else
+        gc_dof += 1 # also optimize λ
         optsum = OptSummary([getvalue(λspec)],
           [1e-100], # constraint λ≥0 but avoid <0 trials
           :LN_BOBYQA; initial_step=[0.01],
@@ -81,7 +85,7 @@ function phylolm_gcoal_lambda(
     σ2eq = deviance(linmod) / Ndof
     v0 = λ * σ2eq
     res = PhyloNetworkLinearModel(linmod, M, Vy, RL, Y, X, logdetVy,
-        reml, ind, nonmissing, GaussianCoalescent(v0,σ2eq,1.0,λ))
+        reml, ind, nonmissing, GaussianCoalescent(v0,σ2eq,1.0,λ, gc_dof))
     return res
 end
 
