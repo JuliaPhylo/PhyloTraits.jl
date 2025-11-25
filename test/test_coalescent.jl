@@ -58,7 +58,8 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=true, model="gaussiancoalescent",
 @test sigma2_phylo(f0) ≈ 0.5470357584927545
 @test f0.evomodel.v0 ≈ 0.05470357584927545
 @test loglikelihood(f0) ≈ -6.704652757076957
-# fixit: get aic using only 1 df for parameters, bc fixed lambda
+@test dof(f0) == 2 # intercept, s2, but not lambda (fixed)
+@test aic(f0) ≈ 17.409305514153914
 
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0.1,)))
@@ -67,6 +68,7 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
 @test sigma2_phylo(f0) ≈ 0.08974694768102379
 @test f0.evomodel.v0 ≈ 1.2138300418012107
 @test loglikelihood(f0) ≈ -6.907945500519682
+@test dof(f0) == 3 # intercept, s2, lambda
 @test aic(f0) ≈ 19.815891001039365
 
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
@@ -76,10 +78,11 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
 @test sigma2_phylo(f0) ≈ 0.4539365904733537
 @test f0.evomodel.v0 == 0.0
 @test loglikelihood(f0) ≈ -7.116223253873285
+@test dof(f0) == 2
 
 for e in net.edge e.length *= 2; end
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=true, model="gaussiancoalescent",
-        paramlist=Dict(:lambda => (start=0.1, fixed=true), :Ne => (start=2, fixed=true)))
+        paramlist=Dict(:lambda => (start=0.1, fixed=true), :Ne => (start=2,)))
 tmp = """Model: Gaussian with coalescent
 
 Parameter Estimates, using REML:
@@ -92,5 +95,6 @@ Ne: 2
 """
 s = IOBuffer(); show(s, f0)
 @test occursin(tmp, String(take!(s)))
+@test dof(f0) == 2
 
 end
