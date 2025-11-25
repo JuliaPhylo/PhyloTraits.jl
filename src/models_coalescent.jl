@@ -6,14 +6,14 @@
 with variance v0 at the root population, and variance rate σ².
 The model assumes that X is controlled by a large number L of loci, each
 locus l having an infinitesimally small effect Yl on the trait,
-acting additively across loci: `X = (sum_l Y_l)/√L`.
-The normalization by √L is to simplify notations: the effect of locus l is
-`Y_l/√L`, and becomes infinitesimally small as L grows to infinity.
+acting additively across loci: `X = (sum_l Yl)/√L`.
+The normalization by √L is to simplify notations: the effect of locus `l` is
+`Yl/√L`, and becomes infinitesimally small as L grows to infinity.
 
-`v0` is the variance of each `Y_l`, and of `X` in the root population.
-Each `Y_l` evolves along each own gene tree, arising from the population
+`v0` is the variance of each `Yl`, and of `X` in the root population.
+Each `Yl` evolves along each own gene tree, arising from the population
 phylogeny according to the network multispecies coalescent process.
-Conditional on its gene tree, `Y_l` evolves according to a centered process
+Conditional on its gene tree, `Yl` evolves according to a centered process
 with increments of variance σ²t over t generations,
 such as a Brownian motion process, a compound Poisson process,
 or a variance-gamma process.
@@ -100,6 +100,12 @@ function gaussiancoalescent_covariancematrix_init(
 end
 
 """
+    gaussiancoalescent_covariancematrix(
+        net::HybridNetwork,
+        lambda::Real;
+        checkedges::Bool=true,
+        preorder::Bool=true)
+
 `[cM,eV]` of `MatrixTopologicalOrder` objects, where `cM` is the matrix of
 (co)variances of population means, and `eV` is the expected within-population
 variance, under the Gaussian model with coalescence, under:
@@ -107,11 +113,13 @@ variance, under the Gaussian model with coalescence, under:
 
 For a general value of `σ2`, all (co)variances simply need to be multiplied
 by `σ2`.
+λ=1 corresponds to the root population being at equilibrium (after evolving
+under this model for a long time, the within-population variance is ≈ σ2).
 
 **Warning**: assumes that edge lengths in `net` are in coalescent units
 (number of generations / haploid effective population size), and that
-`σ2` is the variance rate per coal unit, which is also the
-equilibrium within-species variance.
+σ2 is the variance rate per coalescent unit.
+σ2 is also the within-species variance at equilibrium.
 """
 function gaussiancoalescent_covariancematrix(
     net::HybridNetwork,

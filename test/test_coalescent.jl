@@ -49,7 +49,7 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=true, model="gaussiancoalescent",
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0.1,)))
 @test f0.evomodel.Ne == 1
-@test lambda_estim(f0) == 13.525028685269309
+@test lambda_estim(f0) ≈ 13.525028685269309
 @test sigma2_phylo(f0) ≈ 0.08974694768102379
 @test f0.evomodel.v0 ≈ 1.2138300418012107
 @test loglikelihood(f0) ≈ -6.907945500519682
