@@ -27,7 +27,8 @@ function phylolm(
             nonmissing, ind,
             ftolRel, xtolRel, ftolAbs, xtolAbs)
     if Ne != 1
-        netNe!(res.evomodel, Ne)
+        setNe!(res.evomodel, Ne)
+        # sigma2_phylo(res) is still per coalescent units: based on res.lm
     end
     return res
 end

@@ -883,6 +883,7 @@ end
     sigma2_phylo(m::PhyloNetworkLinearModel)
 
 Estimated between-species variance-rate for a fitted object.
+Under a `GaussianCoalescent` model, this variance-rate is per coalescent unit.
 """
 function sigma2_phylo(m::PhyloNetworkLinearModel)
     linmod = m.lm

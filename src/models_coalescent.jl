@@ -36,17 +36,17 @@ mutable struct GaussianCoalescent <: ContinuousTraitEM
     lambda::Float64
 end
 GaussianCoalescent(v0,s2,Ne=1.0) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*s2))
- # below: no param specification for Ne, using Ne=1
 function GaussianCoalescent(paramlist::Dict)
     λ  = getvalue(paramspec(paramlist, :lambda))
     v0 = getvalue(paramspec(paramlist, :v0)) # default v0=1
+    Ne = getvalue(paramspec(paramlist, :Ne)) # default 1.0
     if λ == 0 # then ignore v0
         s2 = 1.0 # default σ2eq = 1
         v0 = 0.0
     else
         s2 = v0 / λ
     end
-    return GaussianCoalescent(v0,s2,1.0,λ)
+    return GaussianCoalescent(v0,s2,Ne,λ)
 end
 evomodelname(::GaussianCoalescent) = "Gaussian with coalescent"
 function Base.show(io::IO, m::GaussianCoalescent)

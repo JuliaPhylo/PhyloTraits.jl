@@ -77,4 +77,20 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
 @test f0.evomodel.v0 == 0.0
 @test loglikelihood(f0) ≈ -7.116223253873285
 
+for e in net.edge e.length *= 2; end
+f0 = phylolm(@formula(trait ~ 1),df,net; reml=true, model="gaussiancoalescent",
+        paramlist=Dict(:lambda => (start=0.1, fixed=true), :Ne => (start=2, fixed=true)))
+tmp = """Model: Gaussian with coalescent
+
+Parameter Estimates, using REML:
+phylogenetic variance rate: 0.547036
+v0: 0.0547036
+σ2: 0.273518
+Ne: 2
+σ2 equilibrium (within pop): 0.547036
+λ: 0.1
+"""
+s = IOBuffer(); show(s, f0)
+@test occursin(tmp, String(take!(s)))
+
 end
