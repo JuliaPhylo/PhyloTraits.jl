@@ -32,6 +32,20 @@ end
 
 @testset "fit σ2 under the gaussian with coalescent" begin
 
+m = PhyloTraits.GaussianCoalescent(0.1,0.05) # v0=0.1, σ2=0.05
+@test PhyloTraits.lambda(m) ≈ 2
+PhyloTraits.lambda!(m, 4)
+@test m.v0 ≈ 0.2
+PhyloTraits.setNe!(m, 10)
+s = IOBuffer(); show(s, m)
+@test String(take!(s)) == """Gaussian with coalescent:
+v0: 0.2
+σ2: 0.005
+Ne: 10
+σ2 equilibrium (within pop): 0.05
+λ: 4
+"""
+
 nwk = "(A:2.5,((B:1,#H1:0.5::0.1):1,(C:1,(D:0.5)#H1:0.5::0.9):1):0.5);"
 net = readnewick(nwk)
 Y = [8.60,10.56,11.9,9.96,11.24,]

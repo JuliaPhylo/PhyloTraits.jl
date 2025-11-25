@@ -5,7 +5,7 @@ using Aqua
 using BioSymbols
 using CSV
 using DataFrames
-using GLM # for coef, nobs, residuals etc.
+using GLM # for coef, nobs, residuals etc. reexports @formula from StatsModels
 using LinearAlgebra: norm, diag, logdet, PosDefException # LinearAlgebra.rotate! not brought into scope
 using PhyloNetworks
 using Random

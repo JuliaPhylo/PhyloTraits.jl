@@ -77,7 +77,7 @@ and adjusting σ2 = old σ2 * old Ne / new Ne  to maintain the same
 equilibrium within-population variance and same λ.
 """
 function setNe!(m::GaussianCoalescent, Ne)
-    m.sigma2 .*= m.Ne / Ne
+    m.sigma2 *= m.Ne / Ne
     m.Ne = Ne
     return m
 end
