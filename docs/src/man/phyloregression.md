@@ -531,15 +531,16 @@ This model naturally accounts for within-species variation.
 See [`PhyloTraits.GaussianCoalescent`](@ref) for more.
 
 For the coalescent model, we need the network to have branch lengths in
-coalescent units. Alternatively, we need an estimate of the haploid
-effective population size `Ne` is  (2N in autosomes of diploid species)
+coalescent units (number of generations / effective populuation size).
+Alternatively, we need an estimate of the haploid
+effective population size `Ne` (2N in autosomes of diploid species)
 and edge lengths in number of generations.
 Below, we fix `Ne` to 1 to illustrate the case when our network has
 edge lengths in coalescent units.
 
 The trait variance v0 within the root population is a model parameter.
 Below, we fix the `λ` parameter to 1 to mean that we assume the
-root population to be at equilibrium: of within-species variance
+root population to be at equilibrium: of variance
 `v0 = σ²Ne` where `σ²` is the variance-rate per coalescent unit.
 
 We can fit this model with data at the individual level.

@@ -16,7 +16,7 @@ function phylolm(
     MV = gaussiancoalescent_covariancematrix_init(net, true, true)
     Nespec = paramspec(paramlist, :Ne, lower=0.0, fixed=true)
     Nespec.fixed ||
-        error("Ne should not be optimized: the model depends on σ²Ne and σ² is optimized.")
+        error("estimation of Ne is not implemented yet.")
     Ne = gc.Ne
     Ne == getvalue(Nespec) || error("inconsistent Ne, weird.")
     if Ne != 1
