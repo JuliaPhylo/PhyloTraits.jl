@@ -97,4 +97,10 @@ s = IOBuffer(); show(s, f0)
 @test occursin(tmp, String(take!(s)))
 @test dof(f0) == 2
 
+@test_throws "estimate either λ or v0" phylolm(@formula(trait~1),df,net;
+  model="gaussiancoalescent", paramlist=Dict(
+    :lambda => (start=1,fixed=true), :v0 => (start=0.1,fixed=true)))
+@test_throws "optimization of λ under a fixed v0" phylolm(@formula(trait~1),df,net;
+  model="gaussiancoalescent", paramlist=Dict(
+    :lambda => (start=1,), :v0 => (start=0.1,fixed=true)))
 end

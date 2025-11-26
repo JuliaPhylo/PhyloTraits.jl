@@ -14,17 +14,20 @@ function phylolm(
     xargs...
 )
     MV = gaussiancoalescent_covariancematrix_init(net, true, true)
+    Nespec = paramspec(paramlist, :Ne, lower=0.0, fixed=true)
+    Nespec.fixed ||
+        error("Ne should not be optimized: the model depends on σ²Ne and σ² is optimized.")
     Ne = gc.Ne
+    Ne == getvalue(Nespec) || error("inconsistent Ne, weird.")
     if Ne != 1
         net = deepcopy(net)
         for e in net.edge  e.length /= Ne; end
     end
     λspec  = paramspec(paramlist, :lambda, lower=0.0)
     v0spec = paramspec(paramlist, :v0, lower=0.0, fixed=false)
+    # σ2 = λ*v0 (per coal unit, Ne=1) to be optimized analytically
     !v0spec.fixed || !λspec.fixed ||
         error("please estimate either λ or v0, for the Gaussian-Coalescent")
-    Nespec = paramspec(paramlist, :Ne, lower=0.0, fixed=true)
-    Nespec.fixed || error("estimation of Ne is not implemented yet")
     res = phylolm_gcoal_lambda(X,Y,net,reml, MV,λspec,v0spec,
             nonmissing, ind,
             ftolRel, xtolRel, ftolAbs, xtolAbs)
