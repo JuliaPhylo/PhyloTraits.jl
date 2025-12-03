@@ -538,7 +538,7 @@ and edge lengths in number of generations.
 Below, we fix `Ne` to 1 to illustrate the case when our network has
 edge lengths in coalescent units.
 
-The trait variance v0 within the root population is a model parameter.
+The trait variance `v0` within the root population is a model parameter.
 Below, we fix the `λ` parameter to 1 to mean that we assume the
 root population to be at equilibrium: of variance
 `v0 = σ²Ne` where `σ²` is the variance-rate per coalescent unit.

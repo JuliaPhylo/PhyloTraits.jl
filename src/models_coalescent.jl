@@ -18,12 +18,23 @@ with increments of variance σ²t over t generations,
 such as a Brownian motion process, a compound Poisson process,
 or a variance-gamma process.
 
+From the Central Limit Theorem, `X = (sum_l Yl)/√L` converges to a Gaussian
+when `L` goes to infinity. This model assumes that the polygenic trait `X`
+is Gaussian, with a variance-covariance structure given by the process
+described above, and computed with function 
+[`gaussiancoalescent_covariancematrix`](@ref).
+The model prescribes both the covariances between populations (or species),
+and within-populations.
+
 Ne is the haploid effective population size (that is, 2N in the standard case
 of autosomal loci in diploid organisms).
 Setting Ne=1 corresponds to using branch lengths in coalescent units in the
 species phylogeny, and interpreting σ² as a variance rate per coalescent unit.
 
 Ne and σ² are assumed constant across populations.
+
+The process can be parametrized using `λ = v0/(Ne σ²)`, which is 
+equal to 1 if the root population is at equilibrium.
 """
 mutable struct GaussianCoalescent <: ContinuousTraitEM
     "variance at the root population"
