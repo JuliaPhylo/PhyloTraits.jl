@@ -303,13 +303,15 @@ function phylolm_lambda(
         fmin, xmin, ret = NLopt.optimize(opt, [getvalue(lambdaspec)])
         # Best value dans result
         res_lam = xmin[1]
+        dof_lambda = 2
     else
         res_lam = getvalue(lambdaspec)
+        dof_lambda = 1
     end
     transform_matrix_lambda!(V, res_lam, gammas, times)
     linmod, Vy, RL, logdetVy = pgls(X,Y,V; nonmissing=nonmissing, ind=ind)
     res = PhyloNetworkLinearModel(linmod, V, Vy, RL, Y, X,
-                logdetVy, reml, ind, nonmissing, PagelLambda(res_lam))
+                logdetVy, reml, ind, nonmissing, PagelLambda(res_lam, dof_lambda))
     return res
 end
 
@@ -387,13 +389,15 @@ function phylolm_scalinghybrid(
         NLopt.min_objective!(opt, fun)
         fmin, xmin, ret = NLopt.optimize(opt, [getvalue(lambdaspec)])
         res_lam = xmin[1]
+        dof_lam = 2
     else
         res_lam = getvalue(lambdaspec)
+        dof_lam = 1
     end
     V = matrix_scalinghybrid(net, res_lam, gammas)
     linmod, Vy, RL, logdetVy = pgls(X,Y,V; nonmissing=nonmissing, ind=ind)
     res = PhyloNetworkLinearModel(linmod, V, Vy, RL, Y, X,
-                logdetVy, reml, ind, nonmissing, ScalingHybrid(res_lam))
+                logdetVy, reml, ind, nonmissing, ScalingHybrid(res_lam, dof_lam))
     return res
 end
 
@@ -1097,7 +1101,7 @@ function StatsModels.isnested(m1m::PhyloNetworkLinearModel, m2m::PhyloNetworkLin
 end
 
 isnested(::T,::T) where T <: ContinuousTraitEM = true
-isnested(::BM,::Union{PagelLambda,ScalingHybrid}) = true
+isnested(BM,m2::Union{PagelLambda,ScalingHybrid}) = dof(m2) == 2 # nested only if lambda *is not* fixed
 isnested(::Union{PagelLambda,ScalingHybrid}, ::BM) = false
 isnested(::ScalingHybrid,::PagelLambda) = false
 isnested(::PagelLambda,::ScalingHybrid) = false

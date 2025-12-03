@@ -425,29 +425,6 @@ vcovR =  [0.0200251600  -0.0137474015 0.0085637021  -0.0092973836 -0.0114259722 
 
 
 ### R script to get the above values
-# ## Data
-# dat <- read.csv(file = "GA_Anolis_traits.csv")
-# geo <- read.csv(file = "GA_Anolis_biogeography.csv")
-#
-# dat <- merge(dat, geo, by = "species")
-# # keep only toe and hand length
-# dat <- dat[, c("species", "AVG.SVL", "AVG.ltoe.IV", "AVG.lfing.IV", "region")]
-# colnames(dat)[1] <- "tipsNames"
-#
-# write.table(dat,
-#             file = "lizard_trait.txt",
-#             sep = ",", row.names = FALSE)
-#
-# ## Tree
-# phy <- read.tree(file = "GA_Anolis_MCC.tre")
-#
-# write.tree(phy, file = "lizards_tree.txt", append = FALSE,
-#            digits = 10, tree.names = FALSE)
-#
-# rownames(dat) <- dat$tipsNames
-# dat <- dat[, -1]
-# dat$region <- as.factor(dat$region)
-#
 # ## Fit
 # fitphylolm <- phylolm(AVG.SVL ~ 1 + AVG.ltoe.IV + AVG.lfing.IV * region, dat, phy, model = "lambda")
 # ## Quantities to compare
@@ -463,5 +440,25 @@ vcovR =  [0.0200251600  -0.0137474015 0.0085637021  -0.0092973836 -0.0114259722 
 # sprintf("%.10f", summary(fitphylolm)$coefficients[,2]) # std error
 # sprintf("%.10f", coef(fitphylolm) + summary(fitphylolm)$coefficients[, 2] * qt(0.025, 91))
 # sprintf("%.10f", coef(fitphylolm) + summary(fitphylolm)$coefficients[, 2] * qt(0.975, 91))
+
+###############################################################################
+## Lizard dataset - Lambda - fixed value
+###############################################################################
+
+## Fit a Lambda with fixed value
+fitLambdaFixed = phylolm(@formula(AVG_SVL ~ AVG_ltoe_IV + AVG_lfing_IV * region), dat, phy, model="lambda", paramlist=Dict(:lambda => (start=0.1, fixed=true)); reml=true)
+
+# Tests against results obtained with phylolm::phylolm
+@test loglikelihood(fitLambdaFixed) ≈ 64.4977858049 atol=1e-10 
+@test dof(fitLambdaFixed) ≈ 10.0 atol=1e-10
+@test coef(fitLambdaFixed) ≈ [2.7692533312 -0.2985413081 1.1346459061 0.0589167129 -0.0449423821 0.2278889272 -0.0531485344 0.0020526333 -0.1357960954]' atol=1e-10 
+
+### R script to get the above values
+# ## Fit
+# fitphylolm <- phylolm(AVG.SVL ~ 1 + AVG.ltoe.IV + AVG.lfing.IV * region, dat, phy, model = "lambda", REML = TRUE, upper.bound=list(lambda=0.1), lower.bound=list(lambda=0.1), starting.value=list(lambda=0.1))
+# ## Quantities to compare
+# sprintf("%.10f", fitphylolm$logLik)
+# sprintf("%.10f", summary(fitphylolm)$df) # df
+# sprintf("%.10f", fitphylolm$coefficients) # coef
 
 end

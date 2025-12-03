@@ -109,15 +109,15 @@ fitlam = phylolm(@formula(trait ~ 1), dfr, net, model="lambda",
 @test stderror(fitlam) ≈ stderror(fitbis)
 @test confint(fitlam) ≈ confint(fitbis)
 @test loglikelihood(fitlam) ≈ loglikelihood(fitbis)
-@test dof(fitlam) ≈ dof(fitbis) + 1
+@test dof(fitlam) ≈ dof(fitbis)
 @test deviance(fitlam, Val(true)) ≈ deviance(fitbis, Val(true))
 @test nulldeviance(fitlam) ≈ nulldeviance(fitbis)
 @test nullloglikelihood(fitlam) ≈ nullloglikelihood(fitbis)
 @test r2(fitlam) ≈ r2(fitbis) atol=1e-15
-@test adjr2(fitlam) ≈ adjr2(fitbis) - 0.5 atol=1e-15
-@test aic(fitlam) ≈ aic(fitbis) + 2
+@test adjr2(fitlam) ≈ adjr2(fitbis) atol=1e-15
+@test aic(fitlam) ≈ aic(fitbis)
 #@test aicc(fitlam) ≈ aicc(fitbis)
-@test bic(fitlam) ≈ bic(fitbis) + log(nobs(fitbis))
+@test bic(fitlam) ≈ bic(fitbis)
 @test mu_phylo(fitlam) ≈ mu_phylo(fitbis)
 @test hasintercept(fitlam)
 
@@ -135,10 +135,12 @@ PhyloTraits.lambda!(fitlam, 0.5)
 ## Pagel's Lambda
 fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(@formula(trait ~ 1), dfr, net, model="lambda", reml=false))
 @test lambda_estim(fitlam) ≈ 1.24875
+@test dof(fitlam) ≈ dof(fitbis) + 1
 
 ## Scaling Hybrid
 fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalinghybrid", reml=false)
 @test lambda_estim(fitSH) ≈ 4.057891910001937 atol=1e-5
+@test dof(fitSH) ≈ dof(fitbis) + 1
 
 end
 
@@ -194,15 +196,15 @@ fitlam = (@test_logs (:warn,
 @test stderror(fitlam) ≈ stderror(fitShift)
 @test confint(fitlam) ≈ confint(fitShift)
 @test loglikelihood(fitlam) ≈ loglikelihood(fitShift)
-@test dof(fitlam) ≈ dof(fitShift) + 1
+@test dof(fitlam) ≈ dof(fitShift)
 @test deviance(fitlam, Val(true))  ≈ deviance(fitShift, Val(true))
 @test nulldeviance(fitlam)  ≈ nulldeviance(fitShift)
 @test nullloglikelihood(fitlam)  ≈ nullloglikelihood(fitShift)
 @test r2(fitlam) ≈ r2(fitShift) atol=1e-15
 #@test adjr2(fitlam) ≈ adjr2(fitShift) - 0.5 atol=1e-15
-@test aic(fitlam) ≈ aic(fitShift) + 2
+@test aic(fitlam) ≈ aic(fitShift)
 #@test aicc(fitlam)  ≈ aicc(fitShift)
-@test bic(fitlam) ≈ bic(fitShift) + log(nobs(fitShift))
+@test bic(fitlam) ≈ bic(fitShift)
 @test mu_phylo(fitlam)  ≈ mu_phylo(fitShift)
 @test hasintercept(fitlam)
 
@@ -495,15 +497,15 @@ fitlam = (@test_logs (:warn,
 @test stderror(fitlam) ≈ stderror(fitnabis)
 @test confint(fitlam) ≈ confint(fitnabis)
 @test loglikelihood(fitlam) ≈ loglikelihood(fitnabis)
-@test dof(fitlam) ≈ dof(fitnabis) + 1
+@test dof(fitlam) ≈ dof(fitnabis)
 @test deviance(fitlam, Val(true)) ≈ deviance(fitnabis, Val(true))
 @test nulldeviance(fitlam) ≈ nulldeviance(fitnabis)
 @test (@test_logs (:warn, r"^ML") nullloglikelihood(fitlam)) ≈ (@test_logs (:warn, r"^ML") nullloglikelihood(fitnabis))
 @test r2(fitlam) ≈ r2(fitnabis) atol=1e-15
 @test adjr2(fitlam)-1 ≈ (adjr2(fitnabis)-1)*(nobs(fitnabis)-dof(fitnabis)+1)/(nobs(fitnabis)-dof(fitlam)+1) atol=1e-15
-@test aic(fitlam) ≈ aic(fitnabis) + 2
+@test aic(fitlam) ≈ aic(fitnabis)
 #@test aicc(fitlam) ≈ aicc(fitnabis)
-@test bic(fitlam) ≈ bic(fitnabis) + log(nobs(fitnabis))
+@test bic(fitlam) ≈ bic(fitnabis)
 @test mu_phylo(fitlam) ≈ mu_phylo(fitnabis)
 
 fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid",

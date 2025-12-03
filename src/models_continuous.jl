@@ -432,6 +432,11 @@ abstract type ContinuousTraitEM end
 
 # current concrete subtypes: BM, PagelLambda, ScalingHybrid
 # possible future additions: OU (Ornstein-Uhlenbeck)?
+
+# Default value for the dof of the model (including sigma2)
+StatsAPI.dof(m::ContinuousTraitEM) = 1
+
+
 """
     BM(λ)
 
@@ -473,9 +478,13 @@ the response. When λ=1, the `PagelLambda` model reduces to the `BM` model.
 """
 mutable struct PagelLambda <: ContinuousTraitEM
     lambda::Float64 # mutable: can be optimized
+    "free number of parameters (to be) optimized. This can be 2 or 1 (if lambda is fixed)."
+    dof::Int
 end
-PagelLambda() = PagelLambda(1.0)
+PagelLambda() = PagelLambda(1.0, 2)
+PagelLambda(lambda) = PagelLambda(lambda, 2)
 evomodelname(::PagelLambda) = "Pagel's lambda"
+StatsAPI.dof(m::PagelLambda) = m.dof
 
 """
     ScalingHybrid(λ)
@@ -513,9 +522,13 @@ reticulations are for explaining variation in the response.
 """
 mutable struct ScalingHybrid <: ContinuousTraitEM
     lambda::Float64
+    "free number of parameters (to be) optimized. This can be 2 or 1 (if lambda is fixed)."
+    dof::Int
 end
-ScalingHybrid() = ScalingHybrid(1.0)
+ScalingHybrid() = ScalingHybrid(1.0, 2)
+ScalingHybrid(lambda) = ScalingHybrid(lambda, 2)
 evomodelname(::ScalingHybrid) = "Lambda's scaling hybrid"
+StatsAPI.dof(m::ScalingHybrid) = m.dof
 
 ###############################################################################
 ##     phylogenetic network regression
@@ -682,13 +695,8 @@ StatsAPI.dof_residual(m::PhyloNetworkLinearModel) =  nobs(m.lm) - length(coef(m)
 
 # degrees of freedom consumed by the species-level model
 function StatsAPI.dof(m::PhyloNetworkLinearModel)
-    res = length(coef(m)) + 1 # +1: phylogenetic variance
-    if any(typeof(m.evomodel) .== [PagelLambda, ScalingHybrid])
-        res += 1 # lambda is one parameter
-    end
-    if typeof(m.evomodel) == GaussianCoalescent
-        res += dof(m.evomodel)-1 # -1 bc σ2 already counted. v0,σ2,Ne,λ are linked.
-    end
+    res = length(coef(m)) 
+    res += dof(m.evomodel) # dof of the model, including the phylogenetic variance
     if !isnothing(m.model_within)
         res += 1 # within-species variance
     end
