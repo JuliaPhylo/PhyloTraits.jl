@@ -103,4 +103,36 @@ s = IOBuffer(); show(s, f0)
 @test_throws "optimization of λ under a fixed v0" phylolm(@formula(trait~1),df,net;
   model="gaussiancoalescent", paramlist=Dict(
     :lambda => (start=1,), :v0 => (start=0.1,fixed=true)))
+
+
+## On a tree : comparison with phylolm in R
+nwk = "(A:2.5,(B:2,(C:1.5,D:1.5):0.5):0.5);"
+net = readnewick(nwk)
+Y = [8.60,10.56,11.9,9.96,]
+X = ones(4, 1)
+df = DataFrame(trait = Y, tipnames = ["B","C","A","D",])
+
+f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
+        paramlist=Dict(:lambda => (start=0.1, fixed=true)))
+@test f0.evomodel.Ne == 1
+@test lambda_estim(f0) ≈ 0.1
+@test sigma2_phylo(f0) ≈ 0.5452923 atol=1e-6
+@test f0.evomodel.v0 ≈ 0.05452923 atol=1e-6
+@test coef(f0) ≈ [10.29722] atol=1e-6
+@test loglikelihood(f0) ≈ -6.357265 atol=1e-6
+
+## R code to reproduce the results
+# remotes::install_github("pbastide/phylolm", ref = "ils")
+# library(phylolm)
+# tree <- read.tree(text = "(A:2.5,(B:2,(C:1.5,D:1.5):0.5):0.5);")
+# trait <- c(8.60,10.56,11.9,9.96)
+# names(trait) <- c("B","C","A","D")
+# 
+# fit <- phylolm(trait ~ 1, phy = tree, model = "ILS",
+#                lower.bound = list(lambda_ILS = 0.1),
+#                upper.bound = list(lambda_ILS = 0.1),
+#                starting.value = list(lambda_ILS = 0.1))
+# fit$sigma2
+# fit$coefficients
+# fit$logLik
 end
