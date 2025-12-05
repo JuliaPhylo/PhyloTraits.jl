@@ -48,23 +48,8 @@ mutable struct GaussianCoalescent <: ContinuousTraitEM
     "free number of parameters (to be) optimized. This is at most 3, because λ = v0/(σ²Ne)."
     dof::Int
 end
-GaussianCoalescent(v0,s2,Ne=1.0) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*s2), 2)
-function GaussianCoalescent(paramlist::Dict)
-    λ_s  = paramspec(paramlist, :lambda)
-    v0_s = paramspec(paramlist, :v0) # default v0=1
-    Ne_s = paramspec(paramlist, :Ne) # default 1.0
-    λ  = getvalue(λ_s)
-    v0 = getvalue(v0_s)
-    Ne = getvalue(Ne_s)
-    if λ == 0 # then ignore v0
-        s2 = 1.0 # default σ2eq = 1
-        v0 = 0.0
-    else
-        s2 = v0 / λ
-    end
-    d = !λ_s.fixed + !v0_s.fixed + !Ne_s.fixed
-    return GaussianCoalescent(v0,s2,Ne,λ, d)
-end
+GaussianCoalescent(v0=1.,s2=1.,Ne=1.) = GaussianCoalescent(v0,s2,Ne,v0/(Ne*s2), 2)
+
 evomodelname(::GaussianCoalescent) = "Gaussian with coalescent"
 function Base.show(io::IO, m::GaussianCoalescent)
     println(io, evomodelname(m), ":\n", showparams(m))

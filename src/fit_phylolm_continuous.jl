@@ -847,7 +847,7 @@ function phylolm(
         "BM" => BM(),
         "lambda" => PagelLambda(),
         "scalinghybrid" => ScalingHybrid(),
-        "gaussiancoalescent" => GaussianCoalescent(paramlist))
+        "gaussiancoalescent" => GaussianCoalescent())
     haskey(modeldic, model) || error("phylolm is not defined for model $model.")
     modelobj = modeldic[model]
 

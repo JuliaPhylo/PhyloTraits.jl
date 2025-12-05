@@ -17,8 +17,7 @@ function phylolm(
     Nespec = paramspec(paramlist, :Ne, lower=0.0, fixed=true)
     Nespec.fixed ||
         error("estimation of Ne is not implemented yet.")
-    Ne = gc.Ne
-    Ne == getvalue(Nespec) || error("inconsistent Ne, weird.")
+    Ne = getvalue(Nespec)
     if Ne != 1
         net = deepcopy(net)
         for e in net.edge  e.length /= Ne; end
