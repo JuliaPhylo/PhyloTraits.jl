@@ -91,6 +91,7 @@ fitbis = phylolm(@formula(trait ~ 1), dfr, net; reml=false)
 tmp = (@test_logs (:warn, r"^You fitted the data against a custom matrix") mu_phylo(phynetlm))
 @test tmp ≈ mu_phylo(fitbis)
 @test hasintercept(phynetlm)
+@test dof(phynetlm) == 2 # intercept + BM variance
 
 ## fixed values parameters
 fitlam = phylolm(@formula(trait ~ 1), dfr, net, model="lambda",

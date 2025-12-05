@@ -522,13 +522,18 @@ phylolm(@formula(trait3 ~ trait1 + trait2), datind, truenet;
         withinspecies_var=true)
 ```
 
-## Brownian motion with the coalescent
+## Coalescent-based Gaussian trait model
 
 This model assumes a polygenic trait X, affected additively by a large number
 of loci. Each locus effect is assumed to evolve under its own 'gene' tree,
 from the network multi-species coalescent model.
 This model naturally accounts for within-species variation.
-See [`PhyloTraits.GaussianCoalescent`](@ref) for more.
+For more about this model, see [`PhyloTraits.GaussianCoalescent`](@ref).
+See also
+[PhyloCoalSimulations](https://juliaphylo.github.io/PhyloCoalSimulations.jl/stable/man/polygenic_traits/)
+for examples of locus-level processes covered under this model
+(such as a mutational process, or Brownian motion)
+and for simulating traits under coalescent-based models.
 
 For the coalescent model, we need the network to have branch lengths in
 coalescent units (number of generations / effective populuation size).
