@@ -564,7 +564,7 @@ Log Likelihood: -78.9611507833
 AIC: 161.9223015666
 ```
 
-We can extra parameters, likelihood, AIC etc.
+We can extract parameters, likelihood, AIC etc.
 ```jldoctest phylolmdoc
 julia> round(sigma2_phylo(fitBM), digits=6) # rounding for jldoctest convenience
 0.002945
