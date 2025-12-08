@@ -523,6 +523,8 @@ tab = lrtest(m2w, m6w) # both REML, but same predictors
 @test !PhyloTraits.isnested(PhyloTraits.PagelLambda(0.1),PhyloTraits.BM())
 @test !PhyloTraits.isnested(PhyloTraits.PagelLambda(),PhyloTraits.ScalingHybrid())
 @test !PhyloTraits.isnested(PhyloTraits.ScalingHybrid(2.0),PhyloTraits.PagelLambda())
+@test !PhyloTraits.isnested(PhyloTraits.BM(),PhyloTraits.PagelLambda(0.1, 1)) ## BM is not nested in PagelLambda with fixed lambda
+@test !PhyloTraits.isnested(PhyloTraits.BM(),PhyloTraits.ScalingHybrid(2.1, 1)) ## BM is not nested in ScalingHybrid with fixed lambda
 @test_throws ArgumentError ftest(m3null, m3, m3full) # not the same Y after transformation
 end # lrt test subset
 

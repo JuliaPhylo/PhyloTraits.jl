@@ -5,7 +5,7 @@ using Aqua
 using BioSymbols
 using CSV
 using DataFrames
-using GLM # for coef, nobs, residuals etc.
+using GLM # for coef, nobs, residuals etc. reexports @formula from StatsModels
 using LinearAlgebra: norm, diag, logdet, PosDefException # LinearAlgebra.rotate! not brought into scope
 using PhyloNetworks
 using Random
@@ -33,4 +33,5 @@ end
     include("test_traits_discrete.jl")
     include("test_simulate.jl")
     include("test_simulate_mbd.jl")
+    include("test_coalescent.jl")
 end

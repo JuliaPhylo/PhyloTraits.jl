@@ -422,7 +422,8 @@ end
 Abstract type for evolutionary models for continuous traits, using a continuous-time
 stochastic process on a phylogeny.
 
-For subtypes, see [`BM`](@ref), [`PagelLambda`](@ref), [`ScalingHybrid`](@ref).
+For subtypes, see [`BM`](@ref), [`PagelLambda`](@ref), [`ScalingHybrid`](@ref),
+[`GaussianCoalescent`](@ref).
 
 Each of these subtypes/models has the field `lambda`, whose default value is 1.0.
 However, the interpretation of this field differs across models.
@@ -431,6 +432,11 @@ abstract type ContinuousTraitEM end
 
 # current concrete subtypes: BM, PagelLambda, ScalingHybrid
 # possible future additions: OU (Ornstein-Uhlenbeck)?
+
+# Default value for the dof of the model (including sigma2)
+StatsAPI.dof(m::ContinuousTraitEM) = 1
+
+
 """
     BM(λ)
 
@@ -472,9 +478,13 @@ the response. When λ=1, the `PagelLambda` model reduces to the `BM` model.
 """
 mutable struct PagelLambda <: ContinuousTraitEM
     lambda::Float64 # mutable: can be optimized
+    "free number of parameters (to be) optimized. This can be 2 or 1 (if lambda is fixed)."
+    dof::Int
 end
-PagelLambda() = PagelLambda(1.0)
+PagelLambda() = PagelLambda(1.0, 2)
+PagelLambda(lambda) = PagelLambda(lambda, 2)
 evomodelname(::PagelLambda) = "Pagel's lambda"
+StatsAPI.dof(m::PagelLambda) = m.dof
 
 """
     ScalingHybrid(λ)
@@ -512,9 +522,13 @@ reticulations are for explaining variation in the response.
 """
 mutable struct ScalingHybrid <: ContinuousTraitEM
     lambda::Float64
+    "free number of parameters (to be) optimized. This can be 2 or 1 (if lambda is fixed)."
+    dof::Int
 end
-ScalingHybrid() = ScalingHybrid(1.0)
+ScalingHybrid() = ScalingHybrid(1.0, 2)
+ScalingHybrid(lambda) = ScalingHybrid(lambda, 2)
 evomodelname(::ScalingHybrid) = "Lambda's scaling hybrid"
+StatsAPI.dof(m::ScalingHybrid) = m.dof
 
 ###############################################################################
 ##     phylogenetic network regression
@@ -681,10 +695,8 @@ StatsAPI.dof_residual(m::PhyloNetworkLinearModel) =  nobs(m.lm) - length(coef(m)
 
 # degrees of freedom consumed by the species-level model
 function StatsAPI.dof(m::PhyloNetworkLinearModel)
-    res = length(coef(m)) + 1 # +1: phylogenetic variance
-    if any(typeof(m.evomodel) .== [PagelLambda, ScalingHybrid])
-        res += 1 # lambda is one parameter
-    end
+    res = length(coef(m)) 
+    res += dof(m.evomodel) # dof of the model, including the phylogenetic variance
     if !isnothing(m.model_within)
         res += 1 # within-species variance
     end
@@ -879,6 +891,7 @@ end
     sigma2_phylo(m::PhyloNetworkLinearModel)
 
 Estimated between-species variance-rate for a fitted object.
+Under a `GaussianCoalescent` model, this variance-rate is per coalescent unit.
 """
 function sigma2_phylo(m::PhyloNetworkLinearModel)
     linmod = m.lm
@@ -922,7 +935,7 @@ end
 Value assigned to the lambda parameter, if appropriate.
 """
 lambda(m::PhyloNetworkLinearModel) = lambda(m.evomodel)
-lambda(m::Union{BM,PagelLambda,ScalingHybrid}) = m.lambda
+lambda(m::ContinuousTraitEM) = m.lambda
 
 """
     lambda!(m::PhyloNetworkLinearModel, newlambda)
@@ -947,6 +960,9 @@ function paramstable(m::PhyloNetworkLinearModel)
     if any(typeof(m.evomodel) .== [PagelLambda, ScalingHybrid])
         Lamb = lambda_estim(m)
         res = res*"\nLambda: " * @sprintf("%.6g", Lamb)
+    end
+    if typeof(m.evomodel) == GaussianCoalescent
+        res *= "\n" * showparams(m.evomodel)
     end
     mw = m.model_within
     if !isnothing(mw)

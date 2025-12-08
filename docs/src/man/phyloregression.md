@@ -493,7 +493,86 @@ If the most complex model is given first, as done above, the table
 lists the most complex H₁ (with shifts) first, and the null model H₀
 is listed as the second model.
 
-### References
+## within-species variation
+
+We can account for within-species variation in the response trait
+with the `withinspecies_var` option of [`phylolm`](@ref).
+We need information in the data about within-species variation.
+Here we use a new data with 1 row per individual.
+There are 3 individuals from D and C, and 1 from each other taxon.
+
+```@example tree_trait
+datind = DataFrame(
+  trait1 = [2.7,2.5,2.6,    4.1, 4.1, 4.0,   4.5,  4.8,  2.2,-0.3],
+  trait2 = [-3,-3,-3,      -4.1,-4.1,-4.1,  -2.3,  0.6, -3.3,-4.6],
+  trait3 = [15.4,15.2,15.6, 17.3,17.4,17.2, 18.1, 18.8, 13.3, 10],
+  tipnames = ["D","D","D",  "C","C","C",    "A",  "B",  "E", "O"]
+)
+nothing # hide
+```
+
+In the model, the within-species variance in the response trait is assumed to
+be shared across species.
+Within-species variation in predictors is not used, so correlation between
+traits within species does not affect the estimate of historical phylogenetic
+correlation.
+
+```@repl tree_trait
+phylolm(@formula(trait3 ~ trait1 + trait2), datind, truenet;
+        withinspecies_var=true)
+```
+
+## Coalescent-based Gaussian trait model
+
+This model assumes a polygenic trait X, affected additively by a large number
+of loci. Each locus effect is assumed to evolve under its own 'gene' tree,
+from the network multi-species coalescent model.
+This model naturally accounts for within-species variation.
+For more about this model, see [`PhyloTraits.GaussianCoalescent`](@ref).
+See also
+[PhyloCoalSimulations](https://juliaphylo.github.io/PhyloCoalSimulations.jl/stable/man/polygenic_traits/)
+for examples of locus-level processes covered under this model
+(such as a mutational process, or Brownian motion)
+and for simulating traits under coalescent-based models.
+
+For the coalescent model, we need the network to have branch lengths in
+coalescent units (number of generations / effective populuation size).
+Alternatively, we need an estimate of the haploid
+effective population size `Ne` (2N in autosomes of diploid species)
+and edge lengths in number of generations.
+Below, we fix `Ne` to 1 to illustrate the case when our network has
+edge lengths in coalescent units.
+
+The trait variance `v0` within the root population is a model parameter.
+Below, we fix the `λ` parameter to 1 to mean that we assume the
+root population to be at equilibrium: of variance
+`v0 = σ²Ne` where `σ²` is the variance-rate per coalescent unit.
+
+We can fit this model with data at the individual level.
+
+```@repl tree_trait
+f0 = phylolm(@formula(trait3 ~ trait1 + trait2), datind, truenet;
+    model="gaussiancoalescent", paramlist=Dict(
+      :lambda => (start=1, fixed=true),
+      :Ne => (start=1,)) # Ne=1 is the default actually
+)
+```
+
+Instead of assuming a root population at equilibrium, we can estimate `v0`,
+by estimating the ratio `λ = v0/(σ²Ne)`.
+Often, there is little information in the data, like on this very small data set.
+When comparing the 2 models (`λ=1` versus estimated) with a likelihood ratio test,
+the simpler model is preferred (`λ=1`).
+
+```@repl tree_trait
+f1 = phylolm(@formula(trait3 ~ trait1 + trait2), datind, truenet;
+    model="gaussiancoalescent", paramlist=Dict(
+      :lambda => (start=1, fixed=false)) # Ne=1 by default
+)
+lrtest(f0, f1)
+```
+
+## References
 
 [^B18]: Bastide, Solís-Lemus, Kriebel, Sparks, Ané (2018):
     Phylogenetic Comparative Methods for Phylogenetic Networks with Reticulations.

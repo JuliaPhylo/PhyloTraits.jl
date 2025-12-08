@@ -7,10 +7,11 @@ with or without within-species variation:
 - phylolm(X,Y,net, model::ContinuousTraitEM; kwargs...)
   calls a function with or without within-species variation.
 
-1. no measurement error in species means:
+1. no measurement error in tip values (=species means most often):
    - phylolm(model, X,Y,net, reml; kwargs...) dispatches based on model type
    - phylolm_lambda(X,Y,V,reml, gammas,times; ...)
    - phylolm_scalinghybrid(X,Y,net,reml, gammas; ...)
+   - phylolm_gcoal_lambda(X,Y,net,reml, MV,...)
 
    helpers:
    - pgls(X,Y,V; ...) for vanilla BM, but called by others with fixed V_theta
@@ -42,8 +43,7 @@ function phylolm(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing,
+    paramlist::Dict=Dict{Symbol,Any}(),
     withinspecies_var::Bool=false,
     counts::Union{Nothing, Vector}=nothing,
     ySD::Union{Nothing, Vector}=nothing,
@@ -56,7 +56,7 @@ function phylolm(
     else
         phylolm(model, X,Y,net, reml; nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            startingValue=startingValue, fixedValue=fixedValue,
+            paramlist,
             suppresswarnings=suppresswarnings)
     end
 end
@@ -91,8 +91,7 @@ function phylolm(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing,
+    paramlist::Dict=Dict{Symbol,Any}(),
     suppresswarnings::Bool=false
 )
     # BM variance covariance
@@ -108,10 +107,24 @@ function phylolm(
         """
         times = getnodeheights_majortree(net, false; warn=false)
     end
+    ## upper bound
+    uplam = maxLambda(times, V)
+    uplam = uplam-uplam/1000
+    lamspec = paramspec(paramlist, :lambda, start=0.5, fixed=false, lower=1e-100, upper=uplam)
+    textinfo = "Maximum lambda value to maintain positive branch lengths: " * @sprintf("%.6g", uplam)
+    if (lamspec.upper > uplam) 
+        # error if custom upper bound above the maximum
+        @info textinfo * ". Adjusting the user-provided upper bound to the maximum allowed value."
+        lamspec = ParamSpec{Float64}(lamspec.start, lamspec.lower, uplam, lamspec.fixed)
+    end
+    if (!lamspec.fixed && lamspec.upper == uplam) 
+        # only throw info if parameter is not fixed, and the default upper bound is used
+        @info textinfo
+    end
     phylolm_lambda(X,Y,V,reml, gammas, times;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            startingValue=startingValue, fixedValue=fixedValue)
+            lambdaspec=lamspec)
 end
 
 
@@ -179,16 +192,20 @@ function phylolm(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing,
+    paramlist::Dict=Dict{Symbol,Any}(),
     kwargs...
 )
     preorder!(net)
     gammas = getGammas(net)
+    # upper bound: largest λ such that λγ ≤ 1 for all minor γ's
+    # allow for the `ismajor` parent having lower γ
+    largestminorγ = maximum(e.gamma for e in net.edge if e.gamma < 0.5)
+    uplam = 1/largestminorγ * 0.999
+    lamspec = paramspec(paramlist, :lambda, start=0.5, fixed=false, lower=1e-100, upper=uplam)
     phylolm_scalinghybrid(X, Y, net, reml, gammas;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-            startingValue=startingValue, fixedValue=fixedValue)
+            lambdaspec=lamspec)
 end
 
 ###############################################################################
@@ -205,6 +222,9 @@ function pgls(
     Vy = V[:tips] # extract tips matrix
     if (ind != [0]) Vy = Vy[ind, ind] end # re-order if necessary
     Vy = Vy[nonmissing, nonmissing]
+    return pgls(X,Y,Vy)
+end
+function pgls(X::Matrix, Y::Vector, Vy::Matrix)
     R = cholesky(Vy)
     RL = R.L
     # Fit with GLM.lm, and return quantities needed downstream
@@ -272,10 +292,9 @@ function phylolm_lambda(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing
+    lambdaspec::ParamSpec,
 )
-    if ismissing(fixedValue)
+    if !lambdaspec.fixed
         # Find Best lambda using optimize from package NLopt
         opt = NLopt.Opt(:LN_BOBYQA, 1)
         NLopt.ftol_rel!(opt, ftolRel) # relative criterion
@@ -283,12 +302,8 @@ function phylolm_lambda(
         NLopt.xtol_rel!(opt, xtolRel) # criterion on parameter value changes
         NLopt.xtol_abs!(opt, xtolAbs) # criterion on parameter value changes
         NLopt.maxeval!(opt, 1000) # max number of iterations
-        NLopt.lower_bounds!(opt, 1e-100) # Lower bound
-        # Upper Bound
-        up = maxLambda(times, V)
-        up = up-up/1000
-        NLopt.upper_bounds!(opt, up)
-        @info "Maximum lambda value to maintain positive branch lengths: " * @sprintf("%.6g", up)
+        NLopt.lower_bounds!(opt, lambdaspec.lower) # Lower bound
+        NLopt.upper_bounds!(opt, lambdaspec.upper) # Upper Bound
         # count = 0
         function fun(x::Vector{Float64}, g::Vector{Float64})
             x = convert(AbstractFloat, x[1])
@@ -298,24 +313,29 @@ function phylolm_lambda(
             return res
         end
         NLopt.min_objective!(opt, fun)
-        fmin, xmin, ret = NLopt.optimize(opt, [startingValue])
+        fmin, xmin, ret = NLopt.optimize(opt, [getvalue(lambdaspec)])
         # Best value dans result
         res_lam = xmin[1]
+        dof_lambda = 2
     else
-        res_lam = fixedValue
+        res_lam = getvalue(lambdaspec)
+        dof_lambda = 1
     end
     transform_matrix_lambda!(V, res_lam, gammas, times)
     linmod, Vy, RL, logdetVy = pgls(X,Y,V; nonmissing=nonmissing, ind=ind)
     res = PhyloNetworkLinearModel(linmod, V, Vy, RL, Y, X,
-                logdetVy, reml, ind, nonmissing, PagelLambda(res_lam))
+                logdetVy, reml, ind, nonmissing, PagelLambda(res_lam, dof_lambda))
     return res
 end
 
 ###############################################################################
 ## Fit scaling hybrid
 
-function matrix_scalinghybrid(net::HybridNetwork, lam::AbstractFloat,
-                              gammas::Vector)
+function matrix_scalinghybrid(
+    net::HybridNetwork,
+    lam::AbstractFloat,
+    gammas::Vector
+)
     setGammas!(net, 1.0 .- lam .* (1. .- gammas))
     V = sharedpathmatrix(net)
     setGammas!(net, gammas)
@@ -354,10 +374,9 @@ function phylolm_scalinghybrid(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing
+    lambdaspec::ParamSpec,
 )
-    if ismissing(fixedValue)
+    if !lambdaspec.fixed
         # Find Best lambda using optimize from package NLopt
         opt = NLopt.Opt(:LN_BOBYQA, 1)
         NLopt.ftol_rel!(opt, ftolRel) # relative criterion
@@ -365,12 +384,8 @@ function phylolm_scalinghybrid(
         NLopt.xtol_rel!(opt, xtolRel) # criterion on parameter value changes
         NLopt.xtol_abs!(opt, xtolAbs) # criterion on parameter value changes
         NLopt.maxeval!(opt, 1000) # max number of iterations
-        NLopt.lower_bounds!(opt, 1e-100)
-        # upper bound: largest λ such that λγ ≤ 1 for all minor γ's
-        # allow for the `ismajor` parent having lower γ
-        largestminorγ = maximum(e.gamma for e in net.edge if e.gamma < 0.5)
-        up = 1/largestminorγ * 0.999
-        NLopt.upper_bounds!(opt, up)
+        NLopt.lower_bounds!(opt, lambdaspec.lower)
+        NLopt.upper_bounds!(opt, lambdaspec.upper)
         # @info "Maximum lambda value to maintain all γs in [0,1]: " * @sprintf("%.6g", up)
         # count = 0
         function fun(x::Vector{Float64}, g::Vector{Float64})
@@ -381,20 +396,23 @@ function phylolm_scalinghybrid(
             return res
         end
         NLopt.min_objective!(opt, fun)
-        fmin, xmin, ret = NLopt.optimize(opt, [startingValue])
+        fmin, xmin, ret = NLopt.optimize(opt, [getvalue(lambdaspec)])
         res_lam = xmin[1]
+        dof_lam = 2
     else
-        res_lam = fixedValue
+        res_lam = getvalue(lambdaspec)
+        dof_lam = 1
     end
     V = matrix_scalinghybrid(net, res_lam, gammas)
     linmod, Vy, RL, logdetVy = pgls(X,Y,V; nonmissing=nonmissing, ind=ind)
     res = PhyloNetworkLinearModel(linmod, V, Vy, RL, Y, X,
-                logdetVy, reml, ind, nonmissing, ScalingHybrid(res_lam))
+                logdetVy, reml, ind, nonmissing, ScalingHybrid(res_lam, dof_lam))
     return res
 end
 
 """
-    phylolm(f::StatsModels.FormulaTerm, fr::AbstractDataFrame, net::HybridNetwork; kwargs...)
+    phylolm(f::StatsModels.FormulaTerm, fr::AbstractDataFrame,
+        net::HybridNetwork; kwargs...)
 
 Fit a phylogenetic linear regression model to data.
 Return an object of type [`PhyloNetworkLinearModel`](@ref).
@@ -410,7 +428,8 @@ It contains a linear model from the GLM package, in `object.lm`, of type
 Keyword arguments
 
 * `model="BM"`: model for trait evolution (as a string)
-  "lambda" (Pagel's lambda), "scalinghybrid" are other possible values
+  "lambda" (Pagel's lambda), "scalinghybrid" and "gaussiancoalescent"
+  are other possible values
   (see [`ContinuousTraitEM`](@ref))
 * `tipnames=:tipnames`: column name for species/tip-labels, represented
   as a symbol. For example, if the column containing the species/tip labels in
@@ -425,17 +444,24 @@ Keyword arguments
   (if the network is not time-consistent).
 
 The following tolerance parameters control the optimization of lambda if
-`model="lambda"` or `model="scalinghybrid"`, and control the optimization of the
+`model="lambda"`, `model="scalinghybrid"` or `model="gaussiancoalescent"`,
+and control the optimization of the
 variance components if `model="BM"` and `withinspecies_var=true`.
-* `fTolRel=1e-10`: relative tolerance on the likelihood value
-* `fTolAbs=1e-10`: absolute tolerance on the likelihood value
-* `xTolRel=1e-10`: relative tolerance on the parameter value
-* `xTolAbs=1e-10`: absolute tolerance on the parameter value
+* `ftolRel=1e-10`: relative tolerance on the likelihood value
+* `ftolAbs=1e-10`: absolute tolerance on the likelihood value
+* `xtolRel=1e-10`: relative tolerance on the parameter value
+* `xtolAbs=1e-10`: absolute tolerance on the parameter value
 
-* `startingValue=0.5`: If `model`="lambda" or "scalinghybrid", this
-  provides the starting value for the optimization in lambda.
-* `fixedValue=missing`: If `model`="lambda" or "scalinghybrid", and
-  `fixedValue` is a number, then lambda is set to this number and is not optimized.
+* `paramlist`: dictionary to list the specification for parameters that may
+  be fixed or optimized. For each parameter, specifications are given as
+  a named tuple, with names in `start` (for the starting or fixed value),
+  `upper` and `lower` (for bounds if the parameter is optimized),
+  and `fixed` (true or false to fix or optimize the parameter).
+  For models "lambda" or "scalinghybrid" that use a λ parameter,
+  the default corresponds to: `Dict(:lambda => (start=0.5,))`.
+  To fix the λ parameter to λ=0.8, say, use:
+  `Dict(:lambda => (start=0.8, fixed=true))`.
+
 * `withinspecies_var=false`: If `true`, fits a within-species variation model.
   Currently only implemented for `model`="BM".
 * `y_mean_std::Bool=false`: If `true`, and `withinspecies_var=true`, then accounts for
@@ -506,11 +532,13 @@ species standard deviation / sample sizes (if used) will throw an error.
 We first load data from the package and fit the default BM model.
 
 ```jldoctest phylolmdoc
-julia> phy = readnewick(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "caudata_tree.txt"));
+julia> exdir = joinpath(dirname(pathof(PhyloTraits)), "..", "examples");
+
+julia> phy = readnewick(joinpath(exdir, "caudata_tree.txt"));
 
 julia> using DataFrames, CSV # to read data file, next
 
-julia> dat = CSV.read(joinpath(dirname(pathof(PhyloTraits)), "..", "examples", "caudata_trait.txt"), DataFrame);
+julia> dat = CSV.read(joinpath(exdir, "caudata_trait.txt"), DataFrame);
 
 julia> using StatsModels # for stat model formulas
 
@@ -536,7 +564,7 @@ Log Likelihood: -78.9611507833
 AIC: 161.9223015666
 ```
 
-We can extra parameters, likelihood, AIC etc.
+We can extract parameters, likelihood, AIC etc.
 ```jldoctest phylolmdoc
 julia> round(sigma2_phylo(fitBM), digits=6) # rounding for jldoctest convenience
 0.002945
@@ -572,7 +600,7 @@ julia> abs(round(r2(fitBM), digits=10)) # absolute value for jldoctest convenien
 julia> abs(round(adjr2(fitBM), digits=10))
 0.0
 
-julia> round.(vcov(fitBM), digits=6) # variance-covariance of estimated parameters: squared standard error
+julia> round.(vcov(fitBM), digits=6) # (co)variances of estimated parameters: squared standard error
 1×1 Matrix{Float64}:
  0.109314
 ```
@@ -742,8 +770,8 @@ function phylolm(
     xtolRel::AbstractFloat=xRelTr,
     ftolAbs::AbstractFloat=fAbsTr,
     xtolAbs::AbstractFloat=xAbsTr,
-    startingValue::Real=0.5,
-    fixedValue::Union{Real,Missing}=missing,
+    paramlist::Dict=Dict{Symbol,Any}(),
+    # name?? alternatives: params paramvalues paramdict
     withinspecies_var::Bool=false,
     y_mean_std::Bool=false,
     suppresswarnings::Bool=false
@@ -783,8 +811,9 @@ function phylolm(
             error("""for within-species variation, at least 1 species must have at least 2 individuals.
                   did you mean to use option "y_mean_std=true" perhaps?""")
         else
-            (!withinspecies_var || y_mean_std) &&
-            error("""Some tips have data on multiple rows.""")
+            (withinspecies_var && !y_mean_std) ||
+                model == "gaussiancoalescent" ||
+                error("""Some tips have data on multiple rows.""")
         end
     end
     # Find the regression matrix and response vector
@@ -824,15 +853,17 @@ function phylolm(
 
     withinspecies_var && model != "BM" &&
         error("within-species variation is not implemented for non-BM models")
-    modeldic = Dict("BM" => BM(),
-                    "lambda" => PagelLambda(),
-                    "scalinghybrid" => ScalingHybrid())
+    modeldic = Dict(
+        "BM" => BM(),
+        "lambda" => PagelLambda(),
+        "scalinghybrid" => ScalingHybrid(),
+        "gaussiancoalescent" => GaussianCoalescent())
     haskey(modeldic, model) || error("phylolm is not defined for model $model.")
     modelobj = modeldic[model]
 
     res = phylolm(mm.m, Y, net, modelobj; reml=reml, nonmissing=nonmissing, ind=ind,
                   ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
-                  startingValue=startingValue, fixedValue=fixedValue,
+                  paramlist=paramlist,
                   withinspecies_var=withinspecies_var, counts=counts, ySD=ySD,
                   suppresswarnings=suppresswarnings)
     res.formula = f
@@ -1080,7 +1111,7 @@ function StatsModels.isnested(m1m::PhyloNetworkLinearModel, m2m::PhyloNetworkLin
 end
 
 isnested(::T,::T) where T <: ContinuousTraitEM = true
-isnested(::BM,::Union{PagelLambda,ScalingHybrid}) = true
+isnested(BM,m2::Union{PagelLambda,ScalingHybrid}) = dof(m2) == 2 # nested only if lambda *is not* fixed
 isnested(::Union{PagelLambda,ScalingHybrid}, ::BM) = false
 isnested(::ScalingHybrid,::PagelLambda) = false
 isnested(::PagelLambda,::ScalingHybrid) = false

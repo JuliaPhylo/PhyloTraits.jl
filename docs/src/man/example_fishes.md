@@ -175,8 +175,8 @@ extrema(skipmissing(dat[:,:preference]))
 
 ## Phylogenetic signal: Pagel's lambda
 
-We can use [Pagel's lambda](phyloregression.md#Pagel's-Lambda) transformation to asses the
-phylogenetic sigal.
+We can use [Pagel's lambda](phyloregression.md#Pagel's-Lambda)
+transformation to assess phylogenetic signal.
 
 ```@repl fish
 lambda_si = phylolm(@formula(sword_index ~ 1), dat, net3, model="lambda")
@@ -207,7 +207,7 @@ maximum value so that the transformation does not produce negative branch length
 
 ## Phylogenetic regression of sword index versus preference
 
-Phylogenetic regression can help us anwser the question:
+Phylogenetic regression can help us answer the question:
 does preference influence sword index?
 
 ```@example fish
@@ -222,7 +222,8 @@ nothing      # hide
 
 ```@repl fish
 fit_BM = phylolm(@formula(sword_index ~ preference), dat, net3)
-fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3, model="lambda"; suppresswarnings=true)
+fit_λ  = phylolm(@formula(sword_index ~ preference), dat, net3,
+        model="lambda"; suppresswarnings=true)
 lrtest(fit_BM,fit_λ)
 ```
 On both Brownian motion and Pagel's lambda models,
@@ -234,7 +235,7 @@ improve the model's ability to explain the patterns in the data.
 Since the Brownian Motion model is nested within the Pagel's lambda model
 (BM assumes λ=1), we can use a likelihood ratio test to more formally conclude
 that the Pagel's lambda model does not significantly fit the data better than
-the Brownain Motion alone.
+the Brownian motion alone.
 
 
 ## Transgressive evolution
