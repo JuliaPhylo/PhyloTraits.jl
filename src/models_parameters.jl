@@ -25,9 +25,14 @@ function ParamSpec(
     if ismissing(s)
         s = max(d.start, l) # start = lower if 'start' not provided but 'lower' is
     end
-    (l ≤ s ≤ u) ||
-        error("starting value $s needs to be in between bounds [$l,$u]")
     if ismissing(f) f = d.fixed; end
+    f || # case where the parameter is not fixed
+        (l ≤ s ≤ u) || # check inclusion
+        error("starting value $s needs to be in between bounds [$l,$u]")
+    !f || # case where the parameter is fixed
+        (l ≤ s ≤ u) || # check inclusion
+        (s == 0.0 && isapprox(l, s; atol = eps(typeof(l)))) || # case where lower bound is 1e-100
+        error("fixed value $s needs to be in between bounds [$l,$u]")
     return ParamSpec{T}(s,l,u,f)
 end
 

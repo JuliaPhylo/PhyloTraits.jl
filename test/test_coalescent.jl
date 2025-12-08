@@ -71,6 +71,14 @@ f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
 @test dof(f0) == 3 # intercept, s2, lambda
 @test aic(f0) ≈ 19.815891001039365
 
+# bounds
+f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
+        paramlist=Dict(:lambda => (start=0.1, upper=11.3)))
+@test lambda_estim(f0) ≈ 11.3
+f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
+        paramlist=Dict(:lambda => (start=18.4, lower=15.3)))
+@test lambda_estim(f0) ≈ 15.3
+
 f0 = phylolm(@formula(trait ~ 1),df,net; reml=false, model="gaussiancoalescent",
         paramlist=Dict(:lambda => (start=0, fixed=true)))
 @test f0.evomodel.Ne == 1

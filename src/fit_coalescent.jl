@@ -22,8 +22,8 @@ function phylolm(
         net = deepcopy(net)
         for e in net.edge  e.length /= Ne; end
     end
-    λspec  = paramspec(paramlist, :lambda, lower=0.0)
-    v0spec = paramspec(paramlist, :v0, lower=0.0, fixed=false)
+    λspec  = paramspec(paramlist, :lambda, lower=1e-100, upper=Inf) # lower: constraint λ≥0 but avoid <0 trials
+    v0spec = paramspec(paramlist, :v0, lower=1e-100, fixed=false)
     # σ2 = λ*v0 (per coal unit, Ne=1) to be optimized analytically
     !v0spec.fixed || !λspec.fixed ||
         error("please estimate either λ or v0, for the Gaussian-Coalescent")
@@ -63,12 +63,12 @@ function phylolm_gcoal_lambda(
     else
         gc_dof += 1 # also optimize λ
         optsum = OptSummary([getvalue(λspec)],
-          [1e-100], # constraint λ≥0 but avoid <0 trials
+          [λspec.lower],
           :LN_BOBYQA; initial_step=[0.01],
           ftol_rel=ftolRel, ftol_abs=ftolAbs, xtol_rel=xtolRel, xtol_abs=[xtolAbs])
         optsum.maxfeval = 1000 # max number of iterations
-        # no upper bound theoretically
         opt = Opt(optsum)
+        NLopt.upper_bounds!(opt, λspec.upper) # no upper bound theoretically (default is Inf)
         function fun(x::Vector{Float64}, g::Vector{Float64})
             λ = x[1]
             M, V = gaussiancoalescent_covariancematrix!(MV, net, λ)

@@ -138,10 +138,28 @@ fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(@
 @test lambda_estim(fitlam) ≈ 1.24875
 @test dof(fitlam) ≈ dof(fitbis) + 1
 
+## Pagel's Lambda - custom upper
+fitlam = phylolm(@formula(trait ~ 1), dfr, net, model="lambda", paramlist=Dict(:lambda => (upper=0.92, )), reml=false)
+@test lambda_estim(fitlam) ≈ 0.92
+fitlam = (@test_logs (:info, r"Adjusting") match_mode=:any phylolm(@formula(trait ~ 1), dfr, net, model="lambda", paramlist=Dict(:lambda => (upper=2.34, )), reml=false))
+@test lambda_estim(fitlam) ≈ 1.24875
+@test_throws ErrorException("fixed value 2.34 needs to be in between bounds [1.0e-100,1.24875]") phylolm(@formula(trait ~ 1), dfr, net, model="lambda", paramlist=Dict(:lambda => (fixed=true, start=2.34, )), reml=false)
+fitlam = phylolm(@formula(trait ~ 1), dfr, net, model="lambda", paramlist=Dict(:lambda => (fixed=true, start=0.0, )), reml=false)
+@test lambda_estim(fitlam) ≈ 0.0
+@test_throws ErrorException("starting value 2.34 needs to be in between bounds [1.0e-100,1.24875]") phylolm(@formula(trait ~ 1), dfr, net, model="lambda", paramlist=Dict(:lambda => (fixed=false, start=2.34, )), reml=false)
+@test_throws ErrorException("starting value 0.0 needs to be in between bounds [1.0e-100,1.24875]") phylolm(@formula(trait ~ 1), dfr, net, model="lambda", paramlist=Dict(:lambda => (fixed=false, start=0.0, )), reml=false)
+
+
 ## Scaling Hybrid
 fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalinghybrid", reml=false)
 @test lambda_estim(fitSH) ≈ 4.057891910001937 atol=1e-5
 @test dof(fitSH) ≈ dof(fitbis) + 1
+
+## Scaling Hybrid - custom bounds
+fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalinghybrid", reml=false, paramlist=Dict(:lambda => (lower=5.2, )))
+@test lambda_estim(fitSH) ≈ 5.2 atol=1e-5
+fitSH = phylolm(@formula(trait ~ 1), dfr, net, model="scalinghybrid", reml=false, paramlist=Dict(:lambda => (upper=3.4, )))
+@test lambda_estim(fitSH) ≈ 3.4 atol=1e-5
 
 end
 

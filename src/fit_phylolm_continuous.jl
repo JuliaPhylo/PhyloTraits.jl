@@ -107,7 +107,20 @@ function phylolm(
         """
         times = getnodeheights_majortree(net, false; warn=false)
     end
-    lamspec = paramspec(paramlist, :lambda, start=0.5, fixed=false)
+    ## upper bound
+    uplam = maxLambda(times, V)
+    uplam = uplam-uplam/1000
+    lamspec = paramspec(paramlist, :lambda, start=0.5, fixed=false, lower=1e-100, upper=uplam)
+    textinfo = "Maximum lambda value to maintain positive branch lengths: " * @sprintf("%.6g", uplam)
+    if (lamspec.upper > uplam) 
+        # error if custom upper bound above the maximum
+        @info textinfo * ". Adjusting the user-provided upper bound to the maximum allowed value."
+        lamspec = ParamSpec{Float64}(lamspec.start, lamspec.lower, uplam, lamspec.fixed)
+    end
+    if (!lamspec.fixed && lamspec.upper == uplam) 
+        # only throw info if parameter is not fixed, and the default upper bound is used
+        @info textinfo
+    end
     phylolm_lambda(X,Y,V,reml, gammas, times;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
@@ -184,7 +197,11 @@ function phylolm(
 )
     preorder!(net)
     gammas = getGammas(net)
-    lamspec = paramspec(paramlist, :lambda, start=0.5, fixed=false)
+    # upper bound: largest λ such that λγ ≤ 1 for all minor γ's
+    # allow for the `ismajor` parent having lower γ
+    largestminorγ = maximum(e.gamma for e in net.edge if e.gamma < 0.5)
+    uplam = 1/largestminorγ * 0.999
+    lamspec = paramspec(paramlist, :lambda, start=0.5, fixed=false, lower=1e-100, upper=uplam)
     phylolm_scalinghybrid(X, Y, net, reml, gammas;
             nonmissing=nonmissing, ind=ind,
             ftolRel=ftolRel, xtolRel=xtolRel, ftolAbs=ftolAbs, xtolAbs=xtolAbs,
@@ -285,12 +302,8 @@ function phylolm_lambda(
         NLopt.xtol_rel!(opt, xtolRel) # criterion on parameter value changes
         NLopt.xtol_abs!(opt, xtolAbs) # criterion on parameter value changes
         NLopt.maxeval!(opt, 1000) # max number of iterations
-        NLopt.lower_bounds!(opt, 1e-100) # Lower bound
-        # Upper Bound
-        up = maxLambda(times, V)
-        up = up-up/1000
-        NLopt.upper_bounds!(opt, up)
-        @info "Maximum lambda value to maintain positive branch lengths: " * @sprintf("%.6g", up)
+        NLopt.lower_bounds!(opt, lambdaspec.lower) # Lower bound
+        NLopt.upper_bounds!(opt, lambdaspec.upper) # Upper Bound
         # count = 0
         function fun(x::Vector{Float64}, g::Vector{Float64})
             x = convert(AbstractFloat, x[1])
@@ -371,12 +384,8 @@ function phylolm_scalinghybrid(
         NLopt.xtol_rel!(opt, xtolRel) # criterion on parameter value changes
         NLopt.xtol_abs!(opt, xtolAbs) # criterion on parameter value changes
         NLopt.maxeval!(opt, 1000) # max number of iterations
-        NLopt.lower_bounds!(opt, 1e-100)
-        # upper bound: largest λ such that λγ ≤ 1 for all minor γ's
-        # allow for the `ismajor` parent having lower γ
-        largestminorγ = maximum(e.gamma for e in net.edge if e.gamma < 0.5)
-        up = 1/largestminorγ * 0.999
-        NLopt.upper_bounds!(opt, up)
+        NLopt.lower_bounds!(opt, lambdaspec.lower)
+        NLopt.upper_bounds!(opt, lambdaspec.upper)
         # @info "Maximum lambda value to maintain all γs in [0,1]: " * @sprintf("%.6g", up)
         # count = 0
         function fun(x::Vector{Float64}, g::Vector{Float64})
