@@ -435,12 +435,13 @@ Keyword arguments
   (if the network is not time-consistent).
 
 The following tolerance parameters control the optimization of lambda if
-`model="lambda"` or `model="scalinghybrid"`, and control the optimization of the
+`model="lambda"`, `model="scalinghybrid"` or `model="gaussiancoalescent"`,
+and control the optimization of the
 variance components if `model="BM"` and `withinspecies_var=true`.
-* `fTolRel=1e-10`: relative tolerance on the likelihood value
-* `fTolAbs=1e-10`: absolute tolerance on the likelihood value
-* `xTolRel=1e-10`: relative tolerance on the parameter value
-* `xTolAbs=1e-10`: absolute tolerance on the parameter value
+* `ftolRel=1e-10`: relative tolerance on the likelihood value
+* `ftolAbs=1e-10`: absolute tolerance on the likelihood value
+* `xtolRel=1e-10`: relative tolerance on the parameter value
+* `xtolAbs=1e-10`: absolute tolerance on the parameter value
 
 * `paramlist`: dictionary to list the specification for parameters that may
   be fixed or optimized. For each parameter, specifications are given as
