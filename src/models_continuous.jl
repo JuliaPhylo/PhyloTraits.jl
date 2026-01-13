@@ -972,7 +972,7 @@ function paramstable(m::PhyloNetworkLinearModel)
 end
 # see also Base.show in
 # https://github.com/JuliaStats/StatsModels.jl/blob/master/src/statsmodel.jl
-function Base.show(io::IO, obj::PhyloNetworkLinearModel)
+function Base.show(io::IO, ::MIME"text/plain", obj::PhyloNetworkLinearModel)
     ct = coeftable(obj)
     println(io, "$(typeof(obj))")
     if !(obj.formula === nothing)
@@ -986,7 +986,7 @@ function Base.show(io::IO, obj::PhyloNetworkLinearModel)
     println(io, paramstable(obj))
     println(io)
     println(io,"Coefficients:")
-    show(io, ct)
+    show(io, MIME"text/plain"(), ct)
     println(io)
     println(io, "Log Likelihood: "*"$(round(loglikelihood(obj), digits=10))")
     println(io, "AIC: "*"$(round(aic(obj), digits=10))")

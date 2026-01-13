@@ -20,6 +20,23 @@ Y = [11.239539657364706,8.600423079191044,10.559841251147608,9.965748423156297] 
 X = ones(4, 1)
 phynetlm = phylolm(X, Y, net; reml=false)
 @test_logs show(devnull, phynetlm)
+repr("text/plain", phynetlm) == """
+PhyloNetworkLinearModel
+
+Model: Brownian motion
+
+Parameter Estimates, using ML:
+phylogenetic variance rate: 0.419632
+
+Coefficients:
+──────────────────────────────────────────────────────────────
+      Coef.  Std. Error      t  Pr(>|t|)  Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────
+x1  10.1581    0.698781  14.54    0.0007    7.93428    12.3819
+──────────────────────────────────────────────────────────────
+Log Likelihood: -5.4624524661
+AIC: 14.9249049321
+"""
 # Naive version (GLS)
 ntaxa = length(Y)
 Vy = phynetlm.Vy
