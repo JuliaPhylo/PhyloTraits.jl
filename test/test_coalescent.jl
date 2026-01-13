@@ -101,8 +101,8 @@ Ne: 2
 σ2 equilibrium (within pop): 0.547036
 λ: 0.1
 """
-s = IOBuffer(); show(s, f0)
-@test occursin(tmp, String(take!(s)))
+s = repr("text/plain", f0)
+@test occursin(tmp, s)
 @test dof(f0) == 2
 
 @test_throws "estimate either λ or v0" phylolm(@formula(trait~1),df,net;
