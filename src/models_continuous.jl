@@ -174,7 +174,7 @@ function shift_coeftable(shift::ShiftNet)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", obj::ShiftNet)
-    println(io, "$(typeof(obj)):\n")
+    println(io, "$(typeof(obj)):")
     show(io, MIME"text/plain"(), shift_coeftable(obj))
 end
 
@@ -251,11 +251,11 @@ end
 process_dim(::ParamsBM) = 1
 
 function Base.show(io::IO, ::MIME"text/plain", obj::ParamsBM)
-    println(io, "$(typeof(obj)):\n")
+    println(io, "$(typeof(obj)):")
     if obj.randomRoot
-        println(io, "Parameters of a BM with random root:\n")
+        println(io, "Parameters of a BM with random root:")
     else
-        println(io, "Parameters of a BM with fixed root:\n")
+        println(io, "Parameters of a BM with fixed root:")
     end
     showparamstable(io, MIME"text/plain"(), obj)
 end
@@ -263,10 +263,10 @@ end
 function showparamstable(io::IO, ::MIME"text/plain", obj::ParamsBM)
     println(io, "mu: $(obj.mu)\nSigma2: $(obj.sigma2)")
     if obj.randomRoot
-        println(io, "\nvarRoot: $(obj.varRoot)")
+        println(io, "varRoot: $(obj.varRoot)")
     end
     if anyShift(obj)
-        println(io, "\n\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:\n")
+        println(io, "\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:")
         show(io, MIME"text/plain"(), shift_coeftable(obj.shift))
     end
 end
@@ -358,11 +358,11 @@ end
 process_dim(params::ParamsMultiBM) = length(params.mu)
 
 function Base.show(io::IO, ::MIME"text/plain", obj::ParamsMultiBM)
-    println(io, "$(typeof(obj)):\n")
+    println(io, "$(typeof(obj)):")
     if obj.randomRoot
-        println(io, "Parameters of a MBD with random root:\n")
+        println(io, "Parameters of a MBD with random root:")
     else
-        println(io, "Parameters of a MBD with fixed root:\n")
+        println(io, "Parameters of a MBD with fixed root:")
     end
     showparamstable(io, MIME"text/plain"(), obj)
 end
@@ -370,10 +370,10 @@ end
 function showparamstable(io::IO, ::MIME"text/plain", obj::ParamsMultiBM)
     println(io, "mu: $(obj.mu)\nSigma: $(obj.sigma)")
     if obj.randomRoot
-        println(io, "\nvarRoot: $(obj.varRoot)")
+        println(io, "varRoot: $(obj.varRoot)")
     end
     if anyShift(obj)
-        println(io, "\n\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:\n")
+        println(io, "\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:")
         show(io, MIME"text/plain"(), shift_coeftable(obj.shift))
     end
 end

@@ -98,15 +98,11 @@ pars = ParamsBM(1, 0.1, ShiftNet(net.edge[8], 3.0,  net)); # params of a BM
 @test_logs show(devnull, pars)
 @test repr("text/plain", pars) == """
 ParamsBM:
-
 Parameters of a BM with fixed root:
-
 mu: 1.0
 Sigma2: 0.1
 
-
 There are 1 shifts on the network:
-
 ──────────────────────────
   Edge Number  Shift Value
 ──────────────────────────
@@ -117,7 +113,6 @@ There are 1 shifts on the network:
 @test_logs show(devnull, pars.shift)
 @test repr("text/plain", pars.shift) == """
 ShiftNet:
-
 ──────────────────────────
   Edge Number  Shift Value
 ──────────────────────────
@@ -144,15 +139,11 @@ meansNodes = sim[:internalnodes, :exp];
 pars = ParamsMultiBM([1.0], 0.1*ones(1,1), ShiftNet(net.edge[8], 3.0,  net));
 @test repr("text/plain", pars) == """
 ParamsMultiBM:
-
 Parameters of a MBD with fixed root:
-
 mu: [1.0]
 Sigma: [0.1;;]
 
-
 There are 1 shifts on the network:
-
 ──────────────────────────
   Edge Number  Shift Value
 ──────────────────────────
@@ -162,15 +153,11 @@ There are 1 shifts on the network:
 simMulti = rand(net, pars);
 @test repr("text/plain", simMulti) == """
 TraitSimulation:
-
 Trait simulation results on a network with 4 tips, using a MBD model, with parameters:
-
 mu: [1.0]
 Sigma: [0.1;;]
 
-
 There are 1 shifts on the network:
-
 ──────────────────────────
   Edge Number  Shift Value
 ──────────────────────────

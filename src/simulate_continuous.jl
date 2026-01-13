@@ -17,8 +17,8 @@ struct TraitSimulation
 end
 
 function Base.show(io::IO, ::MIME"text/plain", obj::TraitSimulation)
-    println(io, "$(typeof(obj)):\n")
-    println(io, "Trait simulation results on a network with $(length(obj.M.tipnames)) tips, using a $(obj.evomodel) model, with parameters:\n")
+    println(io, "$(typeof(obj)):")
+    println(io, "Trait simulation results on a network with $(length(obj.M.tipnames)) tips, using a $(obj.evomodel) model, with parameters:")
     showparamstable(io, MIME"text/plain"(), obj.params)
 end
 

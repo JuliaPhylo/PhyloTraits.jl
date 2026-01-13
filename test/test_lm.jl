@@ -576,7 +576,6 @@ blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in anc
 @test_logs show(devnull, blup)
 @test repr("text/plain", blup) == """
 ReconstructedStates:
-
 ────────────────────────────────────────────
   Node index     Pred.      Min.  Max. (95%)
 ────────────────────────────────────────────

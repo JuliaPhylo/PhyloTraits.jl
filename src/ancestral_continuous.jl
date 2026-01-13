@@ -125,7 +125,7 @@ function getpredint(obj::ReconstructedStates; level::Real=0.95)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", obj::ReconstructedStates)
-    println(io, "$(typeof(obj)):\n")
+    println(io, "$(typeof(obj)):")
     show(io, MIME"text/plain"(),
         CoefTable(hcat(vcat(obj.nodenumbers, obj.tipnumbers), vcat(obj.traits_nodes, obj.traits_tips), getpredint(obj)),
                   ["Node index", "Pred.", "Min.", "Max. (95%)"],
