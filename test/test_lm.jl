@@ -20,7 +20,7 @@ Y = [11.239539657364706,8.600423079191044,10.559841251147608,9.965748423156297] 
 X = ones(4, 1)
 phynetlm = phylolm(X, Y, net; reml=false)
 @test_logs show(devnull, phynetlm)
-repr("text/plain", phynetlm) == """
+@test repr("text/plain", phynetlm) == """
 PhyloNetworkLinearModel
 
 Model: Brownian motion
@@ -574,7 +574,7 @@ phynetlm = phylolm(@formula(trait~1), dfr, net)
 blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(phynetlm));
 # plot(net, blup)
 @test_logs show(devnull, blup)
-repr("text/plain", blup) == """
+@test repr("text/plain", blup) == """
 ReconstructedStates:
 
 ────────────────────────────────────────────
@@ -606,8 +606,7 @@ ReconstructedStates:
         12.0  5.50165   5.50165     5.50165
         13.0  3.87327   3.87327     3.87327
         14.0  4.79013   4.79013     4.79013
-────────────────────────────────────────────
-"""
+────────────────────────────────────────────"""
 
 
 # BLUP same, using the function directly

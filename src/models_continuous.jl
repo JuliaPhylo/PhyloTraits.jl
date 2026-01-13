@@ -173,9 +173,9 @@ function shift_coeftable(shift::ShiftNet)
               fill("", size(sv, 1)))
 end
 
-function Base.show(io::IO, obj::ShiftNet)
-    println(io, "$(typeof(obj)):\n",
-            shift_coeftable(obj))
+function Base.show(io::IO, ::MIME"text/plain", obj::ShiftNet)
+    println(io, "$(typeof(obj)):\n")
+    show(io, MIME"text/plain"(), shift_coeftable(obj))
 end
 
 function Base.:*(sh1::ShiftNet, sh2::ShiftNet)

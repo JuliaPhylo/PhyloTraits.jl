@@ -96,7 +96,17 @@ sh = ShiftNet(net.node[7], 3.0,  net)
 
 pars = ParamsBM(1, 0.1, ShiftNet(net.edge[8], 3.0,  net)); # params of a BM
 @test_logs show(devnull, pars)
+
+
 @test_logs show(devnull, pars.shift)
+@test repr("text/plain", pars.shift) == """
+ShiftNet:
+
+──────────────────────────
+  Edge Number  Shift Value
+──────────────────────────
+          8.0          3.0
+──────────────────────────"""
 
 Random.seed!(17920921); # fix the seed
 sim = rand(net, pars); # simulate according to a BM
