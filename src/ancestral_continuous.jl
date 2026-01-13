@@ -124,11 +124,12 @@ function getpredint(obj::ReconstructedStates; level::Real=0.95)
     return vcat(tmpnode, hcat(obj.traits_tips, obj.traits_tips))
 end
 
-function Base.show(io::IO, obj::ReconstructedStates)
-    println(io, "$(typeof(obj)):\n",
-            CoefTable(hcat(vcat(obj.nodenumbers, obj.tipnumbers), vcat(obj.traits_nodes, obj.traits_tips), getpredint(obj)),
-                      ["Node index", "Pred.", "Min.", "Max. (95%)"],
-                      fill("", length(obj.nodenumbers)+length(obj.tipnumbers))))
+function Base.show(io::IO, ::MIME"text/plain", obj::ReconstructedStates)
+    println(io, "$(typeof(obj)):\n")
+    show(io, MIME"text/plain"(),
+        CoefTable(hcat(vcat(obj.nodenumbers, obj.tipnumbers), vcat(obj.traits_nodes, obj.traits_tips), getpredint(obj)),
+                  ["Node index", "Pred.", "Min.", "Max. (95%)"],
+                  fill("", length(obj.nodenumbers)+length(obj.tipnumbers))))
 end
 
 """
