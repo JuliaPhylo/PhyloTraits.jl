@@ -259,6 +259,11 @@ function Base.show(io::IO, ::MIME"text/plain", obj::ParamsBM)
     end
     showparamstable(io, MIME"text/plain"(), obj)
 end
+function Base.show(io::IO, obj::ParamsBM) # no newlines
+    print(io, "Parameters of a BM with " *
+        (obj.randomRoot ? "random" : "fixed") * " root ")
+    showparamstable(io, obj)
+end
 
 function showparamstable(io::IO, ::MIME"text/plain", obj::ParamsBM)
     println(io, "mu: $(obj.mu)\nSigma2: $(obj.sigma2)")
@@ -270,6 +275,11 @@ function showparamstable(io::IO, ::MIME"text/plain", obj::ParamsBM)
         show(io, MIME"text/plain"(), shift_coeftable(obj.shift))
     end
 end
+showparamstable(io::IO, obj::ParamsBM) = print(io, # no newlines, less details
+    "mu=$(obj.mu) sigma2=$(obj.sigma2)" *
+    (obj.randomRoot ? " varRoot=$(obj.varRoot)" : "") *
+    (anyShift(obj) ? " $(length(getshiftvalue(obj.shift))) shifts" : "")
+)
 
 """
     ParamsMultiBM <: ParamsProcess
@@ -366,6 +376,11 @@ function Base.show(io::IO, ::MIME"text/plain", obj::ParamsMultiBM)
     end
     showparamstable(io, MIME"text/plain"(), obj)
 end
+function Base.show(io::IO, obj::ParamsMultiBM) # no newlines
+    print(io, "Parameters of a MBM with " *
+        (obj.randomRoot ? "random" : "fixed") * " root ")
+    showparamstable(io, obj)
+end
 
 function showparamstable(io::IO, ::MIME"text/plain", obj::ParamsMultiBM)
     println(io, "mu: $(obj.mu)\nSigma: $(obj.sigma)")
@@ -377,7 +392,11 @@ function showparamstable(io::IO, ::MIME"text/plain", obj::ParamsMultiBM)
         show(io, MIME"text/plain"(), shift_coeftable(obj.shift))
     end
 end
-
+showparamstable(io::IO, obj::ParamsMultiBM) = print(io,
+    "mu=$(obj.mu) Sigma=$(obj.sigma)" *
+    (obj.randomRoot ? " varRoot=$(obj.varRoot)" : "") *
+    (anyShift(obj) ? " and $(length(getshiftvalue(obj.shift))) shifts" : "")
+)
 
 """
     WithinSpeciesCTM
@@ -987,3 +1006,8 @@ function Base.show(io::IO, ::MIME"text/plain", obj::PhyloNetworkLinearModel)
     println(io, "Log Likelihood: "*"$(round(loglikelihood(obj), digits=10))")
     println(io, "AIC: "*"$(round(aic(obj), digits=10))")
 end
+# 2-argument method with no newlines
+Base.show(io::IO, obj::PhyloNetworkLinearModel) = print(io,
+    string(obj.formula) * ", $(evomodelname(obj.evomodel)) model" *
+    " using " * (obj.reml ? "REML" : "ML") *
+    ", Log Likelihood $(round(loglikelihood(obj), digits=10))")
