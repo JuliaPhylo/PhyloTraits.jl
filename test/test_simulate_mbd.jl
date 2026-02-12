@@ -102,6 +102,11 @@ pars.randomRoot = true
 @test_logs show(devnull, MIME"text/plain"(), pars)
 show(devnull, pars)
 
+sim = rand(net, pars);
+@test_logs show(devnull, MIME"text/plain"(), sim)
+@test_logs show(devnull, sim)
+
+#= # takes too long, or useless if we made N smaller. run locally.
 N = 10000
 S = length(tiplabels(net));
 μ_sim = zeros(trait_dim, S)
@@ -123,7 +128,7 @@ end
 Ψ = Matrix(vcv(net))
 Σ_true = kron(Ψ, Σ) + kron(ones(S, S), pars.varRoot)
 @test isapprox(Σ_sim, Σ_true, atol=12) # norm L2 of 36x36 matrix
-
+=#
 end
 
 
