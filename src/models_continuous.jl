@@ -1008,6 +1008,7 @@ function Base.show(io::IO, ::MIME"text/plain", obj::PhyloNetworkLinearModel)
 end
 # 2-argument method with no newlines
 Base.show(io::IO, obj::PhyloNetworkLinearModel) = print(io,
-    string(obj.formula) * ", $(evomodelname(obj.evomodel)) model" *
+    (isnothing(obj.formula) ? "No formula" : string(obj.formula)) *
+    ", $(evomodelname(obj.evomodel)) model" *
     " using " * (obj.reml ? "REML" : "ML") *
     ", Log Likelihood $(round(loglikelihood(obj), digits=10))")

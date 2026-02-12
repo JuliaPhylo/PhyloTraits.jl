@@ -19,7 +19,8 @@ sim = rand(net, params) # tests that the simulation runs, but results not used
 Y = [11.239539657364706,8.600423079191044,10.559841251147608,9.965748423156297] # sim[:tips]
 X = ones(4, 1)
 phynetlm = phylolm(X, Y, net; reml=false)
-@test_logs show(devnull, phynetlm)
+@test repr(phynetlm) ==
+  "No formula, Brownian motion model using ML, Log Likelihood -5.4624524661"
 @test repr("text/plain", phynetlm) == """
 PhyloNetworkLinearModel
 
@@ -113,7 +114,8 @@ tmp = (@test_logs (:warn, r"^You fitted the data against a custom matrix") mu_ph
 ## fixed values parameters
 fitlam = phylolm(@formula(trait ~ 1), dfr, net, model="lambda",
     paramlist=Dict(:lambda => (fixed=true, start=1.0)), reml=false)
-@test_logs show(devnull, fitlam)
+@test repr(fitlam) == "trait ~ 1, Pagel's lambda model using ML, Log Likelihood -5.4624524661"
+@test_logs show(devnull, MIME"text/plain"(), fitlam)
 
 @test lambda_estim(fitlam) ≈ 1.0
 @test coef(fitlam) ≈ coef(fitbis)
@@ -212,7 +214,9 @@ dfr = innerjoin(dfr, dfr_hybrid, on=:tipnames)
 
 ## Simple BM
 fitShift = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net; reml=false)
-@test_logs show(devnull, fitShift)
+@test_logs show(devnull, MIME"text/plain"(), fitShift)
+@test repr(fitShift) ==
+  "trait ~ 1 + shift_8 + shift_17, Brownian motion model using ML, Log Likelihood -12.5503351983"
 
 ## Test against fixed values lambda models
 fitlam = (@test_logs (:warn,
@@ -557,7 +561,9 @@ fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(
 
 ## scaling Hybrid
 fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid", reml=false)
-@test_logs show(devnull, fitSH)
+@test_logs show(devnull, MIME"text/plain"(), fitSH)
+@test occursin("trait ~ 1 + pred, Lambda's scaling hybrid model using ML, Log Likelihood",
+    repr(fitSH))
 @test lambda_estim(fitSH) ≈ 0 atol=1e-6
 
 ### Ancestral State Reconstruction
@@ -573,7 +579,7 @@ phynetlm = phylolm(@formula(trait~1), dfr, net)
 # prediction intervals larger with reml=true than with reml=false
 blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(phynetlm));
 # plot(net, blup)
-@test_logs show(devnull, blup)
+@test repr(blup) == "ReconstructedStates: at 14 nodes and 12 tips"
 @test repr("text/plain", blup) == """
 ReconstructedStates:
 ────────────────────────────────────────────

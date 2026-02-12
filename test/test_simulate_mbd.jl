@@ -22,10 +22,12 @@ Random.seed!(17920921); # fix the seed
 @test_throws ErrorException ParamsMultiBM(μ[1:2], Σ)
 
 pars = ParamsMultiBM(μ, Σ); # params of a MBD
-@test_logs show(devnull, pars)
+@test_logs show(devnull, MIME"text/plain"(), pars)
+@test occursin(r"^Parameters of a MBM with fixed root mu=", repr(pars))
 
 sim = rand(net, pars); # simulate according to a BM
-@test_logs show(devnull, sim)
+@test_logs show(devnull, MIME"text/plain"(), sim)
+@test occursin(r"^Trait simulated on a network with 12 tips using a MBD model", repr(sim))
 @test_throws ErrorException sim[:tips, :Broken]
 
 # Extract simulated values
@@ -97,7 +99,7 @@ pars = ParamsMultiBM(μ, Σ); # params of a MBD
 pars.varRoot = Σ_root
 pars.randomRoot = true
 
-@test_logs show(devnull, pars)
+@test_logs show(devnull, MIME"text/plain"(), pars)
 show(devnull, pars)
 
 N = 10000

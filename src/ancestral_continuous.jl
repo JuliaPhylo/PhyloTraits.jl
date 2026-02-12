@@ -131,6 +131,9 @@ function Base.show(io::IO, ::MIME"text/plain", obj::ReconstructedStates)
                   ["Node index", "Pred.", "Min.", "Max. (95%)"],
                   fill("", length(obj.nodenumbers)+length(obj.tipnumbers))))
 end
+function Base.show(io::IO, obj::ReconstructedStates) # no newline, less info
+    print(io, "$(typeof(obj)): at $(length(obj.nodenumbers)) nodes and $(length(obj.tipnumbers)) tips")
+end
 
 """
     formatinterval(obj::ReconstructedStates, pred::DataFrame, withexpectation::Bool=false, digits::Int=2)
