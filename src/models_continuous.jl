@@ -177,6 +177,10 @@ function Base.show(io::IO, ::MIME"text/plain", obj::ShiftNet)
     println(io, "$(typeof(obj)):")
     show(io, MIME"text/plain"(), shift_coeftable(obj))
 end
+function Base.show(io::IO, obj::ShiftNet)
+    ne,p = size(getshiftvalue(obj))
+    print(io, "$(typeof(obj)): $p-dim shift on $ne edge(s)")
+end
 
 function Base.:*(sh1::ShiftNet, sh2::ShiftNet)
     PN.isEqual(sh1.net, sh2.net) ||
@@ -278,7 +282,7 @@ end
 showparamstable(io::IO, obj::ParamsBM) = print(io, # no newlines, less details
     "mu=$(obj.mu) sigma2=$(obj.sigma2)" *
     (obj.randomRoot ? " varRoot=$(obj.varRoot)" : "") *
-    (anyShift(obj) ? " $(length(getshiftvalue(obj.shift))) shifts" : "")
+    (anyShift(obj) ? " and $(length(getshiftvalue(obj.shift))) shift(s)" : "")
 )
 
 """
@@ -395,7 +399,7 @@ end
 showparamstable(io::IO, obj::ParamsMultiBM) = print(io,
     "mu=$(obj.mu) Sigma=$(obj.sigma)" *
     (obj.randomRoot ? " varRoot=$(obj.varRoot)" : "") *
-    (anyShift(obj) ? " and $(length(getshiftvalue(obj.shift))) shifts" : "")
+    (anyShift(obj) ? " and $(length(getshiftvalue(obj.shift))) shift(s)" : "")
 )
 
 """

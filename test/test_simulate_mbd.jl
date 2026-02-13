@@ -154,6 +154,7 @@ Random.seed!(275698234545); # fix the seed
 ## Concatenate function
 sh1 = ShiftNet(net.node[7], [1.0, 2.0],  net)*ShiftNet(net.node[9], [3.0, -1.5],  net)
 @test_logs show(devnull, sh1)
+@test repr(sh1) == "ShiftNet: 2-dim shift on 2 edge(s)"
 @test sh1.shift ≈ ShiftNet([net.node[7], net.node[9]], [1.0 2.0; 3.0 -1.5],  net).shift
 @test_throws ErrorException sh1*ShiftNet(net.edge[7], [4.0, 3.5],  net) # can't concatenate if the two affect the same edges
 @test sh1.shift ≈ (sh1*ShiftNet([net.node[7]], [1.0 2.0],  net)).shift
