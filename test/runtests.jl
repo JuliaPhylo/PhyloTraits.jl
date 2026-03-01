@@ -6,7 +6,8 @@ using BioSymbols
 using CSV
 using DataFrames
 using GLM # for coef, nobs, residuals etc. reexports @formula from StatsModels
-using LinearAlgebra: norm, diag, logdet, PosDefException # LinearAlgebra.rotate! not brought into scope
+# do *not* bring LinearAlgebra.rotate! into scope
+using LinearAlgebra: norm, diag, logdet, PosDefException, LowerTriangular
 using PhyloNetworks
 using Random
 using StableRNGs

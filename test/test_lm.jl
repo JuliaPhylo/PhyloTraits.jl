@@ -19,7 +19,25 @@ sim = rand(net, params) # tests that the simulation runs, but results not used
 Y = [11.239539657364706,8.600423079191044,10.559841251147608,9.965748423156297] # sim[:tips]
 X = ones(4, 1)
 phynetlm = phylolm(X, Y, net; reml=false)
-@test_logs show(devnull, phynetlm)
+@test repr(phynetlm) ==
+  "No formula, Brownian motion model using ML, Log Likelihood -5.4624524661"
+@test repr("text/plain", phynetlm) == """
+PhyloNetworkLinearModel
+
+Model: Brownian motion
+
+Parameter Estimates, using ML:
+phylogenetic variance rate: 0.419632
+
+Coefficients:
+──────────────────────────────────────────────────────────────
+      Coef.  Std. Error      t  Pr(>|t|)  Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────
+x1  10.1581    0.698781  14.54    0.0007    7.93428    12.3819
+──────────────────────────────────────────────────────────────
+Log Likelihood: -5.4624524661
+AIC: 14.9249049321
+"""
 # Naive version (GLS)
 ntaxa = length(Y)
 Vy = phynetlm.Vy
@@ -96,7 +114,8 @@ tmp = (@test_logs (:warn, r"^You fitted the data against a custom matrix") mu_ph
 ## fixed values parameters
 fitlam = phylolm(@formula(trait ~ 1), dfr, net, model="lambda",
     paramlist=Dict(:lambda => (fixed=true, start=1.0)), reml=false)
-@test_logs show(devnull, fitlam)
+@test repr(fitlam) == "trait ~ 1, Pagel's lambda model using ML, Log Likelihood -5.4624524661"
+@test_logs show(devnull, MIME"text/plain"(), fitlam)
 
 @test lambda_estim(fitlam) ≈ 1.0
 @test coef(fitlam) ≈ coef(fitbis)
@@ -195,7 +214,9 @@ dfr = innerjoin(dfr, dfr_hybrid, on=:tipnames)
 
 ## Simple BM
 fitShift = phylolm(@formula(trait ~ shift_8 + shift_17), dfr, net; reml=false)
-@test_logs show(devnull, fitShift)
+@test_logs show(devnull, MIME"text/plain"(), fitShift)
+@test repr(fitShift) ==
+  "trait ~ 1 + shift_8 + shift_17, Brownian motion model using ML, Log Likelihood -12.5503351983"
 
 ## Test against fixed values lambda models
 fitlam = (@test_logs (:warn,
@@ -540,7 +561,9 @@ fitlam = (@test_logs (:info, r"^Maximum lambda value") match_mode=:any phylolm(
 
 ## scaling Hybrid
 fitSH = phylolm(@formula(trait ~ pred), dfr, net, model="scalinghybrid", reml=false)
-@test_logs show(devnull, fitSH)
+@test_logs show(devnull, MIME"text/plain"(), fitSH)
+@test occursin("trait ~ 1 + pred, Lambda's scaling hybrid model using ML, Log Likelihood",
+    repr(fitSH))
 @test lambda_estim(fitSH) ≈ 0 atol=1e-6
 
 ### Ancestral State Reconstruction
@@ -556,7 +579,39 @@ phynetlm = phylolm(@formula(trait~1), dfr, net)
 # prediction intervals larger with reml=true than with reml=false
 blup = (@test_logs (:warn, r"^These prediction intervals show uncertainty in ancestral values") ancestralreconstruction(phynetlm));
 # plot(net, blup)
-@test_logs show(devnull, blup)
+@test repr(blup) == "ReconstructedStates: at 14 nodes and 12 tips"
+@test repr("text/plain", blup) == """
+ReconstructedStates:
+────────────────────────────────────────────
+  Node index     Pred.      Min.  Max. (95%)
+────────────────────────────────────────────
+        -8.0  6.85617   4.81038     8.90197
+        -7.0  6.28631   4.1743      8.39833
+         5.0  3.67578   1.11758     6.23399
+        -6.0  5.003     2.64464     7.36136
+        -5.0  5.05965   2.33674     7.78256
+        -4.0  5.09607   2.48414     7.70799
+       -14.0  4.95239   3.36658     6.53819
+       -13.0  4.50294   2.4533      6.55258
+         2.0  4.14165   1.60993     6.67336
+       -11.0  3.74493   1.19456     6.2953
+       -10.0  4.18811   1.63718     6.73904
+        -3.0  4.65207   2.12509     7.17904
+       -15.0  4.68129   1.73656     7.62601
+        -2.0  4.67203   1.82309     7.52096
+         1.0  7.49814   7.49814     7.49814
+         3.0  7.71323   7.71323     7.71323
+         4.0  7.43141   7.43141     7.43141
+         6.0  0.985089  0.985089    0.985089
+         7.0  4.97015   4.97015     4.97015
+         8.0  5.38407   5.38407     5.38407
+         9.0  4.32664   4.32664     4.32664
+        10.0  0.607939  0.607939    0.607939
+        11.0  4.08425   4.08425     4.08425
+        12.0  5.50165   5.50165     5.50165
+        13.0  3.87327   3.87327     3.87327
+        14.0  4.79013   4.79013     4.79013
+────────────────────────────────────────────"""
 
 
 # BLUP same, using the function directly

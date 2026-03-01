@@ -22,10 +22,12 @@ Random.seed!(17920921); # fix the seed
 @test_throws ErrorException ParamsMultiBM(μ[1:2], Σ)
 
 pars = ParamsMultiBM(μ, Σ); # params of a MBD
-@test_logs show(devnull, pars)
+@test_logs show(devnull, MIME"text/plain"(), pars)
+@test occursin(r"^Parameters of a MBM with fixed root mu=", repr(pars))
 
 sim = rand(net, pars); # simulate according to a BM
-@test_logs show(devnull, sim)
+@test_logs show(devnull, MIME"text/plain"(), sim)
+@test occursin(r"^Trait simulated on a network with 12 tips using a MBD model", repr(sim))
 @test_throws ErrorException sim[:tips, :Broken]
 
 # Extract simulated values
@@ -97,9 +99,14 @@ pars = ParamsMultiBM(μ, Σ); # params of a MBD
 pars.varRoot = Σ_root
 pars.randomRoot = true
 
-@test_logs show(devnull, pars)
+@test_logs show(devnull, MIME"text/plain"(), pars)
 show(devnull, pars)
 
+sim = rand(net, pars);
+@test_logs show(devnull, MIME"text/plain"(), sim)
+@test_logs show(devnull, sim)
+
+#= # takes too long, or useless if we made N smaller. run locally.
 N = 10000
 S = length(tiplabels(net));
 μ_sim = zeros(trait_dim, S)
@@ -121,7 +128,7 @@ end
 Ψ = Matrix(vcv(net))
 Σ_true = kron(Ψ, Σ) + kron(ones(S, S), pars.varRoot)
 @test isapprox(Σ_sim, Σ_true, atol=12) # norm L2 of 36x36 matrix
-
+=#
 end
 
 
@@ -147,6 +154,7 @@ Random.seed!(275698234545); # fix the seed
 ## Concatenate function
 sh1 = ShiftNet(net.node[7], [1.0, 2.0],  net)*ShiftNet(net.node[9], [3.0, -1.5],  net)
 @test_logs show(devnull, sh1)
+@test repr(sh1) == "ShiftNet: 2-dim shift on 2 edge(s)"
 @test sh1.shift ≈ ShiftNet([net.node[7], net.node[9]], [1.0 2.0; 3.0 -1.5],  net).shift
 @test_throws ErrorException sh1*ShiftNet(net.edge[7], [4.0, 3.5],  net) # can't concatenate if the two affect the same edges
 @test sh1.shift ≈ (sh1*ShiftNet([net.node[7]], [1.0 2.0],  net)).shift

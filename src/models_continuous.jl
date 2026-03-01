@@ -173,9 +173,13 @@ function shift_coeftable(shift::ShiftNet)
               fill("", size(sv, 1)))
 end
 
+function Base.show(io::IO, ::MIME"text/plain", obj::ShiftNet)
+    println(io, "$(typeof(obj)):")
+    show(io, MIME"text/plain"(), shift_coeftable(obj))
+end
 function Base.show(io::IO, obj::ShiftNet)
-    println(io, "$(typeof(obj)):\n",
-            shift_coeftable(obj))
+    ne,p = size(getshiftvalue(obj))
+    print(io, "$(typeof(obj)): $p-dim shift on $ne edge(s)")
 end
 
 function Base.:*(sh1::ShiftNet, sh2::ShiftNet)
@@ -250,28 +254,36 @@ end
 
 process_dim(::ParamsBM) = 1
 
-function Base.show(io::IO, obj::ParamsBM)
-    disp =  "$(typeof(obj)):\n"
-    pt = paramstable(obj)
+function Base.show(io::IO, ::MIME"text/plain", obj::ParamsBM)
+    println(io, "$(typeof(obj)):")
     if obj.randomRoot
-        disp = disp * "Parameters of a BM with random root:\n" * pt
+        println(io, "Parameters of a BM with random root:")
     else
-        disp = disp * "Parameters of a BM with fixed root:\n" * pt
+        println(io, "Parameters of a BM with fixed root:")
     end
-    println(io, disp)
+    showparamstable(io, MIME"text/plain"(), obj)
+end
+function Base.show(io::IO, obj::ParamsBM) # no newlines
+    print(io, "Parameters of a BM with " *
+        (obj.randomRoot ? "random" : "fixed") * " root ")
+    showparamstable(io, obj)
 end
 
-function paramstable(obj::ParamsBM)
-    disp = "mu: $(obj.mu)\nSigma2: $(obj.sigma2)"
+function showparamstable(io::IO, ::MIME"text/plain", obj::ParamsBM)
+    println(io, "mu: $(obj.mu)\nSigma2: $(obj.sigma2)")
     if obj.randomRoot
-        disp = disp * "\nvarRoot: $(obj.varRoot)"
+        println(io, "varRoot: $(obj.varRoot)")
     end
     if anyShift(obj)
-        disp = disp * "\n\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:\n"
-        disp = disp * "$(shift_coeftable(obj.shift))"
+        println(io, "\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:")
+        show(io, MIME"text/plain"(), shift_coeftable(obj.shift))
     end
-    return(disp)
 end
+showparamstable(io::IO, obj::ParamsBM) = print(io, # no newlines, less details
+    "mu=$(obj.mu) sigma2=$(obj.sigma2)" *
+    (obj.randomRoot ? " varRoot=$(obj.varRoot)" : "") *
+    (anyShift(obj) ? " and $(length(getshiftvalue(obj.shift))) shift(s)" : "")
+)
 
 """
     ParamsMultiBM <: ParamsProcess
@@ -359,29 +371,36 @@ end
 
 process_dim(params::ParamsMultiBM) = length(params.mu)
 
-function Base.show(io::IO, obj::ParamsMultiBM)
-    disp =  "$(typeof(obj)):\n"
-    pt = paramstable(obj)
+function Base.show(io::IO, ::MIME"text/plain", obj::ParamsMultiBM)
+    println(io, "$(typeof(obj)):")
     if obj.randomRoot
-        disp = disp * "Parameters of a MBD with random root:\n" * pt
+        println(io, "Parameters of a MBD with random root:")
     else
-        disp = disp * "Parameters of a MBD with fixed root:\n" * pt
+        println(io, "Parameters of a MBD with fixed root:")
     end
-    println(io, disp)
+    showparamstable(io, MIME"text/plain"(), obj)
+end
+function Base.show(io::IO, obj::ParamsMultiBM) # no newlines
+    print(io, "Parameters of a MBM with " *
+        (obj.randomRoot ? "random" : "fixed") * " root ")
+    showparamstable(io, obj)
 end
 
-function paramstable(obj::ParamsMultiBM)
-    disp = "mu: $(obj.mu)\nSigma: $(obj.sigma)"
+function showparamstable(io::IO, ::MIME"text/plain", obj::ParamsMultiBM)
+    println(io, "mu: $(obj.mu)\nSigma: $(obj.sigma)")
     if obj.randomRoot
-        disp = disp * "\nvarRoot: $(obj.varRoot)"
+        println(io, "varRoot: $(obj.varRoot)")
     end
     if anyShift(obj)
-        disp = disp * "\n\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:\n"
-        disp = disp * "$(shift_coeftable(obj.shift))"
+        println(io, "\nThere are $(length(getshiftvalue(obj.shift))) shifts on the network:")
+        show(io, MIME"text/plain"(), shift_coeftable(obj.shift))
     end
-    return(disp)
 end
-
+showparamstable(io::IO, obj::ParamsMultiBM) = print(io,
+    "mu=$(obj.mu) Sigma=$(obj.sigma)" *
+    (obj.randomRoot ? " varRoot=$(obj.varRoot)" : "") *
+    (anyShift(obj) ? " and $(length(getshiftvalue(obj.shift))) shift(s)" : "")
+)
 
 """
     WithinSpeciesCTM
@@ -972,7 +991,7 @@ function paramstable(m::PhyloNetworkLinearModel)
 end
 # see also Base.show in
 # https://github.com/JuliaStats/StatsModels.jl/blob/master/src/statsmodel.jl
-function Base.show(io::IO, obj::PhyloNetworkLinearModel)
+function Base.show(io::IO, ::MIME"text/plain", obj::PhyloNetworkLinearModel)
     ct = coeftable(obj)
     println(io, "$(typeof(obj))")
     if !(obj.formula === nothing)
@@ -986,8 +1005,14 @@ function Base.show(io::IO, obj::PhyloNetworkLinearModel)
     println(io, paramstable(obj))
     println(io)
     println(io,"Coefficients:")
-    show(io, ct)
+    show(io, MIME"text/plain"(), ct)
     println(io)
     println(io, "Log Likelihood: "*"$(round(loglikelihood(obj), digits=10))")
     println(io, "AIC: "*"$(round(aic(obj), digits=10))")
 end
+# 2-argument method with no newlines
+Base.show(io::IO, obj::PhyloNetworkLinearModel) = print(io,
+    (isnothing(obj.formula) ? "No formula" : string(obj.formula)) *
+    ", $(evomodelname(obj.evomodel)) model" *
+    " using " * (obj.reml ? "REML" : "ML") *
+    ", Log Likelihood $(round(loglikelihood(obj), digits=10))")

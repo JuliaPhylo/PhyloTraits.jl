@@ -16,11 +16,15 @@ struct TraitSimulation
     evomodel::AbstractString
 end
 
+function Base.show(io::IO, ::MIME"text/plain", obj::TraitSimulation)
+    println(io, "$(typeof(obj)):")
+    println(io, "Trait simulation results on a network with $(length(obj.M.tipnames)) tips, using a $(obj.evomodel) model, with parameters:")
+    showparamstable(io, MIME"text/plain"(), obj.params)
+end
 function Base.show(io::IO, obj::TraitSimulation)
-    disp = "$(typeof(obj)):\n"
-    disp = disp * "Trait simulation results on a network with $(length(obj.M.tipnames)) tips, using a $(obj.evomodel) model, with parameters:\n"
-    disp = disp * paramstable(obj.params)
-    println(io, disp)
+    print(io, "Trait simulated on a network with $(length(obj.M.tipnames)) tips" *
+        " using a $(obj.evomodel) model with parameters ")
+    showparamstable(io, obj.params)
 end
 
 tiplabels(obj::TraitSimulation) = tiplabels(obj.M)

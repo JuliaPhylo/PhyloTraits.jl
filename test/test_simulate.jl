@@ -26,6 +26,11 @@ traitsNodes = sim[:internalnodes]
 @test 0 < sum(traitsNodes)/14 < 2
 @test 0 < sum(traitsTips)/14 < 2
 
+pars = ParamsBM(1, 0.1, true, 0.01, missing) # random root
+@test_logs show(devnull, MIME"text/plain"(), pars)
+@test repr(pars) == "Parameters of a BM with random root mu=1.0 sigma2=0.1 varRoot=0.01"
+sim = rand(net, pars)
+@test occursin("varRoot=0.01", repr(sim))
 end
 
 ###############################################################################
@@ -95,8 +100,29 @@ sh = ShiftNet(net.node[7], 3.0,  net)
 @test ParamsBM(1.0, 1.0, net).shift.shift ≈ ParamsBM(1.0, 1.0, ShiftNet(net)).shift.shift
 
 pars = ParamsBM(1, 0.1, ShiftNet(net.edge[8], 3.0,  net)); # params of a BM
-@test_logs show(devnull, pars)
+@test occursin("sigma2=0.1 and 1 shift(s)", repr(pars))
+@test repr("text/plain", pars) == """
+ParamsBM:
+Parameters of a BM with fixed root:
+mu: 1.0
+Sigma2: 0.1
+
+There are 1 shifts on the network:
+──────────────────────────
+  Edge Number  Shift Value
+──────────────────────────
+          8.0          3.0
+──────────────────────────"""
+
+
 @test_logs show(devnull, pars.shift)
+@test repr("text/plain", pars.shift) == """
+ShiftNet:
+──────────────────────────
+  Edge Number  Shift Value
+──────────────────────────
+          8.0          3.0
+──────────────────────────"""
 
 Random.seed!(17920921); # fix the seed
 sim = rand(net, pars); # simulate according to a BM
@@ -116,9 +142,43 @@ meansNodes = sim[:internalnodes, :exp];
 
 # Test same as MultiBM
 pars = ParamsMultiBM([1.0], 0.1*ones(1,1), ShiftNet(net.edge[8], 3.0,  net));
+@test repr(pars) == "Parameters of a MBM with fixed root mu=[1.0] Sigma=[0.1;;] and 1 shift(s)"
+@test repr("text/plain", pars) == """
+ParamsMultiBM:
+Parameters of a MBD with fixed root:
+mu: [1.0]
+Sigma: [0.1;;]
+
+There are 1 shifts on the network:
+──────────────────────────
+  Edge Number  Shift Value
+──────────────────────────
+          8.0          3.0
+──────────────────────────"""
+
 simMulti = rand(net, pars);
+@test repr("text/plain", simMulti) == """
+TraitSimulation:
+Trait simulation results on a network with 4 tips, using a MBD model, with parameters:
+mu: [1.0]
+Sigma: [0.1;;]
+
+There are 1 shifts on the network:
+──────────────────────────
+  Edge Number  Shift Value
+──────────────────────────
+          8.0          3.0
+──────────────────────────"""
+
 @test simMulti[:tips, :exp] ≈ sim[:tips, :exp]'
 @test simMulti[:internalnodes, :exp] ≈ sim[:internalnodes, :exp]'
+
+pars = ParamsMultiBM([4.], .1*ones(1,1), true, .01*ones(1,1), # random root
+  ShiftNet(net.edge[8],3.,net), LowerTriangular([2.;;])) # LinearAlgebra.cholesky([4;;]).L
+@test_logs show(devnull, MIME"text/plain"(), pars)
+@test repr(pars) == "Parameters of a MBM with random root mu=[4.0] Sigma=[0.1;;] varRoot=[0.01;;] and 1 shift(s)"
+sim = rand(net, pars)
+@test occursin("varRoot=[0.01;;]", repr(sim))
 
 ###############################################################################
 ## Test of distibution - with shifts
